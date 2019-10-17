@@ -20,13 +20,21 @@ namespace OpsSecProject.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
         }
 
+        [Authorize("User")]
         public IActionResult Privacy()
         {
+            return View();
+        }
+
+        public IActionResult Claims()
+        {
+            ViewData["User"] = HttpContext.User;
             return View();
         }
 
