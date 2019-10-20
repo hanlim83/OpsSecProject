@@ -1,5 +1,3 @@
-using System;
-
 namespace OpsSecProject.Models
 {
     public class ErrorViewModel
