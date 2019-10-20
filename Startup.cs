@@ -8,9 +8,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpsSecProject.Data;
 using OpsSecProject.Policies;
+using OpsSecProject.Services;
 
 namespace OpsSecProject
 {
@@ -81,9 +84,10 @@ namespace OpsSecProject
                     .RequireAuthenticatedUser()
                     .Build();
                 options.Filters.Add(new AuthorizeFilter(policy)); */
+                options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            
+
             //Core AWS Initialization
             var awsOptions = Configuration.GetAWSOptions();
             awsOptions.Region = Amazon.RegionEndpoint.APSoutheast1;
@@ -91,6 +95,17 @@ namespace OpsSecProject
             services.AddDefaultAWSOptions(awsOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
+
+            //Entity Framework Initialization
+            services.AddDbContext<LogDataContext>(options =>
+            options.UseSqlServer(GetRdsConnectionString("LogData")));
+
+            //Background Processing
+            services.AddHostedService<ConsumeScopedServicesHostedService>();
+            //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();
+            //services.AddScoped<IScopedSetupService, ScopedSetupService>();
+            services.AddHostedService<QueuedHostedService>();
+            services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -119,6 +134,15 @@ namespace OpsSecProject
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+        private string GetRdsConnectionString(string dbname)
+        {
+            string hostname = Configuration.GetValue<string>("RDS_HOSTNAME");
+            string port = Configuration.GetValue<string>("RDS_PORT");
+            string username = Configuration.GetValue<string>("RDS_USERNAME");
+            string password = Configuration.GetValue<string>("RDS_PASSWORD");
+
+            return $"Data Source={hostname},{port};Initial Catalog={dbname};User ID={username};Password={password};";
         }
     }
 }

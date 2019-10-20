@@ -12,8 +12,13 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "RDS_DB_NAME": "Value",
+        "RDS_HOSTNAME": "ospj-dev.cveglglrcyfg.ap-southeast-1.rds.amazonaws.com",
+        "RDS_PORT": "1433",
+        "RDS_USERNAME": "admin",
         "AWS_SECRET_ACCESS_KEY": "TN7wjY64UMIJx8RNSfcnMFcO1YG87fR9lf5swApb",
         "AWS_ACCESS_KEY_ID": "AKIASXW25GZQKCUITRMT",
+        "RDS_PASSWORD": "53lMOOm5RMfvwC3j1nDL",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "nativeDebugging": true
