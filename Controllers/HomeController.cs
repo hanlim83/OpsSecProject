@@ -19,6 +19,12 @@ namespace OpsSecProject.Controllers
             return View();
         }
 
+        public IActionResult Claims()
+        {
+            ViewData["User"] = HttpContext.User;
+            return View();
+        }
+
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
