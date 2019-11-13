@@ -46,7 +46,7 @@ namespace OpsSecProject
             {
                 options.Authority += "/v2.0/";
                 options.TokenValidationParameters.ValidateIssuer = false;
-                options.Prompt = "login";
+                options.Prompt = "select_account";
                 options.Events = new OpenIdConnectEvents
                 {
                     OnRemoteFailure = context =>
