@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication;
@@ -47,6 +48,9 @@ namespace OpsSecProject
                 options.Authority += "/v2.0/";
                 options.TokenValidationParameters.ValidateIssuer = false;
                 options.Prompt = "select_account";
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.SkipUnrecognizedRequests = true;
+                options.MaxAge = TimeSpan.FromHours(3);
                 options.Events = new OpenIdConnectEvents
                 {
                     OnRemoteFailure = context =>
@@ -69,6 +73,12 @@ namespace OpsSecProject
                         return Task.CompletedTask;
                     },
                     OnSignedOutCallbackRedirect = context =>
+                    {
+                        context.Response.Redirect("/Landing/Logout");
+                        context.HandleResponse();
+                        return Task.CompletedTask;
+                    },
+                    OnRemoteSignOut = context =>
                     {
                         context.Response.Redirect("/Landing/Logout");
                         context.HandleResponse();
