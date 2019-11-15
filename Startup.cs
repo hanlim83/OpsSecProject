@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.SageMaker;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using OpsSecProject.Data;
 using OpsSecProject.Policies;
 using OpsSecProject.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace OpsSecProject
 {
@@ -99,6 +101,8 @@ namespace OpsSecProject
                                   AdministratorAuthorizationPolicy.Build);
             });
 
+            services.AddSession();
+
             services.AddMvc(options =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -116,7 +120,10 @@ namespace OpsSecProject
             services.AddDefaultAWSOptions(awsOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
-
+            //SagerMaker Initialization
+            services.AddAWSService<IAmazonSageMaker>();
+            //Kinesis Firehose Initialization
+            services.AddAWSService<IAmazonKinesisFirehose>();
             //Entity Framework Initialization
             services.AddDbContext<LogDataContext>(options =>
             options.UseSqlServer(GetRdsConnectionString("LogData")));
@@ -130,7 +137,7 @@ namespace OpsSecProject
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public static void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -146,7 +153,7 @@ namespace OpsSecProject
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            app.UseSession();
             app.UseAuthentication();
 
             app.UseMvc(routes =>
