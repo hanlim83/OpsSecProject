@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Models;
@@ -26,6 +28,16 @@ namespace OpsSecProject.Controllers
         [AllowAnonymous]
         public IActionResult Logout()
         {
+            foreach (var cookieKey in HttpContext.Request.Cookies.Keys)
+            {
+                HttpContext.Response.Cookies.Delete(cookieKey);
+            }
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Signout()
+        {
             return View();
         }
 
@@ -43,6 +55,14 @@ namespace OpsSecProject.Controllers
         public IActionResult Unauthenticated()
         {
             return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Reauthenticate()
+        {
+            var authenticationProperties = new AuthenticationProperties();
+            authenticationProperties.Items["prompt"] = "login";
+            return Challenge(authenticationProperties,AzureADDefaults.AuthenticationScheme);
         }
 
         [AllowAnonymous]

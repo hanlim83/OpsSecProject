@@ -1,4 +1,12 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
+﻿function SLOCountDown(secs) {
+    var countDownInterval = function () {
+        if (secs <= 1) {
+            clearInterval(interval);
+            window.location.replace(document.getElementById("sloLink").href);
+        } else {
+            secs--;
+            document.getElementById('sloLink').innerHTML = "Yes ("+secs+" seconds remaining till auto logout)";
+        }
+    };
+    var interval = setInterval(countDownInterval, 1000);
+}

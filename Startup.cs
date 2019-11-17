@@ -32,13 +32,10 @@ namespace OpsSecProject
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<CookiePolicyOptions>(options =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
@@ -49,10 +46,11 @@ namespace OpsSecProject
             {
                 options.Authority += "/v2.0/";
                 options.TokenValidationParameters.ValidateIssuer = true;
-                options.Prompt = "select_account";
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SkipUnrecognizedRequests = true;
                 options.MaxAge = TimeSpan.FromHours(1);
+                options.UseTokenLifetime = true;
+                options.RemoteSignOutPath = "/single-signout";
                 options.Events = new OpenIdConnectEvents
                 {
                     OnRemoteFailure = context =>
@@ -72,6 +70,10 @@ namespace OpsSecProject
                     {
                         if (context.ProtocolMessage.RedirectUri.StartsWith("http://"))
                             context.ProtocolMessage.RedirectUri = context.ProtocolMessage.RedirectUri.Replace("http://", "https://");
+                        if (context.Properties.Items.TryGetValue("prompt", out string prompt))
+                        {
+                            context.ProtocolMessage.Prompt = prompt;
+                        }
                         return Task.CompletedTask;
                     },
                     OnRedirectToIdentityProviderForSignOut = context =>
@@ -82,20 +84,17 @@ namespace OpsSecProject
                     },
                     OnSignedOutCallbackRedirect = context =>
                     {
-                        context.Response.Redirect("/Landing/Logout");
-                        context.HandleResponse();
-                        return Task.CompletedTask;
-                    },
-                    OnRemoteSignOut = context =>
-                    {
-                        context.Response.Redirect("/Landing/Logout");
+                        context.Response.Redirect("/Landing/Signout");
                         context.HandleResponse();
                         return Task.CompletedTask;
                     }
                 };
             });
-
-            services.Configure<CookieAuthenticationOptions>(AzureADDefaults.CookieScheme, options => options.AccessDeniedPath = "/Landing/Unauthorised");
+            services.Configure<CookieAuthenticationOptions>(AzureADDefaults.CookieScheme, options =>
+            {
+                options.AccessDeniedPath = "/Landing/Unauthorised";
+                options.Cookie.SameSite = SameSiteMode.None;
+            });
 
             services.AddAuthorization(options =>
             {
@@ -152,7 +151,6 @@ namespace OpsSecProject
             else
             {
                 app.UseExceptionHandler("/Landing/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
             app.UseStatusCodePagesWithReExecute("/Landing/Error", "?code={0}");

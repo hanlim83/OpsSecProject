@@ -1,6 +1,6 @@
 ﻿@{
     Layout = null;
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Signed Out";
 }
 <!DOCTYPE html>
 <html>
@@ -40,8 +40,8 @@
 </head>
 <body class="text-center">
     <div class="landing">
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-        <a class="btn btn-lg btn-primary btn-block" asp-area="AzureAD" asp-controller="Account" asp-action="SignIn">Sign in with Identity Provider</a>
+        <h1 class="h3 mb-3 font-weight-normal">You signed-out succesfully</h1>
+        <a class="btn btn-lg btn-primary btn-block" asp-action="Login">Go back to login page</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2019 - SmartInsights</p>
     </div>
     <environment include="Development">
