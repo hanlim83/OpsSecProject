@@ -8,9 +8,9 @@ using System.Diagnostics;
 
 namespace OpsSecProject.Controllers
 {
+    [AllowAnonymous]
     public class LandingController : Controller
     {
-        [AllowAnonymous]
         public IActionResult Index()
         {
             if (User.Identity.IsAuthenticated)
@@ -19,45 +19,26 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Login");
         }
 
-        [AllowAnonymous]
         public IActionResult Login()
         {
             return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Logout()
         {
-            foreach (var cookieKey in HttpContext.Request.Cookies.Keys)
-            {
-                HttpContext.Response.Cookies.Delete(cookieKey);
-            }
             return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Signout()
         {
             return View();
         }
 
-        public IActionResult Claims()
-        {
-            ViewData["User"] = HttpContext.User;
-            return View();
-        }
-        public IActionResult Unauthorised()
-        {
-            return View();
-        }
-
-        [AllowAnonymous]
         public IActionResult Unauthenticated()
         {
             return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Reauthenticate()
         {
             var authenticationProperties = new AuthenticationProperties();
@@ -65,7 +46,6 @@ namespace OpsSecProject.Controllers
             return Challenge(authenticationProperties,AzureADDefaults.AuthenticationScheme);
         }
 
-        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(string code)
         {
@@ -74,7 +54,7 @@ namespace OpsSecProject.Controllers
                 return View(new ErrorViewModel
                 {
                     RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
-                    OriginalURL = statusCodeReExecuteFeature.OriginalPathBase + statusCodeReExecuteFeature.OriginalPath + statusCodeReExecuteFeature.OriginalQueryString,
+                    OriginalPath = statusCodeReExecuteFeature.OriginalPathBase + statusCodeReExecuteFeature.OriginalPath + statusCodeReExecuteFeature.OriginalQueryString,
                     ErrorStatusCode = code
                 });
             else

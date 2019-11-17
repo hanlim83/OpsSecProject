@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace OpsSecProject.Models
 {
     public class ErrorViewModel
@@ -13,8 +11,8 @@ namespace OpsSecProject.Models
 
         public bool ShowStatusCode => !string.IsNullOrEmpty(ErrorStatusCode);
 
-        public string OriginalURL { get; set; }
-        public bool ShowOriginalURL => !string.IsNullOrEmpty(OriginalURL);
+        public string OriginalPath { get; set; }
+        public bool ShowOriginalPath => !string.IsNullOrEmpty(OriginalPath);
 
     }
 }

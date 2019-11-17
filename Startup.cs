@@ -19,6 +19,7 @@ using OpsSecProject.Data;
 using OpsSecProject.Policies;
 using OpsSecProject.Services;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace OpsSecProject
@@ -40,7 +41,14 @@ namespace OpsSecProject
             });
 
             services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+                .AddAzureAD(options => Configuration.Bind("AzureAd", options))
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+                {
+                    options.AccessDeniedPath = "/Account/Unauthorised";
+                    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                    options.SlidingExpiration = true;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                });
 
             services.Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options =>
             {
@@ -87,19 +95,22 @@ namespace OpsSecProject
                         context.Response.Redirect("/Landing/Signout");
                         context.HandleResponse();
                         return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
+                        claimsIdentity.AddClaim(new Claim("AuthMethod", "External"));
+                        return Task.FromResult(0);
                     }
                 };
             });
             services.Configure<CookieAuthenticationOptions>(AzureADDefaults.CookieScheme, options =>
             {
-                options.AccessDeniedPath = "/Landing/Unauthorised";
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.AccessDeniedPath = "/Account/Unauthorised";
             });
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(UserAuthorizationPolicy.Name,
-                                  UserAuthorizationPolicy.Build);
                 options.AddPolicy(PowerUserAuthorizationPolicy.Name,
                                   PowerUserAuthorizationPolicy.Build);
                 options.AddPolicy(AdministratorAuthorizationPolicy.Name,
@@ -110,7 +121,7 @@ namespace OpsSecProject
 
             services.AddMvc(options =>
             {
-                var policy = new AuthorizationPolicyBuilder()
+                var policy = new AuthorizationPolicyBuilder(AzureADDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
                     .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
@@ -130,8 +141,8 @@ namespace OpsSecProject
             //Kinesis Firehose Initialization
             services.AddAWSService<IAmazonKinesisFirehose>();
             //Entity Framework Initialization
-            services.AddDbContext<LogDataContext>(options =>
-            options.UseSqlServer(GetRdsConnectionString("LogData")));
+            services.AddDbContext<AuthenticationContext>(options =>
+            options.UseSqlServer(GetRdsConnectionString("Authentication")));
 
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();

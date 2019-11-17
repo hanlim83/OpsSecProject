@@ -57,10 +57,10 @@
                 <strong>HTTP Status Code: @Model.ErrorStatusCode</strong>
             </p>
         }
-        @if (Model.ShowOriginalURL)
+        @if (Model.ShowOriginalPath)
         {
             <p class="mt-5 mb-3 text-muted">
-                <strong>Original URL: @Model.OriginalURL</strong>
+                <strong>Requested Path: @Model.OriginalPath</strong>
             </p>
         }
         <p class="mt-5 mb-3 text-muted">&copy; 2019 - SmartInsights</p>

@@ -41,7 +41,7 @@ namespace OpsSecProject
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<LogDataContext>();
+                    var context = services.GetRequiredService<AuthenticationContext>();
                     DbInitializer.InitializeLogDataContext(context);
                 }
                 catch (Exception ex)
