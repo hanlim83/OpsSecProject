@@ -48,11 +48,11 @@ namespace OpsSecProject
             services.Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options =>
             {
                 options.Authority += "/v2.0/";
-                options.TokenValidationParameters.ValidateIssuer = false;
+                options.TokenValidationParameters.ValidateIssuer = true;
                 options.Prompt = "select_account";
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SkipUnrecognizedRequests = true;
-                options.MaxAge = TimeSpan.FromHours(3);
+                options.MaxAge = TimeSpan.FromHours(1);
                 options.Events = new OpenIdConnectEvents
                 {
                     OnRemoteFailure = context =>
@@ -60,6 +60,12 @@ namespace OpsSecProject
                         context.Response.Redirect("/Landing/Unauthenticated");
                         context.HandleResponse();
 
+                        return Task.FromResult(0);
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        context.Response.Redirect("/Landing/Unauthenticated");
+                        context.HandleResponse();
                         return Task.FromResult(0);
                     },
                     OnRedirectToIdentityProvider = context =>
@@ -149,13 +155,12 @@ namespace OpsSecProject
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseStatusCodePagesWithReExecute("/Landing/Error", "?code={0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseSession();
             app.UseAuthentication();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
