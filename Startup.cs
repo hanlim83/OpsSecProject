@@ -2,6 +2,8 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SageMaker;
+using Amazon.SimpleEmail;
+using Amazon.SimpleNotificationService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -140,9 +142,21 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonSageMaker>();
             //Kinesis Firehose Initialization
             services.AddAWSService<IAmazonKinesisFirehose>();
+            //Simple Notification / Email Services Initialization
+            services.AddAWSService<IAmazonSimpleNotificationService>();
+            services.AddAWSService<IAmazonSimpleEmailService>();
             //Entity Framework Initialization
             services.AddDbContext<AuthenticationContext>(options =>
-            options.UseSqlServer(GetRdsConnectionString("Authentication")));
+            {
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Authentication"),
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 10,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    });
+            });
 
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
@@ -177,14 +191,14 @@ namespace OpsSecProject
                     template: "{controller=Landing}/{action=Index}/{id?}");
             });
         }
-        private string GetRdsConnectionString(string dbname)
+        private string GetRdsConnectionString(string name)
         {
             string hostname = Configuration.GetValue<string>("RDS_HOSTNAME");
             string port = Configuration.GetValue<string>("RDS_PORT");
             string username = Configuration.GetValue<string>("RDS_USERNAME");
             string password = Configuration.GetValue<string>("RDS_PASSWORD");
 
-            return $"Data Source={hostname},{port};Initial Catalog={dbname};User ID={username};Password={password};";
+            return $"Data Source={hostname},{port};Initial Catalog={name};User ID={username};Password={password};";
         }
     }
 }

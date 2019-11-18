@@ -29,7 +29,7 @@ namespace OpsSecProject.Controllers
         }
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> ForgetPassword([Bind("Username")]ForgetPasswordModel Username)
+        public async Task<IActionResult> ForgetPassword([Bind("Username")]ForgetPasswordModel User)
         {
             return View();
         }

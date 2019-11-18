@@ -42,7 +42,7 @@ namespace OpsSecProject
                 try
                 {
                     var context = services.GetRequiredService<AuthenticationContext>();
-                    DbInitializer.InitializeLogDataContext(context);
+                    DbInitializer.InitializeAuthenticationContext(context);
                 }
                 catch (Exception ex)
                 {
