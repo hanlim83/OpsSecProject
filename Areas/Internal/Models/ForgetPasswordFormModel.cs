@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OpsSecProject.Models
+namespace OpsSecProject.Areas.Internal.Models
 {
     public class ForgetPasswordModel
     {

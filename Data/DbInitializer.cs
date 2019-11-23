@@ -1,4 +1,5 @@
-﻿using OpsSecProject.Models;
+﻿using OpsSecProject.Areas.Internal.Data;
+using OpsSecProject.Models;
 using System.Linq;
 
 namespace OpsSecProject.Data

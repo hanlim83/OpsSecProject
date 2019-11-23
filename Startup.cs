@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpsSecProject.Areas.Internal.Data;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
 using OpsSecProject.Services;
@@ -53,6 +54,7 @@ namespace OpsSecProject
                     options.SlidingExpiration = true;
                     options.Cookie.SameSite = SameSiteMode.Strict;
                     options.EventsType = typeof(CustomCookieAuthenticationEvents);
+                    options.LoginPath = "/Landing/Login";
                 });
 
             services.Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options =>
@@ -106,7 +108,7 @@ namespace OpsSecProject
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
                         AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
                         User retrieved = authenticationContext.Users.Find(claimsIdentity.FindFirst("preferred_username").Value);
-                        if ( retrieved == null)
+                        if (retrieved == null)
                         {
                             User import = new User
                             {
@@ -135,7 +137,8 @@ namespace OpsSecProject
                             }
                             authenticationContext.Add(import);
                             authenticationContext.SaveChanges();
-                        } else
+                        }
+                        else
                         {
                             if (retrieved.IDPReference.Equals(claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value))
                             {
@@ -157,7 +160,7 @@ namespace OpsSecProject
                                 authenticationContext.Update(retrieved);
                                 authenticationContext.SaveChanges();
                             }
-                                
+
                         }
                         foreach (var claim in claimsIdentity.Claims.ToList())
                         {
@@ -178,6 +181,7 @@ namespace OpsSecProject
             services.Configure<CookieAuthenticationOptions>(AzureADDefaults.CookieScheme, options =>
             {
                 options.AccessDeniedPath = "/Account/Unauthorised";
+                options.LoginPath = "/Landing/Login";
             });
             services.AddScoped<CustomCookieAuthenticationEvents>();
 
@@ -250,6 +254,9 @@ namespace OpsSecProject
             app.UseAuthentication();
             app.UseMvc(routes =>
             {
+                routes.MapRoute(
+                    name: "areaRoute",
+                    template: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Landing}/{action=Index}/{id?}");

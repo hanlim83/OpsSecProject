@@ -1,4 +1,4 @@
-﻿namespace OpsSecProject.Data
+﻿namespace OpsSecProject.Areas.Internal.Data
 {
     public static class Password
     {

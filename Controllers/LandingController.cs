@@ -19,10 +19,10 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Login");
         }
 
-        public IActionResult Login([FromQuery(Name = "action")] string action)
+        public IActionResult Login(string ReturnUrl)
         {
-            if (action != null && action.Equals("relogin"))
-                ViewData["Message"] = "Your session has expired. Please login again";
+            if (ReturnUrl != null)
+                ViewData["ReturnURL"] = ReturnUrl;
             return View();
         }
 
@@ -45,6 +45,7 @@ namespace OpsSecProject.Controllers
         {
             var authenticationProperties = new AuthenticationProperties();
             authenticationProperties.Items["prompt"] = "login";
+            authenticationProperties.RedirectUri = "/Landing/";
             return Challenge(authenticationProperties,AzureADDefaults.AuthenticationScheme);
         }
 

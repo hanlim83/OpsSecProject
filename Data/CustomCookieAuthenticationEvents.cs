@@ -22,9 +22,7 @@ namespace OpsSecProject.Data
             User currentUser = _context.Users.Find(currentIdentity);
             if (currentUser == null || currentUser.ForceSignOut == true) {
                 context.RejectPrincipal();
-                await context.HttpContext.SignOutAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme);
-                context.HttpContext.Response.Redirect("/Landing/Login?action=relogin");
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             }
         }
 
