@@ -18,9 +18,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpsSecProject.Data;
-using OpsSecProject.Policies;
+using OpsSecProject.Models;
 using OpsSecProject.Services;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -50,6 +52,7 @@ namespace OpsSecProject
                     options.ExpireTimeSpan = TimeSpan.FromHours(1);
                     options.SlidingExpiration = true;
                     options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.EventsType = typeof(CustomCookieAuthenticationEvents);
                 });
 
             services.Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options =>
@@ -98,10 +101,76 @@ namespace OpsSecProject
                         context.HandleResponse();
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = context =>
+                    OnTokenValidated = loginContext =>
                     {
-                        var claimsIdentity = (ClaimsIdentity)context.Principal.Identity;
-                        claimsIdentity.AddClaim(new Claim("AuthMethod", "External"));
+                        var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
+                        AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
+                        User retrieved = authenticationContext.Users.Find(claimsIdentity.FindFirst("preferred_username").Value);
+                        if ( retrieved == null)
+                        {
+                            User import = new User
+                            {
+                                Username = claimsIdentity.FindFirst("preferred_username").Value,
+                                Name = claimsIdentity.FindFirst("name").Value,
+                                Password = Password.GetRandomSalt(),
+                                EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value,
+                                VerifiedEmail = true,
+                                VerifiedPhoneNumber = false,
+                                Existence = Existence.External,
+                                ForceSignOut = false,
+                                IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
+                                LastSignedIn = DateTime.Now
+                            };
+                            foreach (var claim in claimsIdentity.Claims)
+                            {
+                                if (claim.Type.Equals("groups"))
+                                {
+                                    List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                    foreach (var retrievedRole in retrievedRoles)
+                                    {
+                                        if (retrievedRole.IDPReference.Equals(claim.Value))
+                                            import.LinkedRole = retrievedRole;
+                                    }
+                                }
+                            }
+                            authenticationContext.Add(import);
+                            authenticationContext.SaveChanges();
+                        } else
+                        {
+                            if (retrieved.IDPReference.Equals(claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value))
+                            {
+                                retrieved.ForceSignOut = false;
+                                retrieved.EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
+                                retrieved.LastSignedIn = DateTime.Now;
+                                foreach (var claim in claimsIdentity.Claims)
+                                {
+                                    if (claim.Type.Equals("groups"))
+                                    {
+                                        List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                        foreach (var retrievedRole in retrievedRoles)
+                                        {
+                                            if (retrievedRole.IDPReference.Equals(claim.Value))
+                                                retrieved.LinkedRole = retrievedRole;
+                                        }
+                                    }
+                                }
+                                authenticationContext.Update(retrieved);
+                                authenticationContext.SaveChanges();
+                            }
+                                
+                        }
+                        foreach (var claim in claimsIdentity.Claims.ToList())
+                        {
+                            if (claim.Type.Equals("groups"))
+                            {
+                                List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                foreach (var retrievedRole in retrievedRoles)
+                                {
+                                    if (retrievedRole.IDPReference.Equals(claim.Value))
+                                        claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, retrievedRole.RoleName));
+                                }
+                            }
+                        }
                         return Task.FromResult(0);
                     }
                 };
@@ -110,14 +179,9 @@ namespace OpsSecProject
             {
                 options.AccessDeniedPath = "/Account/Unauthorised";
             });
+            services.AddScoped<CustomCookieAuthenticationEvents>();
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy(PowerUserAuthorizationPolicy.Name,
-                                  PowerUserAuthorizationPolicy.Build);
-                options.AddPolicy(AdministratorAuthorizationPolicy.Name,
-                                  AdministratorAuthorizationPolicy.Build);
-            });
+            services.AddAuthorization();
 
             services.AddSession();
 

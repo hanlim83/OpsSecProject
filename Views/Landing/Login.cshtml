@@ -41,6 +41,12 @@
 <body class="text-center">
     <div class="landing">
         <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Message"]
+                </div>
+        }
         <a class="btn btn-lg btn-primary btn-block" asp-area="AzureAD" asp-controller="Account" asp-action="SignIn">Sign in with Identity Provider</a>
         <hr />
         <a class="btn btn-lg btn-secondary btn-block" asp-controller="Account" asp-action="Login">Sign in with Username and Password</a>

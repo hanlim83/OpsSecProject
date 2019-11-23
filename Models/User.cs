@@ -19,18 +19,21 @@ namespace OpsSecProject.Models
         [Display(Name = "Phone Number")]
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
+        public string Name { get; set; }
         [Display(Name = "Email Address")]
         [DataType(DataType.EmailAddress)]
         public string EmailAddress { get; set; }
         [Required]
         public Existence Existence { get; set; }
         public DateTime LastSignedIn { get; set; }
+        [Required]
         public bool ForceSignOut { get; set; }
+        [Required]
         public bool VerifiedEmail { get; set; }
+        [Required]
         public bool VerifiedPhoneNumber { get; set; }
         public string IDPReference { get; set; }
 
-        [Required]
         public virtual Role LinkedRole { get; set; }
         public virtual ICollection<NotificationToken> NotificationTokens { get; set; }
     }

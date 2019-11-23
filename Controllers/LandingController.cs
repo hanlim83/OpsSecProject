@@ -19,8 +19,10 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Login");
         }
 
-        public IActionResult Login()
+        public IActionResult Login([FromQuery(Name = "action")] string action)
         {
+            if (action != null && action.Equals("relogin"))
+                ViewData["Message"] = "Your session has expired. Please login again";
             return View();
         }
 
