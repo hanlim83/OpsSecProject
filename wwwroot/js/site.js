@@ -5,7 +5,7 @@
             window.location.replace(document.getElementById("sloLink").href);
         } else {
             secs--;
-            document.getElementById('sloLink').innerHTML = "Yes ("+secs+" seconds remaining till auto logout)";
+            document.getElementById('sloLink').innerHTML = "Yes (" + secs + " seconds remaining till auto logout)";
         }
     };
     var interval = setInterval(countDownInterval, 1000);
@@ -25,3 +25,17 @@
         });
     }, false);
 })();
+$(document).ready(function () {
+    var path = window.location.pathname;
+    var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
+    var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
+    if (checkNormal) {
+        $('a[href="' + path + '"]').parent().addClass('active');
+    } else if (checkCollapse) {
+        $('a[href="' + path + '"]').addClass('active');
+        $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
+        $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
+        $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
+        $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
+    }
+});
