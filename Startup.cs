@@ -196,6 +196,7 @@ namespace OpsSecProject
                     .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                options.EnableEndpointRouting = false;
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
