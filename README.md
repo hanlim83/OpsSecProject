@@ -39,9 +39,11 @@ Hence, our solution aims to combat these problems presented by traditional SIEMs
    - [jQuery](https://github.com/jquery/jquery) (Local JS when in Development, CDN when in Production)
       - [jQuery Vaildation](https://github.com/jquery-validation/jquery-validation) (Local JS when in Development, CDN when in Production)
       - [jQuery Vaildation Unobtrusive](https://github.com/aspnet/jquery-validation-unobtrusive) (Local JS when in Development, CDN when in Production)
+      - [jQuery Easing](https://github.com/gdsmith/jquery.easing) (Local JS when in Development, CDN when in Production)
    - [Popper](https://github.com/FezVrasta/popper.js) (Local JS when in Development, CDN when in Production)
-- [Google Material Icons](https://github.com/google/material-design-icons) (CDN regardless of Development or Production)
+- [Font Awesome Icons](https://fontawesome.com/) (CDN regardless of Development or Production)
 - [Chart.js](https://www.chartjs.org/) (Local JS & CSS when in Development, CDN when in Production)
+- [DataTables](https://datatables.net/) (Local JS & CSS when in Development, CDN when in Production)
 
 ## Tools Used
 - Visual Studio 2019
