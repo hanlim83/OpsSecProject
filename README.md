@@ -36,12 +36,13 @@ Hence, our solution aims to combat these problems presented by traditional SIEMs
 
 ## External Resources Used
 - [Bootstrap](https://github.com/twbs/bootstrap) (Local JS & CSS when in Development, CDN when in Production)
+   - [Start Boostrap 2 - Dashboard Template](https://github.com/BlackrockDigital/startbootstrap-sb-admin-2) (Local JS & CSS regardless of Development or Production)
    - [jQuery](https://github.com/jquery/jquery) (Local JS when in Development, CDN when in Production)
       - [jQuery Vaildation](https://github.com/jquery-validation/jquery-validation) (Local JS when in Development, CDN when in Production)
       - [jQuery Vaildation Unobtrusive](https://github.com/aspnet/jquery-validation-unobtrusive) (Local JS when in Development, CDN when in Production)
       - [jQuery Easing](https://github.com/gdsmith/jquery.easing) (Local JS when in Development, CDN when in Production)
    - [Popper](https://github.com/FezVrasta/popper.js) (Local JS when in Development, CDN when in Production)
-- [Font Awesome Icons](https://fontawesome.com/) (CDN regardless of Development or Production)
+- [Font Awesome Icons](https://fontawesome.com/) (Local JS & CSS when in Development, CDN when in Production)
 - [Chart.js](https://www.chartjs.org/) (Local JS & CSS when in Development, CDN when in Production)
 - [DataTables](https://datatables.net/) (Local JS & CSS when in Development, CDN when in Production)
 
@@ -51,3 +52,4 @@ Hence, our solution aims to combat these problems presented by traditional SIEMs
 - ASP.NET Entity Framework Core (EF Core)
 - Amazon Web Services (S3, RDS, EC2, EBS, SES, SNS, ELB, Sagemaker, Kinesis)
 - [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
+- [BCrypt.Net](https://github.com/BcryptNet/bcrypt.net)
