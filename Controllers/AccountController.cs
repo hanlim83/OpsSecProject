@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Data;
+using OpsSecProject.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -15,6 +16,14 @@ namespace OpsSecProject.Controllers
         public AccountController(AuthenticationContext context)
         {
             _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User currentUser = await _context.Users.FindAsync(currentIdentity);
+            return View(currentUser);
         }
 
         public IActionResult Unauthorised()

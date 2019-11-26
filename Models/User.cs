@@ -25,7 +25,9 @@ namespace OpsSecProject.Models
         public string EmailAddress { get; set; }
         [Required]
         public Existence Existence { get; set; }
-        public DateTime LastSignedIn { get; set; }
+        public DateTime LastAuthentication { get; set; }
+        [Required]
+        public DateTime LastPasswordChange { get; set; }
         [Required]
         public bool ForceSignOut { get; set; }
         [Required]

@@ -1,5 +1,6 @@
 ﻿using OpsSecProject.Areas.Internal.Data;
 using OpsSecProject.Models;
+using System;
 using System.Linq;
 
 namespace OpsSecProject.Data
@@ -31,11 +32,12 @@ namespace OpsSecProject.Data
                 {
                     Username = "Admin",
                     Name = "Administrator",
-                    Password = Password.HashPassword("SmartInsights",Password.GetRandomSalt()),
+                    Password = Password.HashPassword("SmartInsights", Password.GetRandomSalt()),
                     PhoneNumber = "97931442",
                     VerifiedPhoneNumber = true,
                     LinkedRole = context.Roles.Find("Administrator"),
-                    Existence = Existence.Internal 
+                    Existence = Existence.Internal,
+                    LastPasswordChange = DateTime.Now
                 });
                 context.SaveChanges();
             }

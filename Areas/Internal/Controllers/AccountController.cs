@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 namespace OpsSecProject.Areas.Internal.Controllers
 {
     [Area("Internal")]
-    [AllowAnonymous]
     public class AccountController : Controller
     {
 
@@ -24,7 +23,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             _context = context;
         }
-
+        [AllowAnonymous]
         public IActionResult SignIn(string ReturnUrl)
         {
             if (ReturnUrl != null)
@@ -32,6 +31,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             return View();
         }
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> SignIn([Bind("Username", "Password", "ReturnUrl")]LoginFormModel Credentials)
         {
             User challenge = _context.Users.Find(Credentials.Username);
@@ -60,7 +60,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             else
             {
                 challenge.ForceSignOut = false;
-                challenge.LastSignedIn = DateTime.Now;
+                challenge.LastAuthentication = DateTime.Now;
                 var claims = new List<Claim>{
                     new Claim("name", challenge.Name),
                     new Claim("preferred_username", challenge.Username),
@@ -80,22 +80,23 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 _context.Update(challenge);
                 await _context.SaveChangesAsync();
                 if (Credentials.ReturnUrl == null)
-                    return RedirectToAction("Index", "Home");
+                    return Redirect("/Home");
                 else
                     return Redirect(Credentials.ReturnUrl);
             }
         }
-
+        [AllowAnonymous]
         public IActionResult ForgetPassword()
         {
             return View();
         }
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgetPassword([Bind("Username")]ForgetPasswordModel User)
         {
             return View();
         }
-
+        [AllowAnonymous]
         public IActionResult ResetPassword(string token)
         {
             if (token == null)
@@ -110,7 +111,18 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
         }
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([Bind("Token", "NewPassword", "ConfirmPassword")]NewPasswordModel NewCredentials)
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> ChangePassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword([Bind("Username","CurrentPassword", "NewPassword", "ConfirmPassword")]ChangePasswordModel NewCredentials)
         {
             return View();
         }

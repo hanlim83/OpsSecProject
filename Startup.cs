@@ -72,7 +72,6 @@ namespace OpsSecProject
                     {
                         context.Response.Redirect("/Landing/Unauthenticated");
                         context.HandleResponse();
-
                         return Task.FromResult(0);
                     },
                     OnAuthenticationFailed = context =>
@@ -121,7 +120,8 @@ namespace OpsSecProject
                                 Existence = Existence.External,
                                 ForceSignOut = false,
                                 IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
-                                LastSignedIn = DateTime.Now
+                                LastPasswordChange = DateTime.Now,
+                                LastAuthentication = DateTime.Now
                             };
                             foreach (var claim in claimsIdentity.Claims)
                             {
@@ -144,7 +144,7 @@ namespace OpsSecProject
                             {
                                 retrieved.ForceSignOut = false;
                                 retrieved.EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
-                                retrieved.LastSignedIn = DateTime.Now;
+                                retrieved.LastAuthentication = DateTime.Now;
                                 foreach (var claim in claimsIdentity.Claims)
                                 {
                                     if (claim.Type.Equals("groups"))
@@ -159,6 +159,11 @@ namespace OpsSecProject
                                 }
                                 authenticationContext.Update(retrieved);
                                 authenticationContext.SaveChanges();
+                            } else
+                            {
+                                loginContext.Response.Redirect("/Landing/Unauthenticated?reason=mismatch");
+                                loginContext.HandleResponse();
+                                return Task.FromResult(0);
                             }
 
                         }
@@ -182,6 +187,7 @@ namespace OpsSecProject
             {
                 options.AccessDeniedPath = "/Account/Unauthorised";
                 options.LoginPath = "/Landing/Login";
+                options.EventsType = typeof(CustomCookieAuthenticationEvents);
             });
             services.AddScoped<CustomCookieAuthenticationEvents>();
 

@@ -1,11 +1,17 @@
 ﻿function SLOCountDown(secs) {
     var countDownInterval = function () {
-        if (secs <= 1) {
+        if (secs < 1) {
+            document.getElementById('sloLink').innerHTML = "Auto Logout in progress";
+            var element = document.getElementById("sloReject");
+            element.parentNode.removeChild(element);
             clearInterval(interval);
             window.location.replace(document.getElementById("sloLink").href);
-        } else {
+        } else if (secs == 1) {
+            document.getElementById('sloLink').innerHTML = "Yes (" + secs + " second remaining till auto logout)";
             secs--;
+        } else {
             document.getElementById('sloLink').innerHTML = "Yes (" + secs + " seconds remaining till auto logout)";
+            secs--;
         }
     };
     var interval = setInterval(countDownInterval, 1000);

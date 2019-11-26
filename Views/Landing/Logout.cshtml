@@ -35,7 +35,7 @@
     <div class="landing">
         <h1 class="h3 mb-3 font-weight-normal">Do you also want to end your session with the Identity Provider?</h1>
         <a class="btn btn-lg btn-success btn-block" id="sloLink" asp-area="AzureAD" asp-controller="Account" asp-action="SignOut">Yes</a>
-        <a class="btn btn-lg btn-danger btn-block" asp-action="Signout">No</a>
+        <a class="btn btn-lg btn-danger btn-block" id="sloReject" asp-action="Signout">No</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2019 - SmartInsights</p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
