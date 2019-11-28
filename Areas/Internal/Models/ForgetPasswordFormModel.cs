@@ -6,5 +6,7 @@ namespace OpsSecProject.Areas.Internal.Models
     {
         [Required]
         public string Username { get; set; }
+
+        public string ReturnUrl { get; set; }
     }
 }

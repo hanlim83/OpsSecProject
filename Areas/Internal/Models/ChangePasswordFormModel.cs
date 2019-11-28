@@ -5,8 +5,6 @@ namespace OpsSecProject.Areas.Internal.Models
     public class ChangePasswordModel
     {
         [Required]
-        public string Username { get; set; }
-        [Required]
         [Display(Name = "Current Password")]
         [DataType(DataType.Password)]
         public string CurrentPassword { get; set; }

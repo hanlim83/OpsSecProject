@@ -4,8 +4,7 @@ namespace OpsSecProject.Areas.Internal.Models
 {
     public class SetPasswordModel
     {
-        [Required]
-        public string Username { get; set; }
+        public string Token { get; set; }
         [Required]
         [Display(Name = "New Password")]
         [DataType(DataType.Password)]

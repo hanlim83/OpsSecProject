@@ -12,7 +12,6 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "RDS_DB_NAME": "Value",
         "RDS_HOSTNAME": "ospj-dev.cveglglrcyfg.ap-southeast-1.rds.amazonaws.com",
         "RDS_PORT": "1433",
         "RDS_USERNAME": "admin",
