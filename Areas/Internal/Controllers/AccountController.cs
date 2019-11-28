@@ -173,7 +173,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                                 Text = new Content
                                 {
                                     Charset = "UTF-8",
-                                    Data = "Hi " + identity.Name + "\r\n\n" + "To complete your password reset request, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/ResetPassword?token=" + token.Token + "\r\n\n\nThis email is computer generated, please do not reply this email"
+                                    Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your password reset request, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
                                 }
                             }
                         }
@@ -187,10 +187,10 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 {
                     PublishRequest SNSrequest = new PublishRequest
                     {
-                        Message = "Please click on this link to complete your password reset request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/ResetPassword?token=" + token.Token,
-                        PhoneNumber = identity.PhoneNumber
+                        Message = "Please click on this link to complete your password reset request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
+                        PhoneNumber = "+65"+identity.PhoneNumber
                     };
-                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartSights", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartInsights", DataType = "String" };
                     SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
                     PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
                     if (response.HttpStatusCode != HttpStatusCode.OK)
@@ -253,8 +253,35 @@ namespace OpsSecProject.Areas.Internal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SetPassword([Bind("Token", "NewPassword", "ConfirmPassword")]SetPasswordModel NewCredentials)
         {
-            if (NewCredentials.Token == null)
+            if (NewCredentials.Token == null && !HttpContext.User.Identity.IsAuthenticated)
                 return StatusCode(500);
+            else if (NewCredentials.Token == null && HttpContext.User.Identity.IsAuthenticated)
+            {
+                ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+                User currentUser = await _context.Users.FindAsync(currentIdentity);
+                if (Password.ValidatePassword(NewCredentials.ConfirmPassword, currentUser.Password))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Your new password must be different from the current password";
+                    NewCredentials.NewPassword = null;
+                    NewCredentials.ConfirmPassword = null;
+                    return View(NewCredentials);
+                } else if (!NewCredentials.NewPassword.Equals(NewCredentials.ConfirmPassword))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Your passwords do not match";
+                    NewCredentials.NewPassword = null;
+                    NewCredentials.ConfirmPassword = null;
+                    return View(NewCredentials);
+                }
+                currentUser.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
+                currentUser.LastPasswordChange = DateTime.Now;
+                _context.Users.Update(currentUser);
+                await _context.SaveChangesAsync();
+                TempData["Field"] = "Password";
+                return RedirectToAction("SetSuccessful");
+            }
             else
             {
                 List<NotificationToken> notificationTokens = await _context.NotificationTokens.ToListAsync();
@@ -263,6 +290,21 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     if (Rtoken.Token.Equals(NewCredentials.Token))
                     {
                         User identity = await _context.Users.FindAsync(Rtoken.LinkedUser.Username);
+                        if (Password.ValidatePassword(NewCredentials.ConfirmPassword, identity.Password))
+                        {
+                            ViewData["Alert"] = "Danger";
+                            ViewData["Message"] = "Your new password must be different from the current password";
+                            NewCredentials.NewPassword = null;
+                            NewCredentials.ConfirmPassword = null;
+                            return View(NewCredentials);
+                        } else if (!NewCredentials.NewPassword.Equals(NewCredentials.ConfirmPassword))
+                        {
+                            ViewData["Alert"] = "Warning";
+                            ViewData["Message"] = "Your passwords do not match";
+                            NewCredentials.NewPassword = null;
+                            NewCredentials.ConfirmPassword = null;
+                            return View(NewCredentials);
+                        }
                         identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                         identity.LastPasswordChange = DateTime.Now;
                         _context.Users.Update(identity);
@@ -277,7 +319,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
         }
 
-        public IActionResult SetSucessful()
+        [AllowAnonymous]
+        public IActionResult SetSuccessful()
         {
             return View();
         }
@@ -301,6 +344,19 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 return StatusCode(500);
             else
             {
+                if (Password.ValidatePassword(NewCredentials.ConfirmPassword, identity.Password) || NewCredentials.CurrentPassword.Equals(NewCredentials.ConfirmPassword))
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "Your new password must be different from the current password";
+                    NewCredentials.NewPassword = null;
+                    NewCredentials.ConfirmPassword = null;
+                    return View(NewCredentials);
+                } else if (!Password.ValidatePassword(NewCredentials.CurrentPassword, identity.Password))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Your current password is incorrect";
+                    return View();
+                }
                 identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                 identity.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(identity);

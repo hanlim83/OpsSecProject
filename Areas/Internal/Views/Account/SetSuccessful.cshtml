@@ -33,16 +33,17 @@
 </head>
 <body class="text-center">
     <div class="landing">
+        <h1 class="h3 mb-3 font-weight-normal">Success</h1>
         @if (!String.IsNullOrEmpty(Convert.ToString(TempData["Field"])))
         {
             <div class="form-label-group">
                 <div class="alert alert-success" role="alert">
-                    Your @TempData["Field"] has been changed succesfully
+                    Your @TempData["Field"] has been changed
                 </div>
 
             </div>
         }
-        <a class="btn btn-lg btn-primary btn-block" asp-controller="Landing" asp-action="Index">Go Back</a>
+        <a class="btn btn-lg btn-primary btn-block" asp-area="" asp-controller="Landing" asp-action="Index">Go Back</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2019 - SmartInsights</p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
