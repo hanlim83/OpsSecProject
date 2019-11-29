@@ -190,7 +190,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         Message = "Please click on this link to complete your password reset request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
                         PhoneNumber = "+65"+identity.PhoneNumber
                     };
-                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartInsights", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
                     SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
                     PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
                     if (response.HttpStatusCode != HttpStatusCode.OK)
