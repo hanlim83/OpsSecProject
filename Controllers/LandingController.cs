@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Models;
 using System.Diagnostics;
 
 namespace OpsSecProject.Controllers
 {
+    [AllowAnonymous]
     public class LandingController : Controller
     {
-        [AllowAnonymous]
         public IActionResult Index()
         {
             if (User.Identity.IsAuthenticated)
@@ -16,39 +19,53 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Login");
         }
 
-        [AllowAnonymous]
-        public IActionResult Login()
+        public IActionResult Login(string ReturnUrl)
         {
+            if (ReturnUrl != null)
+                ViewData["ReturnURL"] = ReturnUrl;
             return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Logout()
         {
             return View();
         }
 
-        public IActionResult Claims()
-        {
-            ViewData["User"] = HttpContext.User;
-            return View();
-        }
-        public IActionResult Unauthorised()
+        public IActionResult Signout()
         {
             return View();
         }
 
-        [AllowAnonymous]
         public IActionResult Unauthenticated()
         {
             return View();
         }
 
-        [AllowAnonymous]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Reauthenticate()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var authenticationProperties = new AuthenticationProperties();
+            authenticationProperties.Items["prompt"] = "login";
+            authenticationProperties.RedirectUri = "/Landing/";
+            return Challenge(authenticationProperties,AzureADDefaults.AuthenticationScheme);
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error(string code)
+        {
+            var statusCodeReExecuteFeature = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+            if (statusCodeReExecuteFeature != null)
+                return View(new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                    OriginalPath = statusCodeReExecuteFeature.OriginalPathBase + statusCodeReExecuteFeature.OriginalPath + statusCodeReExecuteFeature.OriginalQueryString,
+                    ErrorStatusCode = code
+                });
+            else
+                return View(new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                    ErrorStatusCode = code
+                });
         }
     }
 }
