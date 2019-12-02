@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Areas.Internal.Data;
 using OpsSecProject.Areas.Internal.Models;
 using OpsSecProject.Data;
+using OpsSecProject.Helpers;
 using OpsSecProject.Models;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         }
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> SignIn([Bind("Username", "Password", "ReturnUrl")]LoginFormModel Credentials)
+        public async Task<IActionResult> SignIn([Bind("Username", "Password", "recaptchaResponse","ReturnUrl")]LoginFormModel Credentials)
         {
             User challenge = _context.Users.Find(Credentials.Username);
             if (challenge == null)
@@ -72,6 +73,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
             else
             {
+                await GoogleRecaptchaHelper.ReCaptchaScoreAsync(Credentials.recaptchaResponse);
                 challenge.ForceSignOut = false;
                 challenge.LastAuthentication = DateTime.Now;
                 var claims = new List<Claim>{

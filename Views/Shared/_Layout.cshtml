@@ -114,7 +114,7 @@
                 Tools
             </div>
             <li class="nav-item">
-                <a class="nav-link" asp-area="" asp-controller="Users" asp-action="Manage">
+                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Manage">
                     <i class="fas fa-users"></i>
                     <span>Manage Users</span>
                 </a>
@@ -188,7 +188,7 @@
                                         Spending Alert: We've noticed unusually high spending for your account.
                                     </div>
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="">Show All Alerts</a>
+                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
                             </div>
                         </li>
                         <div class="topbar-divider d-none d-sm-block"></div>
@@ -200,7 +200,7 @@
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Account
+                                    Profile
                                 </a>
                                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Settings">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>

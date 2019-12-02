@@ -26,6 +26,24 @@ namespace OpsSecProject.Controllers
             return View(currentUser);
         }
 
+        public async Task<IActionResult> Profile()
+        {
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User currentUser = await _context.Users.FindAsync(currentIdentity);
+            return View(currentUser);
+        }
+
+        public async Task<IActionResult> Settings()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> Activity()
+        {
+            return View();
+        }
+
         public IActionResult Unauthorised()
         {
             return View();

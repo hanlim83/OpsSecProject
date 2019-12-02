@@ -16,6 +16,15 @@
     };
     var interval = setInterval(countDownInterval, 1000);
 }
+function reCaptchaV3Callback() {
+    grecaptcha.execute("6LfccsUUAAAAAAhL7iOWfm0Fkv9yXcQB3I1UHOOc", { action: 'login' }).then(function (token) {
+        var tokenInput = document.createElement("input");
+        tokenInput.setAttribute("type", "hidden");
+        tokenInput.setAttribute("name", "recaptchaResponse");
+        tokenInput.setAttribute("value", token);
+        document.getElementsByClassName("form-signin")[0].appendChild(tokenInput);
+    });
+}
 (function () {
     'use strict';
     window.addEventListener('load', function () {

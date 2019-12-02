@@ -12,13 +12,17 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "RECAPTCHAV3_SITE_KEY": "6LfccsUUAAAAAAhL7iOWfm0Fkv9yXcQB3I1UHOOc",
         "RDS_HOSTNAME": "ospj-dev.cveglglrcyfg.ap-southeast-1.rds.amazonaws.com",
         "RDS_PORT": "1433",
+        "RECAPTCHAV2_SITE_KEY": "6LfWcsUUAAAAAAdSN_5KvsReG4nGONd3jWPjQWgx",
         "RDS_USERNAME": "admin",
         "AWS_SECRET_ACCESS_KEY": "TN7wjY64UMIJx8RNSfcnMFcO1YG87fR9lf5swApb",
         "AWS_ACCESS_KEY_ID": "AKIASXW25GZQKCUITRMT",
         "RDS_PASSWORD": "53lMOOm5RMfvwC3j1nDL",
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "RECAPTCHAV2_SECRET_KEY": "6LfWcsUUAAAAACiOMcfzeXTUU1qMwLCHBO4-fJ_m",
+        "RECAPTCHAV3_SECRET_KEY": "6LfccsUUAAAAABk6H5E-ZWoInF12i_bOt0h0Adn_"
       },
       "nativeDebugging": true
     },
