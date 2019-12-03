@@ -48,7 +48,9 @@ namespace OpsSecProject.Areas.Internal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignIn([Bind("Username", "Password", "recaptchaResponse", "ReturnUrl")]LoginFormModel Credentials)
         {
-            if (!await GoogleRecaptchaHelper.IsReCaptchaV3PassedAsync(Credentials.recaptchaResponse))
+            GoogleRecaptchaHelper recaptcha = new GoogleRecaptchaHelper();
+            await recaptcha.VerifyReCaptchaV3Async(Credentials.recaptchaResponse);
+            if (recaptcha.result == false)
             {
                 ViewData["Alert"] = "Warning";
                 ViewData["Message"] = "Login Timeout. Please try again";
@@ -80,7 +82,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
             else
             {
-                if (double.Parse(await GoogleRecaptchaHelper.ReCaptchaV3ScoreAsync(Credentials.recaptchaResponse)) <= 5.0)
+                if (double.Parse(recaptcha.score) <= 0.5)
                 {
                     TempData["Identity"] = challenge.Username;
                     return RedirectToAction("2ndFactor");
@@ -120,7 +122,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         }
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgetPassword([Bind("Username", "recaptchaResponse", "RedirectUrl")]ForgetPasswordModel User)
+        public async Task<IActionResult> ForgetPassword([Bind("Username", "recaptchaResponse", "RedirectUrl")]ForgetPasswordFormModel User)
         {
             if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(User.recaptchaResponse))
             {
@@ -151,28 +153,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     {
                         Type = OpsSecProject.Models.Type.Reset,
                         Vaild = true,
-                        LinkedUser = identity
+                        LinkedUser = identity,
+                        Token = TokenGenerator()
                     };
-                    int length = 30;
-                    string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-                    StringBuilder res = new StringBuilder();
-                    using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-                    {
-                        byte[] uintBuffer = new byte[sizeof(uint)];
-
-                        while (length-- > 0)
-                        {
-                            rng.GetBytes(uintBuffer);
-                            uint num = BitConverter.ToUInt32(uintBuffer, 0);
-                            res.Append(valid[(int)(num % (uint)valid.Length)]);
-                        }
-                    }
-                    token.Token = res.ToString();
                     if (identity.VerifiedEmail == true)
                     {
                         SendEmailRequest SESrequest = new SendEmailRequest
                         {
-                            Source = "do_not_reply@hansen-lim.me",
+                            Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
                             Destination = new Destination
                             {
                                 ToAddresses = new List<string>
@@ -213,7 +201,11 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         token.Mode = Mode.SMS;
                     }
                     else
-                        return StatusCode(500);
+                    {
+                        ViewData["Alert"] = "Danger";
+                        ViewData["Message"] = "Please ask an Administrator to reset your password";
+                        return View(User);
+                    }
                     await _context.NotificationTokens.AddAsync(token);
                     await _context.SaveChangesAsync();
                     if (token.Mode == Mode.EMAIL)
@@ -253,16 +245,16 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     return View();
                 }
                 else
-                    return StatusCode(403);
+                    return Redirect("/Account/Unauthorised");
             }
             else
             {
                 List<NotificationToken> notificationTokens = await _context.NotificationTokens.ToListAsync();
                 foreach (var Rtoken in notificationTokens)
                 {
-                    if (Rtoken.Token.Equals(token))
+                    if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.Reset && Rtoken.Vaild == true)
                     {
-                        SetPasswordModel model = new SetPasswordModel
+                        SetPasswordFormModel model = new SetPasswordFormModel
                         {
                             Token = token
                         };
@@ -274,7 +266,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         }
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> SetPassword([Bind("Token", "NewPassword", "ConfirmPassword", "recaptchaResponse")]SetPasswordModel NewCredentials)
+        public async Task<IActionResult> SetPassword([Bind("Token", "NewPassword", "ConfirmPassword", "recaptchaResponse")]SetPasswordFormModel NewCredentials)
         {
             if (!await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(NewCredentials.recaptchaResponse))
             {
@@ -362,19 +354,19 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
             if (identity == null)
-                return StatusCode(403);
+                return Redirect("/Account/Unauthorised");
             else if (identity.Existence == Existence.External)
-                return StatusCode(403);
+                return Redirect("/Account/Unauthorised");
             else
                 return View();
 
         }
         [HttpPost]
-        public async Task<IActionResult> ChangePassword([Bind("CurrentPassword", "NewPassword", "ConfirmPassword", "recaptchaResponse")]ChangePasswordModel NewCredentials)
+        public async Task<IActionResult> ChangePassword([Bind("CurrentPassword", "NewPassword", "ConfirmPassword", "recaptchaResponse")]ChangePasswordFormModel NewCredentials)
         {
             User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
             if (identity.Existence == Existence.External)
-                return StatusCode(500);
+                return Redirect("/Account/Unauthorised");
             else if (!await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(NewCredentials.recaptchaResponse))
             {
                 ViewData["Alert"] = "Warning";
@@ -402,6 +394,235 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 TempData["Field"] = "Password";
                 return RedirectToAction("SetSuccessful");
             }
+        }
+        public async Task<IActionResult> EmailAddress()
+        {
+            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            if (identity == null)
+                return Redirect("/Account/Unauthorised");
+            else if (identity.Existence == Existence.External)
+                return Redirect("/Account/Unauthorised");
+            else
+                return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> EmailAddress([Bind("Password", "EmailAddress", "recaptchaResponse")]EmailAddressFormModel newEmailAddress)
+        {
+            if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(newEmailAddress.recaptchaResponse))
+            {
+                User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+                if (!Password.ValidatePassword(newEmailAddress.Password, identity.Password))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Your current password is incorrect";
+                    newEmailAddress.Password = null;
+                    return View(newEmailAddress);
+                }
+                else if (identity.EmailAddress != null && identity.EmailAddress.Equals(newEmailAddress.EmailAddress))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Please specify a different email address";
+                    newEmailAddress.Password = null;
+                    return View(newEmailAddress);
+                } else if (identity.EmailAddress != null && identity.VerifiedEmail == false)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "You can't change your email address until you verified your current email address or approach your administrator for assistance";
+                    return View();
+                }else
+                {
+                    identity.EmailAddress = newEmailAddress.EmailAddress;
+                    identity.VerifiedEmail = false;
+                    NotificationToken token = new NotificationToken
+                    {
+                        Type = OpsSecProject.Models.Type.Verify,
+                        Vaild = true,
+                        LinkedUser = identity,
+                        Token = TokenGenerator()
+                    };
+                    SendEmailRequest SESrequest = new SendEmailRequest
+                    {
+                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                        Destination = new Destination
+                        {
+                            ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content("Verify your email address for SmartInsights"),
+                            Body = new Body
+                            {
+                                Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your change of email address request, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                }
+                            }
+                        }
+                    };
+                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.EMAIL;
+                    _context.Users.Update(identity);
+                    _context.NotificationTokens.Add(token);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Please check your email inbox to complete the change of email address";
+                    return RedirectToAction("Index", "Account", new { area = "" });
+                }
+            }
+            else
+            {
+                ViewData["Alert"] = "Warning";
+                ViewData["Message"] = "Unable to verify reCAPTCHA! Please try again";
+                newEmailAddress.Password = null;
+                return View(newEmailAddress);
+            }
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyEmailAddress(string token)
+        {
+            if (token == null)
+                return StatusCode(403);
+            else
+            {
+                List<NotificationToken> notificationTokens = await _context.NotificationTokens.ToListAsync();
+                foreach (var Rtoken in notificationTokens)
+                {
+                    if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.Verify && Rtoken.Mode == Mode.EMAIL && Rtoken.Vaild == true)
+                    {
+                        User identity = Rtoken.LinkedUser;
+                        identity.VerifiedEmail = true;
+                        _context.Users.Update(identity);
+                        Rtoken.Vaild = false;
+                        _context.NotificationTokens.Update(Rtoken);
+                        await _context.SaveChangesAsync();
+                        TempData["Field"] = "Email Address";
+                        return RedirectToAction("SetSuccessful");
+                    }
+                }
+                return StatusCode(403);
+            }
+        }
+        public async Task<IActionResult> PhoneNumber()
+        {
+            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            if (identity == null)
+                return Redirect("/Account/Unauthorised");
+            else if (identity.Existence == Existence.External)
+                return Redirect("/Account/Unauthorised");
+            else
+                return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> PhoneNumber([Bind("Password", "PhoneNumber", "recaptchaResponse")]PhoneNumberFormModel newPhoneNumber)
+        {
+            if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(newPhoneNumber.recaptchaResponse))
+            {
+                User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+                if (!Password.ValidatePassword(newPhoneNumber.Password, identity.Password))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Your current password is incorrect";
+                    newPhoneNumber.Password = null;
+                    return View(newPhoneNumber);
+                }
+                else if (identity.PhoneNumber != null && identity.PhoneNumber.Equals(newPhoneNumber.PhoneNumber))
+                {
+                    ViewData["Alert"] = "Warning";
+                    ViewData["Message"] = "Please specify a different email address";
+                    newPhoneNumber.Password = null;
+                    return View(newPhoneNumber);
+                }
+                else if (identity.PhoneNumber != null && identity.VerifiedPhoneNumber == false)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "You can't change your phone number until you verified your current phone number or approach your administrator for assistance";
+                    return View();
+                } else
+                {
+                    identity.PhoneNumber = newPhoneNumber.PhoneNumber;
+                    identity.VerifiedPhoneNumber = false;
+                    NotificationToken token = new NotificationToken
+                    {
+                        Type = OpsSecProject.Models.Type.Verify,
+                        Vaild = true,
+                        LinkedUser = identity,
+                        Token = TokenGenerator()
+                    };
+                    PublishRequest SNSrequest = new PublishRequest
+                    {
+                        Message = "Please click on this link to complete your change of phone number request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token,
+                        PhoneNumber = "+65" + identity.PhoneNumber
+                    };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.SMS;
+                    _context.Users.Update(identity);
+                    _context.NotificationTokens.Add(token);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Please check your phone to complete the change of phone number";
+                    return RedirectToAction("Index", "Account", new { area = "" });
+                }
+            }
+            else
+            {
+                ViewData["Alert"] = "Warning";
+                ViewData["Message"] = "Unable to verify reCAPTCHA! Please try again";
+                newPhoneNumber.Password = null;
+                return View(newPhoneNumber);
+            }
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyPhoneNumber(string token)
+        {
+            if (token == null)
+                return StatusCode(403);
+            else
+            {
+                List<NotificationToken> notificationTokens = await _context.NotificationTokens.ToListAsync();
+                foreach (var Rtoken in notificationTokens)
+                {
+                    if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.Verify && Rtoken.Mode == Mode.SMS && Rtoken.Vaild == true)
+                    {
+                        User identity = Rtoken.LinkedUser;
+                        identity.VerifiedPhoneNumber = true;
+                        _context.Users.Update(identity);
+                        Rtoken.Vaild = false;
+                        _context.NotificationTokens.Update(Rtoken);
+                        await _context.SaveChangesAsync();
+                        TempData["Field"] = "Phone Number";
+                        return RedirectToAction("SetSuccessful");
+                    }
+                }
+                return StatusCode(403);
+            }
+        }
+        private string TokenGenerator()
+        {
+            int length = 30;
+            string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            StringBuilder res = new StringBuilder();
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+            {
+                byte[] uintBuffer = new byte[sizeof(uint)];
+
+                while (length-- > 0)
+                {
+                    rng.GetBytes(uintBuffer);
+                    uint num = BitConverter.ToUInt32(uintBuffer, 0);
+                    res.Append(valid[(int)(num % (uint)valid.Length)]);
+                }
+            }
+            return res.ToString();
         }
     }
 }

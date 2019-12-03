@@ -2,7 +2,7 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class ForgetPasswordModel
+    public class ForgetPasswordFormModel
     {
         [Required]
         public string Username { get; set; }

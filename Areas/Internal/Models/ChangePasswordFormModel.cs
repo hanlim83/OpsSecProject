@@ -2,7 +2,7 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class ChangePasswordModel
+    public class ChangePasswordFormModel
     {
         [Required]
         [Display(Name = "Current Password")]

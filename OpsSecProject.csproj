@@ -13,13 +13,13 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.3.103.70" />
+    <PackageReference Include="AWSSDK.Core" Version="3.3.103.71" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.100.1" />
-    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.4" />
-    <PackageReference Include="AWSSDK.S3" Version="3.3.108.4" />
-    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.107.6" />
-    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.76" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.94" />
+    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.5" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.108.5" />
+    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.107.7" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.77" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.95" />
     <PackageReference Include="BCrypt.Net-Next" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.2.0" />
@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="2.2.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Graph" Version="1.20.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>

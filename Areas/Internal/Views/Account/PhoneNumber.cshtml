@@ -1,7 +1,7 @@
-﻿@model OpsSecProject.Areas.Internal.Models.ChangePasswordFormModel
+﻿@model OpsSecProject.Areas.Internal.Models.PhoneNumberFormModel
 @{
     Layout = null;
-    ViewData["Title"] = "Change Password";
+    ViewData["Title"] = "Change Phone Number";
 }
 <!DOCTYPE html>
 <html>
@@ -93,10 +93,10 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="text-center">
-    <form class="form-signin needs-validation" asp-action="ChangePassword" novalidate>
+    <form class="form-signin needs-validation" asp-action="PhoneNumber" novalidate>
         <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Change Password</h1>
-            <p>Please enter your current and new passwords</p>
+            <h1 class="h3 mb-3 font-weight-normal">Change Phone Number</h1>
+            <p>Please enter your new phone number and current password</p>
         </div>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
         {
@@ -117,27 +117,20 @@
             </div>
         }
         <div class="form-label-group">
-            <input asp-for="CurrentPassword" class="form-control" placeholder="Current Password" required />
-            <label asp-for="CurrentPassword">Current Password</label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="New Phone Number" required />
+            <label asp-for="PhoneNumber">New Phone Number</label>
             <div class="invalid-feedback">
-                Please enter your current password
+                Please enter your new phone number
             </div>
         </div>
         <div class="form-label-group">
-            <input asp-for="NewPassword" class="form-control" placeholder="New Password" required />
-            <label asp-for="NewPassword">New Password</label>
+            <input asp-for="Password" class="form-control" placeholder="Password" required />
+            <label asp-for="Password">Password</label>
             <div class="invalid-feedback">
-                Please enter your new password
+                Please enter your password
             </div>
         </div>
-        <div class="form-label-group">
-            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm New Password" required />
-            <label asp-for="ConfirmPassword">Confirm New Password</label>
-            <div class="invalid-feedback">
-                Please confirm your new password
-            </div>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit">Change Password</button>
+        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit">Change Phone Number</button>
         <div class="text-center mb-4">
             <hr>
         </div>

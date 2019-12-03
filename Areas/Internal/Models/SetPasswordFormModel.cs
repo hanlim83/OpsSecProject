@@ -2,7 +2,7 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class SetPasswordModel
+    public class SetPasswordFormModel
     {
         public string Token { get; set; }
         [Required]

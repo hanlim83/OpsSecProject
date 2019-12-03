@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OpsSecProject.Helpers
 {
-    public static class GoogleRecaptchaHelper
+    public class GoogleRecaptchaHelper
     {
         public static async Task<bool> IsReCaptchaV2PassedAsync(string recaptchaResponse)
         {
@@ -33,31 +33,10 @@ namespace OpsSecProject.Helpers
             }
         }
 
-        public static async Task<bool> IsReCaptchaV3PassedAsync(string recaptchaResponse)
-        {
-            using (HttpClient httpClient = new HttpClient())
-            {
-                FormUrlEncodedContent content = new FormUrlEncodedContent(new[]
-                    {
-                    new KeyValuePair<string, string>("secret", Environment.GetEnvironmentVariable("RECAPTCHAV3_SECRET_KEY")),
-                    new KeyValuePair<string, string>("response", recaptchaResponse)
-                });
-                var res = await httpClient.PostAsync($"https://www.google.com/recaptcha/api/siteverify", content);
-                if (res.StatusCode != HttpStatusCode.OK)
-                {
-                    return false;
-                }
-                string JSONres = res.Content.ReadAsStringAsync().Result;
-                dynamic JSONdata = JObject.Parse(JSONres);
-                if (JSONdata.success != "true")
-                {
-                    return false;
-                }
-                return true;
-            }
-        }
+        public bool result { get; set; }
+        public string score { get; set; }
 
-        public static async Task<string> ReCaptchaV3ScoreAsync(string recaptchaResponse)
+        public async Task VerifyReCaptchaV3Async(string recaptchaResponse)
         {
             using (HttpClient httpClient = new HttpClient())
             {
@@ -69,15 +48,18 @@ namespace OpsSecProject.Helpers
                 var res = await httpClient.PostAsync($"https://www.google.com/recaptcha/api/siteverify", content);
                 if (res.StatusCode != HttpStatusCode.OK)
                 {
-                    return "-1";
+                    result = false;
+                    score = "-1";
                 }
                 string JSONres = res.Content.ReadAsStringAsync().Result;
                 dynamic JSONdata = JObject.Parse(JSONres);
                 if (JSONdata.success != "true")
                 {
-                    return "-1";
+                    result = false;
+                    score = "-1";
                 }
-                return JSONdata.score;
+                result = true;
+                score = JSONdata.score;
             }
         }
     }

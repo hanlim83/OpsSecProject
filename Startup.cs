@@ -102,7 +102,7 @@ namespace OpsSecProject
                         context.HandleResponse();
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = loginContext =>
+                    OnTokenResponseReceived = loginContext =>
                     {
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
                         AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
