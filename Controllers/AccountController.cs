@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
 using System.Security.Claims;
@@ -53,6 +54,11 @@ namespace OpsSecProject.Controllers
         {
             ViewData["User"] = HttpContext.User;
             return View();
+        }
+
+        public async Task<IActionResult> Manage()
+        {
+            return View(await _context.Users.ToListAsync());
         }
 
         public async Task<IActionResult> Logout()

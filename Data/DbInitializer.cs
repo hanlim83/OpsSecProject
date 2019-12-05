@@ -12,13 +12,13 @@ namespace OpsSecProject.Data
             context.Database.EnsureCreated();
             if (!context.Roles.Any())
             {
-                context.Add(new Role
+                context.Roles.Add(new Role
                 {
                     RoleName = "Power User",
                     Existence = Existence.Hybrid,
                     IDPReference = "9eb7a8cb-db12-4f3e-bbb3-f4576868b3ec"
                 });
-                context.Add(new Role
+                context.Roles.Add(new Role
                 {
                     RoleName = "Administrator",
                     Existence = Existence.Hybrid,
@@ -28,7 +28,7 @@ namespace OpsSecProject.Data
             }
             if (!context.Users.Any())
             {
-                context.Add(new User
+                context.Users.Add(new User
                 {
                     Username = "Admin",
                     Name = "Administrator",
