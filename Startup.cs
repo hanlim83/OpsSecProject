@@ -88,6 +88,10 @@ namespace OpsSecProject
                         {
                             context.ProtocolMessage.Prompt = prompt;
                         }
+                        if (context.Properties.Items.TryGetValue("login_hint", out string loginHint))
+                        {
+                            context.ProtocolMessage.LoginHint = loginHint;
+                        }
                         return Task.CompletedTask;
                     },
                     OnRedirectToIdentityProviderForSignOut = context =>
@@ -114,16 +118,12 @@ namespace OpsSecProject
                                 Username = claimsIdentity.FindFirst("preferred_username").Value,
                                 Name = claimsIdentity.FindFirst("name").Value,
                                 Password = Password.GetRandomSalt(),
-                                EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value,
-                                VerifiedEmailAddress = true,
-                                VerifiedPhoneNumber = false,
                                 Existence = Existence.External,
-                                ForceSignOut = false,
                                 IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
                                 LastPasswordChange = DateTime.Now,
                                 LastAuthentication = DateTime.Now,
                                 Status = Status.Active,
-                                OverridableField = OverridableField.PhoneNumber
+                                OverridableField = OverridableField.Both
                             };
                             foreach (var claim in claimsIdentity.Claims)
                             {
@@ -136,7 +136,23 @@ namespace OpsSecProject
                                             import.LinkedRole = retrievedRole;
                                     }
                                 }
+                                else if (claim.Type.Equals(ClaimTypes.Email))
+                                {
+                                    import.EmailAddress = claim.Value;
+                                    import.VerifiedEmailAddress = true;
+                                }
+                                else if (claim.Type.Equals(ClaimTypes.MobilePhone))
+                                {
+                                    import.PhoneNumber = claim.Value;
+                                    import.VerifiedPhoneNumber = true;
+                                }
                             }
+                            if (import.VerifiedEmailAddress && import.VerifiedPhoneNumber)
+                                import.OverridableField = OverridableField.None;
+                            else if (import.VerifiedEmailAddress)
+                                import.OverridableField = OverridableField.PhoneNumber;
+                            else if (import.VerifiedPhoneNumber)
+                                import.OverridableField = OverridableField.EmailAddress;
                             authenticationContext.Add(import);
                             authenticationContext.SaveChanges();
                         }
@@ -145,8 +161,6 @@ namespace OpsSecProject
                             if (retrieved.IDPReference.Equals(claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value))
                             {
                                 retrieved.ForceSignOut = false;
-                                retrieved.EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
-                                retrieved.LastAuthentication = DateTime.Now;
                                 foreach (var claim in claimsIdentity.Claims)
                                 {
                                     if (claim.Type.Equals("groups"))
@@ -158,7 +172,24 @@ namespace OpsSecProject
                                                 retrieved.LinkedRole = retrievedRole;
                                         }
                                     }
+                                    else if (claim.Type.Equals(ClaimTypes.Email))
+                                    {
+                                        retrieved.EmailAddress = claim.Value;
+                                        retrieved.VerifiedEmailAddress = true;
+                                    }
+                                    else if (claim.Type.Equals(ClaimTypes.MobilePhone))
+                                    {
+                                        retrieved.PhoneNumber = claim.Value;
+                                        retrieved.VerifiedPhoneNumber = true;
+                                    }
                                 }
+                                if (retrieved.VerifiedEmailAddress && retrieved.VerifiedPhoneNumber)
+                                    retrieved.OverridableField = OverridableField.None;
+                                else if (retrieved.VerifiedEmailAddress)
+                                    retrieved.OverridableField = OverridableField.PhoneNumber;
+                                else if (retrieved.VerifiedPhoneNumber)
+                                    retrieved.OverridableField = OverridableField.EmailAddress;
+                                retrieved.LastAuthentication = DateTime.Now;
                                 authenticationContext.Update(retrieved);
                                 authenticationContext.SaveChanges();
                             }

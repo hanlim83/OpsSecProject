@@ -58,7 +58,12 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> Manage()
         {
-            return View(await _context.Users.ToListAsync());
+            AccountManagementViewModel model = new AccountManagementViewModel
+            {
+                allUsers = await _context.Users.ToListAsync(),
+                allRoles = await _context.Roles.ToListAsync()
+            };
+            return View(model);
         }
 
         public async Task<IActionResult> Logout()

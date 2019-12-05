@@ -1,7 +1,146 @@
-﻿
+﻿@model OpsSecProject.Models.AccountManagementViewModel
 @{
     ViewData["Title"] = "Manage";
 }
 
-<h1>Manage</h1>
+<h1 class="h3 mb-2 text-gray-800">Manage Users</h1>
+<p class="mb-4"></p>
 
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="usersTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Authentication Realm</th>
+                        <th scope="col">Account Status</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Email Address</th>
+                        <th scope="col">Phone Number</th>
+                        <th scope="col">Last Signed In</th>
+                        <th scope="col">Password Last Changed</th>
+                        <th scope="col">External Reference</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.allUsers)
+                    {
+                        <tr>
+                            <th scope="row">@Html.ValueForModel(user.Name)</th>
+                            <td>@Html.ValueForModel(user.Username)</td>
+                            <td>@Html.ValueForModel(user.Existence.ToString())</td>
+                            <td>@Html.ValueForModel(user.Status.ToString())</td>
+                            @if (user.LinkedRole != null)
+                            {
+                                <td>@Html.ValueForModel(user.LinkedRole.RoleName)</td>
+                            }
+                            @if (user.LinkedRole == null)
+                            {
+                                <td>User</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == false)
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Not Verified)</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == true && (user.OverridableField == OverridableField.EmailAddress || user.OverridableField == OverridableField.Both))
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Verified)</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == true && (user.OverridableField == OverridableField.PhoneNumber || user.OverridableField == OverridableField.None))
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Imported From Identity Provider)</td>
+                            }
+                            @if (user.EmailAddress == null)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == false)
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Not Verified)</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == true && (user.OverridableField == OverridableField.PhoneNumber || user.OverridableField == OverridableField.Both))
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Verified)</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == true && (user.OverridableField == OverridableField.EmailAddress || user.OverridableField == OverridableField.None))
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Imported From Identity Provider)</td>
+                            }
+                            @if (user.PhoneNumber == null)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Status == Status.Pending)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Status != Status.Pending)
+                            {
+                                <td>@Html.ValueForModel(user.LastAuthentication.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
+                            }
+                            @if (user.Existence == Existence.External)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Existence != Existence.External)
+                            {
+                                <td>@Html.ValueForModel(user.LastPasswordChange.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
+                            }
+                            @if (user.Existence != Existence.Internal)
+                            {
+                                <td>@Html.ValueForModel(user.IDPReference)</td>
+                            }
+                            @if (user.Existence == Existence.Internal)
+                            {
+                                <td>N.A</td>
+                            }
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">User Roles</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="rolesTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Realm</th>
+                        <th scope="col">External Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model.allRoles)
+                    {
+                        <tr>
+                            <th scope="row">@Html.ValueForModel(role.RoleName)</th>
+                            <td>@Html.ValueForModel(role.Existence.ToString())</td>
+                            <td>@Html.ValueForModel(role.IDPReference)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable();
+            $('#rolesTable').DataTable();
+        });
+    </script>
+}

@@ -34,159 +34,16 @@
 
 <div class="row">
     <div class="col-lg-6">
-        @if (Model.Existence == Existence.External)
-        {
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Profile</h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-light" role="alert">
-                        Your profile information is pulled from the identity provider. If it is incorrect or some details are missing, please ask your administrator for assistance
-                    </div>
-                    <form>
-                        <div class="form-group row">
-                            <label for="staticName" class="col-sm-4 col-form-label">Name</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticName" value="@Model.Name">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="staticEmail" class="col-sm-4 col-form-label">Email Address</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="@Model.EmailAddress">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="staticPhone" class="col-sm-4 col-form-label">Phone Number</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticPhone" value="@Model.PhoneNumber">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        }
-        @if (Model.Existence != Existence.External)
-        {
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Profile</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="profileMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="profileMenuLink">
-                            <div class="dropdown-header">Profile Actions</div>
-                            <a class="dropdown-item" asp-area="Internal" asp-action="EmailAddress">Change Email Address</a>
-                            <a class="dropdown-item" asp-area="Internal" asp-action="PhoneNumber">Change Phone Number</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" asp-area="Internal" asp-controller="Account" asp-action="ChangePassword">Change Password</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form>
-                        <div class="form-group row">
-                            <label for="staticName" class="col-sm-4 col-form-label">Name</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticName" value="@Model.Name">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="staticEmail" class="col-sm-4 col-form-label">Email Address</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="@Model.EmailAddress">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="staticPhone" class="col-sm-4 col-form-label">Phone Number</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticPhone" value="@Model.PhoneNumber">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="staticPassword" class="col-sm-4 col-form-label">Password Last Changed</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="staticPassword" value="@Model.LastPasswordChange.ToString("dddd, dd MMMM yyyy hh:mm tt")">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        }
+        <div class="card shadow mb-4">
+            @await Html.PartialAsync("ProfilePartial", Model)
+        </div>
     </div>
     <div class="col-lg-6">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Settings</h6>
-            </div>
-            <div class="card-body">
-                @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Success"))
-                {
-                    <div class="alert alert-success" role="alert">
-                        Your settings are saved
-                    </div>
-                }
-                @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning"))
-                {
-                    <div class="alert alert-warning" role="alert">
-                        Your settings couldn't be saved
-                    </div>
-                }
-                <form asp-action="Account">
-                    <div class="form-group">
-                        <label for="exampleFormControlSetting1">Setting1</label>
-                        <select class="form-control" id="exampleFormControlSetting1">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Settings</button>
-                </form>
-            </div>
+            @await Html.PartialAsync("SettingsPartial")
         </div>
     </div>
 </div>
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Activity Log</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Timestamp</th>
-                        <th scope="col">Page</th>
-                        <th scope="col">Action</th>
-                        <th scope="col">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>Success</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                        <td>Success</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                        <td>Success</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    @await Html.PartialAsync("ActivityPartial")
 </div>

@@ -67,11 +67,11 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
             else if (challenge.Existence.Equals(Existence.External))
             {
-                ViewData["Alert"] = "Danger";
-                ViewData["Message"] = "Please login through the identity provider instead";
-                Credentials.Password = null;
-
-                return View(Credentials);
+                var authenticationProperties = new AuthenticationProperties();
+                authenticationProperties.Items["prompt"] = "login";
+                authenticationProperties.Items["login_hint"] = Credentials.Username;
+                authenticationProperties.RedirectUri = "/Landing/";
+                return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
             }
             else if (!Password.ValidatePassword(Credentials.Password, challenge.Password))
             {
