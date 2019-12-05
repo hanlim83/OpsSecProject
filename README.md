@@ -1,9 +1,5 @@
 # OpsSecProject
-
-[![Build Status](https://dev.azure.com/170245K/OpsSecProject/_apis/build/status/hanlim83.OpsSecProject?branchName=master)](https://dev.azure.com/170245K/OpsSecProject/_build/latest?definitionId=1&branchName=master)
-
 A Project for Operations Security & Project (ITP391) Module 
-
 ## Team Members
 * [Dominic Tay](https://github.com/k553)
 * [Hansen Lim](https://github.com/hanlim83)
