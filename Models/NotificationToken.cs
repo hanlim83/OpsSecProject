@@ -8,7 +8,7 @@ namespace OpsSecProject.Models
     }
     public enum Type
     {
-        Reset, Verify
+        Reset, Verify, Activate
     }
 
     public class NotificationToken
@@ -21,7 +21,7 @@ namespace OpsSecProject.Models
         [Required]
         public bool Vaild { get; set; }
         [Required]
-        public bool Token { get; set; }
+        public string Token { get; set; }
 
         [Required]
         public virtual User LinkedUser { get; set; }

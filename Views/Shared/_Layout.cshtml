@@ -57,27 +57,30 @@
                     </div>
                 </div>
             </li>
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">
-                Log Inputs
-            </div>
-            <li class="nav-item">
-                <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Add">
-                    <i class="fas fa-plus"></i>
-                    <span>New Log Input</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputs" aria-expanded="false" aria-controls="collapseInputs">
-                    <i class="fas fa-wrench"></i>
-                    <span>Manage Existing Inputs</span>
-                </a>
-                <div id="collapseInputs" class="collapse" aria-labelledby="headingInputs" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Inputs" asp-action="Modify">DATA INPUT NAME</a>
-                    </div>
+            @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
+            {
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">
+                    Log Inputs
                 </div>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Add">
+                        <i class="fas fa-plus"></i>
+                        <span>New Log Input</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputs" aria-expanded="false" aria-controls="collapseInputs">
+                        <i class="fas fa-wrench"></i>
+                        <span>Manage Existing Inputs</span>
+                    </a>
+                    <div id="collapseInputs" class="collapse" aria-labelledby="headingInputs" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <a class="collapse-item" asp-area="" asp-controller="Inputs" asp-action="Modify">DATA INPUT NAME</a>
+                        </div>
+                    </div>
+                </li>
+            }
             <hr class="sidebar-divider">
             <div class="sidebar-heading">
                 Data Analytics
@@ -98,27 +101,33 @@
                     </div>
                 </div>
             </li>
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputDashboards" aria-expanded="false" aria-controls="collapseInputDashboards">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Per-Input Dashboards</span>
-                </a>
-                <div id="collapseInputDashboards" class="collapse" aria-labelledby="collapseInputDashboards" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Show">DATA INPUT NAME</a>
+            @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputDashboards" aria-expanded="false" aria-controls="collapseInputDashboards">
+                        <i class="fas fa-fw fa-folder"></i>
+                        <span>Per-Input Dashboards</span>
+                    </a>
+                    <div id="collapseInputDashboards" class="collapse" aria-labelledby="collapseInputDashboards" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Show">DATA INPUT NAME</a>
+                        </div>
                     </div>
+                </li>
+            }
+            @if (User.IsInRole("Administrator"))
+            {
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">
+                    Tools
                 </div>
-            </li>
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">
-                Tools
-            </div>
-            <li class="nav-item">
-                <a class="nav-link" asp-area="" asp-controller="Users" asp-action="Manage">
-                    <i class="fas fa-users"></i>
-                    <span>Manage Users</span>
-                </a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Manage">
+                        <i class="fas fa-users"></i>
+                        <span>Manage Users</span>
+                    </a>
+                </li>
+            }
             <hr class="sidebar-divider d-none d-md-block">
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -188,7 +197,7 @@
                                         Spending Alert: We've noticed unusually high spending for your account.
                                     </div>
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="">Show All Alerts</a>
+                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
                             </div>
                         </li>
                         <div class="topbar-divider d-none d-sm-block"></div>
@@ -200,7 +209,7 @@
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Account
+                                    Profile
                                 </a>
                                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Settings">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -226,7 +235,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; 2019 - SmartInsights</span>
+                        <span>Copyright &copy; 2020 - SmartInsights</span>
                     </div>
                 </div>
             </footer>

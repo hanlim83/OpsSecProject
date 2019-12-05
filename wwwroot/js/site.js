@@ -16,6 +16,35 @@
     };
     var interval = setInterval(countDownInterval, 1000);
 }
+function reCaptchaV2Callback(token) {
+    var tokenInput = document.getElementById("recaptchaResponse");
+    if (tokenInput == null && token != null) {
+        tokenInput = document.createElement("input");
+        tokenInput.setAttribute("id", "recaptchaResponse");
+        tokenInput.setAttribute("type", "hidden");
+        tokenInput.setAttribute("name", "recaptchaResponse");
+        tokenInput.setAttribute("value", token);
+        document.getElementsByClassName("form-signin")[0].appendChild(tokenInput);
+    } else if (token != null)
+        tokenInput.setAttribute("value", token);
+    document.getElementsByClassName("form-signin")[0].checkValidity();
+    if (document.getElementsByClassName("form-signin")[0].checkValidity() === true) {
+        document.getElementsByClassName("form-signin")[0].submit();
+    } else {
+        if (document.getElementsByClassName("form-signin")[0].classList.contains("was-validated") === false)
+            document.getElementsByClassName("form-signin")[0].classList.add("was-validated");
+        grecaptcha.reset();
+    }
+}
+function reCaptchaV3Callback() {
+    grecaptcha.execute("6LfccsUUAAAAAAhL7iOWfm0Fkv9yXcQB3I1UHOOc", { action: 'login' }).then(function (token) {
+        var tokenInput = document.createElement("input");
+        tokenInput.setAttribute("type", "hidden");
+        tokenInput.setAttribute("name", "recaptchaResponse");
+        tokenInput.setAttribute("value", token);
+        document.getElementsByClassName("form-signin")[0].appendChild(tokenInput);
+    });
+}
 (function () {
     'use strict';
     window.addEventListener('load', function () {

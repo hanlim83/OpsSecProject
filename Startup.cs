@@ -115,13 +115,15 @@ namespace OpsSecProject
                                 Name = claimsIdentity.FindFirst("name").Value,
                                 Password = Password.GetRandomSalt(),
                                 EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value,
-                                VerifiedEmail = true,
+                                VerifiedEmailAddress = true,
                                 VerifiedPhoneNumber = false,
                                 Existence = Existence.External,
                                 ForceSignOut = false,
                                 IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
                                 LastPasswordChange = DateTime.Now,
-                                LastAuthentication = DateTime.Now
+                                LastAuthentication = DateTime.Now,
+                                Status = Status.Active,
+                                OverridableField = OverridableField.PhoneNumber
                             };
                             foreach (var claim in claimsIdentity.Claims)
                             {
@@ -159,7 +161,8 @@ namespace OpsSecProject
                                 }
                                 authenticationContext.Update(retrieved);
                                 authenticationContext.SaveChanges();
-                            } else
+                            }
+                            else
                             {
                                 loginContext.Response.Redirect("/Landing/Unauthenticated?reason=mismatch");
                                 loginContext.HandleResponse();
@@ -207,10 +210,13 @@ namespace OpsSecProject
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             //Core AWS Initialization
-            var awsOptions = Configuration.GetAWSOptions();
-            awsOptions.Region = Amazon.RegionEndpoint.APSoutheast1;
-            awsOptions.Credentials = new EnvironmentVariablesAWSCredentials();
-            services.AddDefaultAWSOptions(awsOptions);
+            var defaultAWSOptions = Configuration.GetAWSOptions();
+            defaultAWSOptions.Region = Amazon.RegionEndpoint.APSoutheast1;
+            defaultAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
+            var SESAWSOptions = Configuration.GetAWSOptions();
+            SESAWSOptions.Region = Amazon.RegionEndpoint.USEast1;
+            SESAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
+            services.AddDefaultAWSOptions(defaultAWSOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
             //SagerMaker Initialization
@@ -219,7 +225,7 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonKinesisFirehose>();
             //Simple Notification / Email Services Initialization
             services.AddAWSService<IAmazonSimpleNotificationService>();
-            services.AddAWSService<IAmazonSimpleEmailService>();
+            services.AddAWSService<IAmazonSimpleEmailService>(SESAWSOptions);
             //Entity Framework Initialization
             services.AddDbContext<AuthenticationContext>(options =>
             {

@@ -9,6 +9,16 @@ namespace OpsSecProject.Models
     {
         Internal,External,Hybrid
     }
+
+    public enum OverridableField
+    {
+        EmailAddress,PhoneNumber,Both,None
+    }
+
+    public enum Status
+    {
+        Pending,Active,Disabled
+    }
     public class User
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -31,9 +41,13 @@ namespace OpsSecProject.Models
         [Required]
         public bool ForceSignOut { get; set; }
         [Required]
-        public bool VerifiedEmail { get; set; }
+        public bool VerifiedEmailAddress { get; set; }
         [Required]
         public bool VerifiedPhoneNumber { get; set; }
+        [Required]
+        public Status Status { get; set; }
+        [Required]
+        public OverridableField OverridableField { get; set; }
         public string IDPReference { get; set; }
 
         public virtual Role LinkedRole { get; set; }
