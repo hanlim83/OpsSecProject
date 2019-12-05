@@ -2,10 +2,8 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class ChangePasswordModel
+    public class ChangePasswordFormModel
     {
-        [Required]
-        public string Username { get; set; }
         [Required]
         [Display(Name = "Current Password")]
         [DataType(DataType.Password)]
@@ -19,5 +17,7 @@ namespace OpsSecProject.Areas.Internal.Models
         [Display(Name = "Confirm New Password")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
+        [Required]
+        public string recaptchaResponse { get; set; }
     }
 }

@@ -2,9 +2,13 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class ForgetPasswordModel
+    public class ForgetPasswordFormModel
     {
         [Required]
         public string Username { get; set; }
+        [Required]
+        public string recaptchaResponse { get; set; }
+
+        public string ReturnUrl { get; set; }
     }
 }

@@ -37,6 +37,8 @@ namespace OpsSecProject.Data
                     VerifiedPhoneNumber = true,
                     LinkedRole = context.Roles.Find("Administrator"),
                     Existence = Existence.Internal,
+                    Status = Status.Active,
+                    OverridableField = OverridableField.Both,
                     LastPasswordChange = DateTime.Now
                 });
                 context.SaveChanges();
