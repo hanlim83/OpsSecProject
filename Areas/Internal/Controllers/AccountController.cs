@@ -97,7 +97,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 };
                 if (challenge.VerifiedPhoneNumber == true)
                     claims.Add(new Claim(ClaimTypes.MobilePhone, challenge.PhoneNumber));
-                if (challenge.VerifiedEmail == true)
+                if (challenge.VerifiedEmailAddress == true)
                     claims.Add(new Claim(ClaimTypes.Email, challenge.EmailAddress));
                 var claimsIdentity = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -156,7 +156,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         LinkedUser = identity,
                         Token = TokenGenerator()
                     };
-                    if (identity.VerifiedEmail == true)
+                    if (identity.VerifiedEmailAddress == true)
                     {
                         SendEmailRequest SESrequest = new SendEmailRequest
                         {
@@ -424,7 +424,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     ViewData["Message"] = "Please specify a different email address";
                     newEmailAddress.Password = null;
                     return View(newEmailAddress);
-                } else if (identity.EmailAddress != null && identity.VerifiedEmail == false)
+                } else if (identity.EmailAddress != null && identity.VerifiedEmailAddress == false)
                 {
                     ViewData["Alert"] = "Danger";
                     ViewData["Message"] = "You can't change your email address until you verified your current email address or approach your administrator for assistance";
@@ -432,7 +432,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 }else
                 {
                     identity.EmailAddress = newEmailAddress.EmailAddress;
-                    identity.VerifiedEmail = false;
+                    identity.VerifiedEmailAddress = false;
                     NotificationToken token = new NotificationToken
                     {
                         Type = OpsSecProject.Models.Type.Verify,
@@ -496,7 +496,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.Verify && Rtoken.Mode == Mode.EMAIL && Rtoken.Vaild == true)
                     {
                         User identity = Rtoken.LinkedUser;
-                        identity.VerifiedEmail = true;
+                        identity.VerifiedEmailAddress = true;
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
                         _context.NotificationTokens.Update(Rtoken);

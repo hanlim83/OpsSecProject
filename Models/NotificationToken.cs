@@ -8,7 +8,7 @@ namespace OpsSecProject.Models
     }
     public enum Type
     {
-        Reset, Verify
+        Reset, Verify, Activate
     }
 
     public class NotificationToken

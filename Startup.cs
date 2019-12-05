@@ -102,7 +102,7 @@ namespace OpsSecProject
                         context.HandleResponse();
                         return Task.CompletedTask;
                     },
-                    OnTokenResponseReceived = loginContext =>
+                    OnTokenValidated = loginContext =>
                     {
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
                         AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
@@ -115,13 +115,15 @@ namespace OpsSecProject
                                 Name = claimsIdentity.FindFirst("name").Value,
                                 Password = Password.GetRandomSalt(),
                                 EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value,
-                                VerifiedEmail = true,
+                                VerifiedEmailAddress = true,
                                 VerifiedPhoneNumber = false,
                                 Existence = Existence.External,
                                 ForceSignOut = false,
                                 IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
                                 LastPasswordChange = DateTime.Now,
-                                LastAuthentication = DateTime.Now
+                                LastAuthentication = DateTime.Now,
+                                Status = Status.Active,
+                                OverridableField = OverridableField.PhoneNumber
                             };
                             foreach (var claim in claimsIdentity.Claims)
                             {
@@ -159,7 +161,8 @@ namespace OpsSecProject
                                 }
                                 authenticationContext.Update(retrieved);
                                 authenticationContext.SaveChanges();
-                            } else
+                            }
+                            else
                             {
                                 loginContext.Response.Redirect("/Landing/Unauthenticated?reason=mismatch");
                                 loginContext.HandleResponse();
