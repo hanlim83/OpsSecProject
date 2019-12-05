@@ -2,10 +2,9 @@
 
 namespace OpsSecProject.Areas.Internal.Models
 {
-    public class SetPasswordModel
+    public class SetPasswordFormModel
     {
-        [Required]
-        public string Username { get; set; }
+        public string Token { get; set; }
         [Required]
         [Display(Name = "New Password")]
         [DataType(DataType.Password)]
@@ -15,5 +14,7 @@ namespace OpsSecProject.Areas.Internal.Models
         [Display(Name = "Confirm New Password")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
+        [Required]
+        public string recaptchaResponse { get; set; }
     }
 }

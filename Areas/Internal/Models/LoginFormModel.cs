@@ -9,6 +9,8 @@ namespace OpsSecProject.Areas.Internal.Models
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+        [Required]
+        public string recaptchaResponse {get;set;}
         public string ReturnUrl { get; set; }
     }
 }

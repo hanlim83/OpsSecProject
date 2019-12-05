@@ -1,13 +1,13 @@
 ﻿@{
     Layout = null;
-    ViewData["Title"] = "Access Denied";
+    ViewData["Title"] = "Successfully Set";
 }
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SmartInsights</title>
+    <title>@ViewData["Title"] @TempData["Field"] - SmartInsights</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           crossorigin="anonymous"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />
@@ -33,8 +33,17 @@
 </head>
 <body class="text-center">
     <div class="landing">
-        <h1 class="h3 mb-3 font-weight-normal text-danger">Your Sign In was not successful</h1>
-        <a class="btn btn-lg btn-primary btn-block" asp-action="Reauthenticate">Try again</a>
+        <h1 class="h3 mb-3 font-weight-normal">Success</h1>
+        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["Field"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-success" role="alert">
+                    Your @TempData["Field"] has been changed succefully!
+                </div>
+
+            </div>
+        }
+        <a class="btn btn-lg btn-primary btn-block" asp-area="" asp-controller="Landing" asp-action="Index">Go Back</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
