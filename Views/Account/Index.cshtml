@@ -47,3 +47,10 @@
 <div class="card shadow mb-4">
     @await Html.PartialAsync("ActivityPartial")
 </div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#activtiesTable').DataTable();
+        });
+    </script>
+}
