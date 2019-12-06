@@ -73,6 +73,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 authenticationProperties.RedirectUri = "/Landing/";
                 return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
             }
+            else if (challenge.Status != Status.Active)
+            {
+                ViewData["Alert"] = "Danger";
+                ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
+                Credentials.Username = null;
+                Credentials.Password = null;
+                return View(Credentials);
+            }
             else if (!Password.ValidatePassword(Credentials.Password, challenge.Password))
             {
                 ViewData["Alert"] = "Warning";
@@ -95,15 +103,9 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     new Claim(ClaimTypes.Role, challenge.LinkedRole.RoleName),
                     new Claim("http://schemas.microsoft.com/identity/claims/identityprovider", "https://smartinsights.hansen-lim.me")
                 };
-                if (challenge.VerifiedPhoneNumber == true)
-                    claims.Add(new Claim(ClaimTypes.MobilePhone, challenge.PhoneNumber));
-                if (challenge.VerifiedEmailAddress == true)
-                    claims.Add(new Claim(ClaimTypes.Email, challenge.EmailAddress));
                 var claimsIdentity = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
                 var authProperties = new AuthenticationProperties();
-
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
                 _context.Update(challenge);
                 await _context.SaveChangesAsync();

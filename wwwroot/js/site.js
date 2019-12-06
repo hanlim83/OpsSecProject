@@ -59,6 +59,14 @@ function reCaptchaV3Callback() {
             }, false);
         });
     }, false);
+    window.addEventListener("focus", windowHasFocus, false);
+    window.addEventListener("blur", windowLostFocus, false);
+    window.addEventListener("click", reset, false);
+    window.addEventListener("mousemove", reset, false);
+    window.addEventListener("keypress", reset, false);
+    window.addEventListener("scroll", reset, false);
+    document.addEventListener("touchMove", reset, false);
+    document.addEventListener("touchEnd", reset, false);
 })();
 $(document).ready(function () {
     var path = window.location.pathname;
@@ -74,3 +82,50 @@ $(document).ready(function () {
         $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
     }
 });
+var refresh_rate = 60 * 5
+var last_user_action = 0;
+var has_focus = false;
+var lost_focus_count = 0; 
+var focus_margin = 10;
+
+function reset() {
+    last_user_action = 0;
+    updateVisualTimer('Reset Timer');
+}
+
+function updateVisualTimer(value) {
+    if (value) {
+        console.log(value);
+    } else if (has_focus) {
+        console.log("User has focus won't refresh");
+    } else if (last_user_action >= refresh_rate) {
+        console.log("Refreshing");
+    } else {
+        console.log(refresh_rate - last_user_action);
+    }
+}
+
+function windowHasFocus() {
+    has_focus = true;
+}
+
+function windowLostFocus() {
+    has_focus = false;
+    lost_focus_count++;
+    console.log(lost_focus_count + " <~ Lost Focus");
+}
+
+setInterval(function () {
+    last_user_action++;
+    refreshCheck();
+    updateVisualTimer();
+}, 1000);
+
+function refreshCheck() {
+    var focus = window.onfocus;
+    if ((last_user_action >= refresh_rate && !has_focus && document.readyState == "complete") || lost_focus_count > focus_margin) {
+        window.location.reload();
+        reset();
+    }
+
+}

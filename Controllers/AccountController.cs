@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Data;
@@ -45,8 +46,10 @@ namespace OpsSecProject.Controllers
             return View();
         }
 
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Unauthorised()
         {
+            ViewData["RequestID"] = HttpContext.TraceIdentifier;
             return View();
         }
 
@@ -56,6 +59,7 @@ namespace OpsSecProject.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Manage()
         {
             AccountManagementViewModel model = new AccountManagementViewModel

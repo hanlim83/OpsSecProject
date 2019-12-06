@@ -25,7 +25,7 @@
                         <th scope="col">Last Signed In</th>
                         <th scope="col">Password Last Changed</th>
                         <th scope="col">External Reference</th>
-                        <th scope="col">Action</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,6 +120,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Realm</th>
                         <th scope="col">External Reference</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -129,6 +130,7 @@
                             <th scope="row">@Html.ValueForModel(role.RoleName)</th>
                             <td>@Html.ValueForModel(role.Existence.ToString())</td>
                             <td>@Html.ValueForModel(role.IDPReference)</td>
+                            <td></td>
                         </tr>
                     }
                 </tbody>
