@@ -2,7 +2,33 @@
 @{
     ViewData["Title"] = "Manage";
 }
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @TempData["Message"]
+        </div>
 
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-success" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
 <h1 class="h3 mb-2 text-gray-800">Manage Users</h1>
 <p class="mb-4"></p>
 
@@ -11,20 +37,21 @@
         <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
     </div>
     <div class="card-body">
+        <a class="btn btn-primary float-right" asp-action="CreateUser">Add New User</a>
+        <br />
+        <br />
         <div class="table-responsive">
             <table id="usersTable" class="table">
                 <thead>
                     <tr>
                         <th scope="col">Name</th>
                         <th scope="col">Username</th>
-                        <th scope="col">Authentication Realm</th>
                         <th scope="col">Account Status</th>
                         <th scope="col">Role</th>
                         <th scope="col">Email Address</th>
                         <th scope="col">Phone Number</th>
                         <th scope="col">Last Signed In</th>
                         <th scope="col">Password Last Changed</th>
-                        <th scope="col">External Reference</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -34,7 +61,6 @@
                         <tr>
                             <th scope="row">@Html.ValueForModel(user.Name)</th>
                             <td>@Html.ValueForModel(user.Username)</td>
-                            <td>@Html.ValueForModel(user.Existence.ToString())</td>
                             <td>@Html.ValueForModel(user.Status.ToString())</td>
                             @if (user.LinkedRole != null)
                             {
@@ -92,15 +118,23 @@
                             {
                                 <td>@Html.ValueForModel(user.LastPasswordChange.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
                             }
-                            @if (user.Existence != Existence.Internal)
-                            {
-                                <td>@Html.ValueForModel(user.IDPReference)</td>
-                            }
-                            @if (user.Existence == Existence.Internal)
-                            {
-                                <td>N.A</td>
-                            }
-                            <td></td>
+                            <td>
+                                @if (@User.Claims.First(c => c.Type == "name").Value != user.Name)
+                                {
+                                    <div class="btn-group" role="group" aria-label="Account Actions">
+                                        <a class="btn btn-secondary" asp-action="EditAccount" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
+                                        @if (user.Status == Status.Active && user.Existence != Existence.External)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="ChangeAccountStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
+                                        }
+                                        @if (user.Status == Status.Disabled && user.Existence != Existence.External)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="ChangeAccountStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
+                                        }
+                                        <a class="btn btn-secondary" asp-action="RemoveAccount" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
+                                    </div>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -120,7 +154,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Realm</th>
                         <th scope="col">External Reference</th>
-                        <th scope="col">Actions</th>
+                        <th scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -130,7 +164,9 @@
                             <th scope="row">@Html.ValueForModel(role.RoleName)</th>
                             <td>@Html.ValueForModel(role.Existence.ToString())</td>
                             <td>@Html.ValueForModel(role.IDPReference)</td>
-                            <td></td>
+                            <td>
+                                <a class="btn btn-secondary" asp-action="EditRole" asp-route-Role="@HttpUtility.HtmlEncode(role.RoleName)">Modify Role Details</a>
+                            </td>
                         </tr>
                     }
                 </tbody>

@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace OpsSecProject.Controllers
 {
@@ -68,6 +70,53 @@ namespace OpsSecProject.Controllers
                 allRoles = await _context.Roles.ToListAsync()
             };
             return View(model);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> ChangeAccountStatus(string Username)
+        {
+            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            if (identity == null)
+                return StatusCode(404);
+            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
+                return StatusCode(403);
+            else if (identity.Existence == Existence.External)
+                return StatusCode(500);
+            else
+            {
+                if (identity.Status == Status.Active)
+                {
+                    identity.Status = Status.Disabled;
+                    TempData["Message"] = "Succesfully disabled "+identity.Name+"'s account";
+                }
+                else if (identity.Status == Status.Disabled)
+                {
+                    identity.Status = Status.Active;
+                    TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
+                }                 
+                _context.Users.Update(identity);
+                await _context.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                return RedirectToAction("Manage");
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> RemoveAccount(string Username)
+        {
+            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            if (identity == null)
+                return StatusCode(404);
+            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
+                return StatusCode(403);
+            else
+            {
+                _context.Users.Remove(identity);
+                await _context.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                TempData["Message"] = "Succesfully removed " + identity.Name + "'s account";
+                return RedirectToAction("Manage");
+            }
         }
 
         public async Task<IActionResult> Logout()
