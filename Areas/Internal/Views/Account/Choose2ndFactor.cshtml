@@ -1,7 +1,7 @@
-﻿@model OpsSecProject.Areas.Internal.Models.LoginFormModel
+﻿@model OpsSecProject.Areas.Internal.Models.TwoFactorChooseFormModel
 @{
     Layout = null;
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "2 Factor Authentication";
 }
 <!DOCTYPE html>
 <html>
@@ -90,13 +90,12 @@
                     color: #777;
                 }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?onload=reCaptchaV3Callback&render=@System.Environment.GetEnvironmentVariable("RECAPTCHAV3_SITE_KEY")" async defer></script>
 </head>
 <body class="text-center">
-    <form class="form-signin needs-validation" asp-action="SignIn" novalidate>
+    <form class="form-signin needs-validation" asp-action="Choose2ndFactor" novalidate>
         <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-            <p>Please use your assigned Username and Password</p>
+            <h1 class="h3 mb-3 font-weight-normal">Verify Your Identity</h1>
+            <p>Choose an method to verify your identity</p>
         </div>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
         {
@@ -116,60 +115,25 @@
 
             </div>
         }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("PasswordResetEmail"))
-        {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    An email has been sent to your email address. Please follow the instructions to reset your password
-                </div>
-            </div>
-        }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("PasswordResetPhone"))
-        {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    A SMS has been sent to your phone. Please follow the instructions to reset your password
-                </div>
-            </div>
-        }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("2FAEmail"))
-        {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    An email has been sent to your email address. Please follow the instructions to login
-                </div>
-            </div>
-        }
         <div class="form-label-group">
-            @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
+            <input asp-for="Username" type="hidden" value="@TempData["Identity"]" required/>
+        </div>
+        <div class="form-label-group">
+            <input asp-for="ReturnUrl" type="hidden" value="@TempData["ReturnUrl"]" />
+        </div>
+        <div class="form-label-group">
+            @foreach (var option in Model.Methods)
             {
-                <input asp-for="ReturnUrl" type="hidden" value="@ViewData["ReturnURL"]" />
-            }
-            @if (String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
-            {
-                <input asp-for="ReturnUrl" type="hidden" />
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="Method" value="@option" id="@option" class="custom-control-input" required>
+                    <label class="custom-control-label" for="@option">@option</label>
+                </div>
             }
         </div>
-        <div class="form-label-group">
-            <input asp-for="Username" class="form-control" placeholder="Username" required />
-            <label asp-for="Username">Username</label>
-            <div class="invalid-feedback">
-                Please enter your username
-            </div>
-        </div>
-
-        <div class="form-label-group">
-            <input asp-for="Password" class="form-control" placeholder="Password" required />
-            <label asp-for="Password">Password</label>
-            <div class="invalid-feedback">
-                Please enter your password
-            </div>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Verify Me</button>
         <div class="text-center mb-4">
             <hr>
         </div>
-        <a class="btn btn-lg btn-secondary btn-block" asp-action="ForgetPassword" asp-route-ReturnUrl="@ViewData["ReturnURL"]">Forget Password?</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
     </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"

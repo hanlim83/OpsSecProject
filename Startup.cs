@@ -63,7 +63,6 @@ namespace OpsSecProject
                 options.TokenValidationParameters.ValidateIssuer = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SkipUnrecognizedRequests = true;
-                options.MaxAge = TimeSpan.FromHours(1);
                 options.UseTokenLifetime = true;
                 options.RemoteSignOutPath = "/single-signout";
                 options.Events = new OpenIdConnectEvents
