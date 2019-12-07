@@ -147,7 +147,15 @@ namespace OpsSecProject.Controllers
                 else
                     addition.PhoneNumber = newUser.PhoneNumber;
                 _context.Users.Add(addition);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                } catch (DbUpdateException)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "Something went wrong. Maybe try again?";
+                    return View(newUser);
+                }
                 addition = await _context.Users.FindAsync(newUser.Username);
                 NotificationToken token = new NotificationToken
                 {
@@ -289,7 +297,16 @@ namespace OpsSecProject.Controllers
                     change = true;
                 }
                 _context.Users.Update(identity);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "Something went wrong. Maybe try again?";
+                    return View(existingUser);
+                }
                 if (change)
                 {
                     TempData["Message"] = "Succesfully edited " + identity.Name + "'s account details";
@@ -327,7 +344,16 @@ namespace OpsSecProject.Controllers
                     TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
                 }
                 _context.Users.Update(identity);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Alert"] = "Danger";
+                    TempData["Message"] = "Something went wrong. Maybe try again?";
+                    return RedirectToAction("Manage");
+                }
                 TempData["Alert"] = "Success";
                 return RedirectToAction("Manage");
             }
@@ -345,7 +371,16 @@ namespace OpsSecProject.Controllers
             {
                 identity.ForceSignOut = true;
                 _context.Users.Update(identity);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Alert"] = "Danger";
+                    TempData["Message"] = "Something went wrong. Maybe try again?";
+                    return RedirectToAction("Manage");
+                }
                 TempData["Alert"] = "Success";
                 TempData["Message"] = "Succesfully revoked " + identity.Name + "'s session";
                 return RedirectToAction("Manage");
@@ -363,7 +398,16 @@ namespace OpsSecProject.Controllers
             else
             {
                 _context.Users.Remove(identity);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Alert"] = "Danger";
+                    TempData["Message"] = "Something went wrong. Maybe try again?";
+                    return RedirectToAction("Manage");
+                }
                 TempData["Alert"] = "Success";
                 TempData["Message"] = "Succesfully removed " + identity.Name + "'s account";
                 return RedirectToAction("Manage");
@@ -392,7 +436,15 @@ namespace OpsSecProject.Controllers
                 change = true;
             }
             _context.Roles.Update(modified);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            } catch (DbUpdateException)
+            {
+                ViewData["Message"] = "Something went wrong. Maybe try again?";
+                ViewData["Alert"] = "Danger";
+                return View(modified);
+            }
             if (change)
             {
                 TempData["Message"] = "Succesfully edited role " + modified.RoleName;

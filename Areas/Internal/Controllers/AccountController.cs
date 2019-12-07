@@ -180,7 +180,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         _context.NotificationTokens.Add(token);
                         await _context.SaveChangesAsync();
                         return RedirectToAction("Verify2ndFactor", new { RedirectUrl = Credentials.ReturnUrl });
-                    } else
+                    }
+                    else
                     {
                         ViewData["Alert"] = "Danger";
                         ViewData["Message"] = "Your login session is suspicious. Please contact your administrator for assistance";
@@ -202,7 +203,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 var authProperties = new AuthenticationProperties();
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
                 _context.Update(challenge);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    return StatusCode(500);
+                }
                 if (Credentials.ReturnUrl == null)
                     return Redirect("/Home");
                 else
@@ -415,7 +423,18 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     currentUser.Existence = Existence.Hybrid;
                 currentUser.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(currentUser);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "Something went wrong, maybe try again?";
+                    NewCredentials.NewPassword = null;
+                    NewCredentials.ConfirmPassword = null;
+                    return View(NewCredentials);
+                }
                 TempData["Field"] = "Password";
                 return RedirectToAction("SetSuccessful");
             }
@@ -464,7 +483,18 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
                         _context.NotificationTokens.Update(Rtoken);
-                        await _context.SaveChangesAsync();
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (DbUpdateException)
+                        {
+                            ViewData["Alert"] = "Danger";
+                            ViewData["Message"] = "Something went wrong, maybe try again?";
+                            NewCredentials.NewPassword = null;
+                            NewCredentials.ConfirmPassword = null;
+                            return View(NewCredentials);
+                        }
                         TempData["Field"] = "Password";
                         return RedirectToAction("SetSuccessful");
                     }
@@ -519,7 +549,18 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                 identity.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(identity);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    ViewData["Alert"] = "Danger";
+                    ViewData["Message"] = "Something went wrong, maybe try again?";
+                    NewCredentials.NewPassword = null;
+                    NewCredentials.ConfirmPassword = null;
+                    return View(NewCredentials);
+                }
                 TempData["Field"] = "Password";
                 return RedirectToAction("SetSuccessful");
             }

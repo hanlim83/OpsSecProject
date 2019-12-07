@@ -51,11 +51,14 @@ function reCaptchaV3Callback() {
         var forms = document.getElementsByClassName('needs-validation');
         var validation = Array.prototype.filter.call(forms, function (form) {
             form.addEventListener('submit', function (event) {
+                form.classList.add('was-validated');
                 if (form.checkValidity() === false) {
                     event.preventDefault();
                     event.stopPropagation();
                 }
-                form.classList.add('was-validated');
+                else if (form.checkValidity() === true) {
+                    document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+                }
             }, false);
         });
     }, false);
@@ -85,7 +88,7 @@ $(document).ready(function () {
 var refresh_rate = 60 * 5
 var last_user_action = 0;
 var has_focus = false;
-var lost_focus_count = 0; 
+var lost_focus_count = 0;
 var focus_margin = 10;
 
 function reset() {
