@@ -355,7 +355,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 List<NotificationToken> notificationTokens = await _context.NotificationTokens.ToListAsync();
                 foreach (var Rtoken in notificationTokens)
                 {
-                    if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.Reset && Rtoken.Vaild == true)
+                    if (Rtoken.Token.Equals(token) && (Rtoken.Type == OpsSecProject.Models.Type.Reset || Rtoken.Type == OpsSecProject.Models.Type.Activate) && Rtoken.Vaild == true)
                     {
                         SetPasswordFormModel model = new SetPasswordFormModel
                         {
@@ -408,7 +408,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
                     NewCredentials.NewPassword = null;
                     NewCredentials.ConfirmPassword = null;
-                    return View(User);
+                    return View(NewCredentials);
                 }
                 currentUser.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                 if (currentUser.Existence == Existence.External)
@@ -443,16 +443,24 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             NewCredentials.ConfirmPassword = null;
                             return View(NewCredentials);
                         }
-                        else if (identity.Status != Status.Active)
+                        else if (identity.Status == Status.Disabled)
                         {
                             ViewData["Alert"] = "Danger";
-                            ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
+                            ViewData["Message"] = "Your account is disabled. Please contact your administrator";
                             NewCredentials.NewPassword = null;
                             NewCredentials.ConfirmPassword = null;
-                            return View(User);
+                            return View(NewCredentials);
                         }
                         identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                         identity.LastPasswordChange = DateTime.Now;
+                        if (Rtoken.Type == OpsSecProject.Models.Type.Activate)
+                        {
+                            if (Rtoken.Mode == Mode.EMAIL)
+                                identity.VerifiedEmailAddress = true;
+                            else
+                                identity.VerifiedPhoneNumber = true;
+                            identity.Status = Status.Active;
+                        }
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
                         _context.NotificationTokens.Update(Rtoken);
@@ -923,7 +931,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 return View(response);
             }
         }
-        private string TokenGenerator()
+        public static string TokenGenerator()
         {
             int length = 30;
             string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -942,7 +950,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             return res.ToString();
         }
 
-        private string CodeGenerator()
+        public static string CodeGenerator()
         {
             int length = 8;
             string valid = "1234567890";

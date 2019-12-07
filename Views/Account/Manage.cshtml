@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.AccountManagementViewModel
+﻿@model OpsSecProject.Models.UsersOverallManagementViewModel
 @{
     ViewData["Title"] = "Manage";
 }
@@ -121,18 +121,22 @@
                             <td>
                                 @if (@User.Claims.First(c => c.Type == "name").Value != user.Name)
                                 {
-                                    <div class="btn-group" role="group" aria-label="Account Actions">
-                                        <a class="btn btn-secondary" asp-action="EditAccount" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
-                                        @if (user.Status == Status.Active && user.Existence != Existence.External)
-                                        {
-                                            <a class="btn btn-secondary" asp-action="ChangeAccountStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
-                                        }
-                                        @if (user.Status == Status.Disabled && user.Existence != Existence.External)
-                                        {
-                                            <a class="btn btn-secondary" asp-action="ChangeAccountStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
-                                        }
-                                        <a class="btn btn-secondary" asp-action="RemoveAccount" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
-                                    </div>
+                                <div class="btn-group" role="group" aria-label="Account Actions">
+                                    <a class="btn btn-secondary" asp-action="EditUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
+                                    @if (user.Status == Status.Active && user.Existence != Existence.External)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
+                                    }
+                                    @if (user.Status == Status.Disabled && user.Existence != Existence.External)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
+                                    }
+                                    @if (user.ForceSignOut == false)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="RevokeUserSession" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Revoke Session</a>
+                                    }
+                                    <a class="btn btn-secondary" asp-action="RemoveUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
+                                </div>
                                 }
                             </td>
                         </tr>

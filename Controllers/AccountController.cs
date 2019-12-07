@@ -9,6 +9,13 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Net;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleEmail;
+using OpsSecProject.Areas.Internal.Data;
+using System;
+using Amazon.SimpleEmail.Model;
+using System.Collections.Generic;
+using Amazon.SimpleNotificationService.Model;
 
 namespace OpsSecProject.Controllers
 {
@@ -16,10 +23,14 @@ namespace OpsSecProject.Controllers
     {
 
         private readonly AuthenticationContext _context;
+        private readonly IAmazonSimpleNotificationService _snsClient;
+        private readonly IAmazonSimpleEmailService _sesClient;
 
-        public AccountController(AuthenticationContext context)
+        public AccountController(AuthenticationContext context, IAmazonSimpleNotificationService snsClient, IAmazonSimpleEmailService sesClient)
         {
             _context = context;
+            _snsClient = snsClient;
+            _sesClient = sesClient;
         }
 
         public async Task<IActionResult> Index()
@@ -61,64 +72,6 @@ namespace OpsSecProject.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Manage()
-        {
-            AccountManagementViewModel model = new AccountManagementViewModel
-            {
-                allUsers = await _context.Users.ToListAsync(),
-                allRoles = await _context.Roles.ToListAsync()
-            };
-            return View(model);
-        }
-
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeAccountStatus(string Username)
-        {
-            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
-            if (identity == null)
-                return StatusCode(404);
-            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
-                return StatusCode(403);
-            else if (identity.Existence == Existence.External)
-                return StatusCode(500);
-            else
-            {
-                if (identity.Status == Status.Active)
-                {
-                    identity.Status = Status.Disabled;
-                    TempData["Message"] = "Succesfully disabled "+identity.Name+"'s account";
-                }
-                else if (identity.Status == Status.Disabled)
-                {
-                    identity.Status = Status.Active;
-                    TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
-                }                 
-                _context.Users.Update(identity);
-                await _context.SaveChangesAsync();
-                TempData["Alert"] = "Success";
-                return RedirectToAction("Manage");
-            }
-        }
-
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> RemoveAccount(string Username)
-        {
-            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
-            if (identity == null)
-                return StatusCode(404);
-            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
-                return StatusCode(403);
-            else
-            {
-                _context.Users.Remove(identity);
-                await _context.SaveChangesAsync();
-                TempData["Alert"] = "Success";
-                TempData["Message"] = "Succesfully removed " + identity.Name + "'s account";
-                return RedirectToAction("Manage");
-            }
-        }
-
         public async Task<IActionResult> Logout()
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
@@ -140,6 +93,317 @@ namespace OpsSecProject.Controllers
             {
                 return StatusCode(500);
             }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Manage()
+        {
+            UsersOverallManagementViewModel model = new UsersOverallManagementViewModel
+            {
+                allUsers = await _context.Users.ToListAsync(),
+                allRoles = await _context.Roles.ToListAsync()
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> CreateUser()
+        {
+            UserDataManagementViewModel model = new UserDataManagementViewModel
+            {
+                allRoles = await _context.Roles.ToListAsync()
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([Bind("Username", "Name", "PhoneNumber", "EmailAddress", "Role")]UserDataManagementViewModel newUser)
+        {
+            if (newUser.PhoneNumber == null && newUser.EmailAddress == null)
+            {
+                ViewData["Alert"] = "Danger";
+                ViewData["Message"] = "You must specify either a Phone Number or Email Address";
+                newUser.allRoles = await _context.Roles.ToListAsync();
+                return View(newUser);
+            }
+            else
+            {
+                User addition = new User
+                {
+                    Username = newUser.Username,
+                    Name = newUser.Name,
+                    Existence = Existence.Internal,
+                    Password = Password.GetRandomSalt(),
+                    Status = Status.Pending
+                };
+                if (!newUser.Role.Equals("User"))
+                {
+                    Role role = await _context.Roles.FindAsync(newUser.Role);
+                    addition.LinkedRole = role;
+                }
+                if (newUser.PhoneNumber == null)
+                    addition.EmailAddress = newUser.EmailAddress;
+                else
+                    addition.PhoneNumber = newUser.PhoneNumber;
+                _context.Users.Add(addition);
+                await _context.SaveChangesAsync();
+                addition = await _context.Users.FindAsync(newUser.Username);
+                NotificationToken token = new NotificationToken
+                {
+                    Type = Models.Type.Activate,
+                    Vaild = true,
+                    LinkedUser = addition
+                };
+                if (addition.EmailAddress != null)
+                {
+                    token.Token = Areas.Internal.Controllers.AccountController.TokenGenerator();
+                    SendEmailRequest SESrequest = new SendEmailRequest
+                    {
+                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                        Destination = new Destination
+                        {
+                            ToAddresses = new List<string>
+                        {
+                            addition.EmailAddress
+                        }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content("Welcome to SmartInsights"),
+                            Body = new Body
+                            {
+                                Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = "Hi " + addition.Name + ",\r\n\n" + HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is:\r\n" + addition.Username + "\r\n\nTo enable your account, you will need to set your password and verify this email address. Please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + " to do so.\r\n\n\nThis is a computer-generated email, please do not reply"
+                                }
+                            }
+                        }
+                    };
+                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.EMAIL;
+                }
+                else
+                {
+                    PublishRequest SNSrequest = new PublishRequest
+                    {
+                        Message = HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is: " + addition.Username + ". Please click on this link to set your password and verify this phone number: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
+                        PhoneNumber = "+65" + addition.PhoneNumber
+                    };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.SMS;
+                }
+                await _context.NotificationTokens.AddAsync(token);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Succesfully created " + addition.Name + "'s account. Please ask " + addition.Name + " to look at the email/SMS to activate the account";
+                TempData["Alert"] = "Success";
+                return RedirectToAction("Manage");
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> EditUser(string Username)
+        {
+            User identity = await _context.Users.FindAsync(Username);
+            if (identity == null)
+                return StatusCode(404);
+            else
+            {
+                UserDataManagementViewModel model = new UserDataManagementViewModel
+                {
+                    user = identity,
+                    allRoles = await _context.Roles.ToListAsync()
+                };
+                if (identity.LinkedRole == null)
+                    model.Role = "User";
+                return View(model);
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public async Task<IActionResult> EditUser([Bind("Username", "Name", "PhoneNumber", "EmailAddress", "Role")]UserDataManagementViewModel existingUser)
+        {
+            bool change = false;
+            User identity = await _context.Users.FindAsync(existingUser.Username);
+            if (identity == null)
+                return StatusCode(404);
+            else if (existingUser.PhoneNumber == null && existingUser.EmailAddress == null)
+            {
+                ViewData["Alert"] = "Danger";
+                ViewData["Message"] = "You must specify either a Phone Number or Email Address";
+                existingUser.user = identity;
+                existingUser.allRoles = await _context.Roles.ToListAsync();
+                return View(existingUser);
+            }
+            else
+            {
+                if (identity.Existence == Existence.Internal && !existingUser.Name.Equals(identity.Name))
+                {
+                    identity.Name = existingUser.Name;
+                    change = true;
+                }
+                if (!existingUser.Role.Equals("User") && identity.Existence == Existence.Internal)
+                {
+                    Role role = await _context.Roles.FindAsync(existingUser.Role);
+                    if (identity.LinkedRole != role)
+                    {
+                        identity.LinkedRole = role;
+                        change = true;
+                    }
+                }
+                else if (existingUser.Role.Equals("User") && identity.Existence == Existence.Internal)
+                {
+                    identity.LinkedRole = null;
+                    change = true;
+                }
+                if (existingUser.PhoneNumber != null && (identity.PhoneNumber == null || !identity.PhoneNumber.Equals(existingUser.PhoneNumber)) && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
+                {
+                    identity.PhoneNumber = existingUser.PhoneNumber;
+                    identity.VerifiedPhoneNumber = false;
+                    change = true;
+                }
+                else if (existingUser.PhoneNumber == null && identity.PhoneNumber != null && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
+                {
+                    identity.PhoneNumber = null;
+                    identity.VerifiedPhoneNumber = false;
+                    change = true;
+                }
+                if (existingUser.EmailAddress != null && (identity.EmailAddress == null || !identity.EmailAddress.Equals(existingUser.EmailAddress)) && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
+                {
+                    identity.EmailAddress = existingUser.EmailAddress;
+                    identity.VerifiedEmailAddress = false;
+                    change = true;
+                }
+                else if (existingUser.EmailAddress == null && identity.EmailAddress != null && (identity.OverridableField == OverridableField.EmailAddress || identity.OverridableField == OverridableField.Both))
+                {
+                    identity.EmailAddress = null;
+                    identity.VerifiedEmailAddress = false;
+                    change = true;
+                }
+                _context.Users.Update(identity);
+                await _context.SaveChangesAsync();
+                if (change)
+                {
+                    TempData["Message"] = "Succesfully edited " + identity.Name + "'s account details";
+                    TempData["Alert"] = "Success";
+                }
+                else
+                {
+                    TempData["Message"] = "No changes made to " + identity.Name + "'s account details";
+                    TempData["Alert"] = "Warning";
+                }
+                return RedirectToAction("Manage");
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> ChangeUserStatus(string Username)
+        {
+            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            if (identity == null)
+                return StatusCode(404);
+            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
+                return StatusCode(403);
+            else if (identity.Existence == Existence.External)
+                return StatusCode(500);
+            else
+            {
+                if (identity.Status == Status.Active)
+                {
+                    identity.Status = Status.Disabled;
+                    TempData["Message"] = "Succesfully disabled " + identity.Name + "'s account";
+                }
+                else if (identity.Status == Status.Disabled)
+                {
+                    identity.Status = Status.Active;
+                    TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
+                }
+                _context.Users.Update(identity);
+                await _context.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                return RedirectToAction("Manage");
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> RevokeUserSession(string Username)
+        {
+            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            if (identity == null)
+                return StatusCode(404);
+            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
+                return StatusCode(403);
+            else
+            {
+                identity.ForceSignOut = true;
+                _context.Users.Update(identity);
+                await _context.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                TempData["Message"] = "Succesfully revoked " + identity.Name + "'s session";
+                return RedirectToAction("Manage");
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> RemoveUser(string Username)
+        {
+            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            if (identity == null)
+                return StatusCode(404);
+            else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
+                return StatusCode(403);
+            else
+            {
+                _context.Users.Remove(identity);
+                await _context.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                TempData["Message"] = "Succesfully removed " + identity.Name + "'s account";
+                return RedirectToAction("Manage");
+            }
+        }
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> EditRole(string Role)
+        {
+            Role role = await _context.Roles.FindAsync(Role);
+            if (role == null)
+                return StatusCode(404);
+            else
+            {
+                return View(role);
+            }
+        }
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public async Task<IActionResult> EditRole([Bind("RoleName", "Existence", "IDPReference")]Role role)
+        {
+            bool change = false;
+            Role modified = await _context.Roles.FindAsync(role.RoleName);
+            if (!modified.IDPReference.Equals(role.IDPReference))
+            {
+                modified.IDPReference = role.IDPReference;
+                change = true;
+            }
+            _context.Roles.Update(modified);
+            await _context.SaveChangesAsync();
+            if (change)
+            {
+                TempData["Message"] = "Succesfully edited role " + modified.RoleName;
+                TempData["Alert"] = "Success";
+            }
+            else
+            {
+                TempData["Message"] = "No changes made to role " + modified.RoleName;
+                TempData["Alert"] = "Warning";
+            }
+            return RedirectToAction("Manage");
         }
     }
 }
