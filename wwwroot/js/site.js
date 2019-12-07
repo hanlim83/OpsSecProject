@@ -29,6 +29,7 @@ function reCaptchaV2Callback(token) {
         tokenInput.setAttribute("value", token);
     document.getElementsByClassName("form-signin")[0].checkValidity();
     if (document.getElementsByClassName("form-signin")[0].checkValidity() === true) {
+        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
         document.getElementsByClassName("form-signin")[0].submit();
     } else {
         if (document.getElementsByClassName("form-signin")[0].classList.contains("was-validated") === false)
