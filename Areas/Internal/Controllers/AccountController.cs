@@ -128,7 +128,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                                     Text = new Content
                                     {
                                         Charset = "UTF-8",
-                                        Data = "Hi " + challenge.Name + ",\r\n\n" + "To complete your login, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "&ReturnUrl=" + Credentials.ReturnUrl + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                        Data = "Hi " + challenge.Name + ",\r\n\n" + "To complete your login, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "&ReturnUrl=" + Credentials.ReturnUrl + "\r\n\n\nThis is a computer-generated email, please do not reply"
                                     }
                                 }
                             };
@@ -143,7 +143,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                                     Text = new Content
                                     {
                                         Charset = "UTF-8",
-                                        Data = "Hi " + challenge.Name + ",\r\n\n" + "To complete your login, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                        Data = "Hi " + challenge.Name + ",\r\n\n" + "To complete your login, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
                                     }
                                 }
                             };
@@ -195,9 +195,10 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 var claims = new List<Claim>{
                     new Claim("name", challenge.Name),
                     new Claim("preferred_username", challenge.Username),
-                    new Claim(ClaimTypes.Role, challenge.LinkedRole.RoleName),
                     new Claim("http://schemas.microsoft.com/identity/claims/identityprovider", "https://smartinsights.hansen-lim.me")
                 };
+                if (challenge.LinkedRole != null)
+                    claims.Add(new Claim(ClaimTypes.Role, challenge.LinkedRole.RoleName));
                 var claimsIdentity = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var authProperties = new AuthenticationProperties();
@@ -287,7 +288,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                                     Text = new Content
                                     {
                                         Charset = "UTF-8",
-                                        Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your password reset request, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                        Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your password reset request, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
                                     }
                                 }
                             }
@@ -301,7 +302,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     {
                         PublishRequest SNSrequest = new PublishRequest
                         {
-                            Message = "Please click on this link to complete your password reset request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
+                            Message = "Please click on this link to complete your password reset request: " + "https://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
                             PhoneNumber = "+65" + identity.PhoneNumber
                         };
                         SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
@@ -630,7 +631,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                                 Text = new Content
                                 {
                                     Charset = "UTF-8",
-                                    Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your change of email address request, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                    Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your change of email address request, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
                                 }
                             }
                         }
@@ -729,7 +730,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     };
                     PublishRequest SNSrequest = new PublishRequest
                     {
-                        Message = "Please click on this link to complete your change of phone number request: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token,
+                        Message = "Please click on this link to complete your change of phone number request: " + "https://" + HttpContext.Request.Host + "/Internal/Account/VerifyPhoneNumber?token=" + token.Token,
                         PhoneNumber = "+65" + identity.PhoneNumber
                     };
                     SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
@@ -831,7 +832,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             Text = new Content
                             {
                                 Charset = "UTF-8",
-                                Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your login, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "&ReturnUrl=" + choice.ReturnUrl + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your login, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "&ReturnUrl=" + choice.ReturnUrl + "\r\n\n\nThis is a computer-generated email, please do not reply"
                             }
                         }
                     };
@@ -846,7 +847,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             Text = new Content
                             {
                                 Charset = "UTF-8",
-                                Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your login, please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                Data = "Hi " + identity.Name + ",\r\n\n" + "To complete your login, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/Verify2ndFactor?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
                             }
                         }
                     };
@@ -905,9 +906,10 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         var claims = new List<Claim>{
                             new Claim("name", identity.Name),
                             new Claim("preferred_username", identity.Username),
-                            new Claim(ClaimTypes.Role, identity.LinkedRole.RoleName),
                             new Claim("http://schemas.microsoft.com/identity/claims/identityprovider", "https://smartinsights.hansen-lim.me")
                         };
+                        if (identity.LinkedRole != null)
+                            claims.Add(new Claim(ClaimTypes.Role, identity.LinkedRole.RoleName));
                         var claimsIdentity = new ClaimsIdentity(
                             claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         var authProperties = new AuthenticationProperties();

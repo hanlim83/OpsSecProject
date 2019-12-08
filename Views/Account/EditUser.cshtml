@@ -73,20 +73,24 @@
                         @if (Model.user.LinkedRole == null)
                         {
                             <option selected value="User">User</option>
+                            @foreach (var role in Model.allRoles)
+                            {
+                                <option value="@role.RoleName">@role.RoleName</option>
+                            }
                         }
                         @if (Model.user.LinkedRole != null)
                         {
                             <option value="User">User</option>
-                        }
-                        @foreach (var role in Model.allRoles)
-                        {
-                            @if (Model.user.LinkedRole.RoleName.Equals(role.RoleName))
+                            @foreach (var role in Model.allRoles)
                             {
-                                <option selected value="@role.RoleName">@role.RoleName</option>
-                            }
-                            @if (!Model.user.LinkedRole.RoleName.Equals(role.RoleName))
-                            {
-                                <option value="@role.RoleName">@role.RoleName</option>
+                                @if (Model.user.LinkedRole.RoleName.Equals(role.RoleName))
+                                {
+                                    <option selected value="@role.RoleName">@role.RoleName</option>
+                                }
+                                @if (!Model.user.LinkedRole.RoleName.Equals(role.RoleName))
+                                {
+                                    <option value="@role.RoleName">@role.RoleName</option>
+                                }
                             }
                         }
                     </select>

@@ -135,7 +135,8 @@ namespace OpsSecProject.Controllers
                     Name = newUser.Name,
                     Existence = Existence.Internal,
                     Password = Password.GetRandomSalt(),
-                    Status = Status.Pending
+                    Status = Status.Pending,
+                    OverridableField = OverridableField.Both
                 };
                 if (!newUser.Role.Equals("User"))
                 {
@@ -184,7 +185,7 @@ namespace OpsSecProject.Controllers
                                 Text = new Content
                                 {
                                     Charset = "UTF-8",
-                                    Data = "Hi " + addition.Name + ",\r\n\n" + HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is:\r\n" + addition.Username + "\r\n\nTo enable your account, you will need to set your password and verify this email address. Please click on this link: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + " to do so.\r\n\n\nThis is a computer-generated email, please do not reply"
+                                    Data = "Hi " + addition.Name + ",\r\n\n" + HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is:\r\n" + addition.Username + "\r\n\nTo enable your account, you will need to set your password and verify this email address. Please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token + " to do so.\r\n\n\nThis is a computer-generated email, please do not reply"
                                 }
                             }
                         }
@@ -198,7 +199,7 @@ namespace OpsSecProject.Controllers
                 {
                     PublishRequest SNSrequest = new PublishRequest
                     {
-                        Message = HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is: " + addition.Username + ". Please click on this link to set your password and verify this phone number: " + HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
+                        Message = HttpContext.User.Claims.First(c => c.Type == "name").Value + " has created an account for you on SmartInsights. Your username to login is: " + addition.Username + ". Please click on this link to set your password and verify this phone number: " + "https://" + HttpContext.Request.Host + "/Internal/Account/SetPassword?token=" + token.Token,
                         PhoneNumber = "+65" + addition.PhoneNumber
                     };
                     SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
@@ -253,6 +254,12 @@ namespace OpsSecProject.Controllers
             }
             else
             {
+                NotificationToken token = new NotificationToken
+                {
+                    Type = Models.Type.Verify,
+                    Vaild = true,
+                    LinkedUser = identity
+                };
                 if (identity.Existence == Existence.Internal && !existingUser.Name.Equals(identity.Name))
                 {
                     identity.Name = existingUser.Name;
@@ -267,7 +274,7 @@ namespace OpsSecProject.Controllers
                         change = true;
                     }
                 }
-                else if (existingUser.Role.Equals("User") && identity.Existence == Existence.Internal)
+                else if (existingUser.Role.Equals("User") && identity.Existence == Existence.Internal && identity.LinkedRole != null)
                 {
                     identity.LinkedRole = null;
                     change = true;
@@ -276,6 +283,19 @@ namespace OpsSecProject.Controllers
                 {
                     identity.PhoneNumber = existingUser.PhoneNumber;
                     identity.VerifiedPhoneNumber = false;
+                    token.Token = Areas.Internal.Controllers.AccountController.TokenGenerator();
+                    PublishRequest SNSrequest = new PublishRequest
+                    {
+                        Message = HttpContext.User.Claims.First(c => c.Type == "name").Value + " has changed the phone number on your account. To confirm this change, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/VerifyPhoneNumber?token=" + token.Token,
+                        PhoneNumber = "+65" + identity.PhoneNumber
+                    };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.SMS;
+                    _context.NotificationTokens.Add(token);
                     change = true;
                 }
                 else if (existingUser.PhoneNumber == null && identity.PhoneNumber != null && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
@@ -284,10 +304,39 @@ namespace OpsSecProject.Controllers
                     identity.VerifiedPhoneNumber = false;
                     change = true;
                 }
-                if (existingUser.EmailAddress != null && (identity.EmailAddress == null || !identity.EmailAddress.Equals(existingUser.EmailAddress)) && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
+                if (existingUser.EmailAddress != null && (identity.EmailAddress == null || !identity.EmailAddress.Equals(existingUser.EmailAddress)) && (identity.OverridableField == OverridableField.EmailAddress || identity.OverridableField == OverridableField.Both))
                 {
                     identity.EmailAddress = existingUser.EmailAddress;
                     identity.VerifiedEmailAddress = false;
+                    token.Token = Areas.Internal.Controllers.AccountController.TokenGenerator();
+                    SendEmailRequest SESrequest = new SendEmailRequest
+                    {
+                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                        Destination = new Destination
+                        {
+                            ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content("Verify your email address for SmartInsights"),
+                            Body = new Body
+                            {
+                                Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = "Hi " + identity.Name + ",\r\n\n" + HttpContext.User.Claims.First(c => c.Type == "name").Value + " has changed the email address on your account. To confirm this change, please click on this link: " + "https://" + HttpContext.Request.Host + "/Internal/Account/VerifyEmailAddress?token=" + token.Token + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                }
+                            }
+                        }
+                    };
+                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                        return StatusCode(500);
+                    token.Mode = Mode.EMAIL;
+                    _context.NotificationTokens.Add(token);
                     change = true;
                 }
                 else if (existingUser.EmailAddress == null && identity.EmailAddress != null && (identity.OverridableField == OverridableField.EmailAddress || identity.OverridableField == OverridableField.Both))
