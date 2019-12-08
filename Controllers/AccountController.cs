@@ -37,8 +37,13 @@ namespace OpsSecProject.Controllers
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User currentUser = await _context.Users.FindAsync(currentIdentity);
-            return View(currentUser);
+            User user = await _context.Users.FindAsync(currentIdentity);
+            AccountOverallViewModel model = new AccountOverallViewModel
+            {
+                User = user,
+                Useractivites = await _context.Activities.Where(a => a.LinkedUser == user).ToListAsync()
+            };
+            return View(model);
         }
 
         public async Task<IActionResult> Profile()
@@ -56,7 +61,10 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> Activity()
         {
-            return View();
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User user = await _context.Users.FindAsync(currentIdentity);
+            return View(await _context.Activities.Where(a => a.LinkedUser == user).ToListAsync());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -505,6 +513,11 @@ namespace OpsSecProject.Controllers
                 TempData["Alert"] = "Warning";
             }
             return RedirectToAction("Manage");
+        }
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Audit()
+        {
+            return View(await _context.Activities.ToListAsync());
         }
     }
 }

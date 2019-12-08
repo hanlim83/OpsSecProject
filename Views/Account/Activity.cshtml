@@ -1,16 +1,17 @@
-﻿@{
-    ViewData["Title"] = "Account Activity";
-}
-<h1 class="h3 mb-2 text-gray-800">Your Account</h1>
-<p class="mb-4"></p>
+﻿@model IEnumerable<OpsSecProject.Models.Activity>
+    @{
+        ViewData["Title"] = "Account Activity";
+    }
+    <h1 class="h3 mb-2 text-gray-800">Your Account</h1>
+    <p class="mb-4"></p>
 
-<div class="card shadow mb-4">
-    @await Html.PartialAsync("ActivityPartial")
-</div>
-@section scripts {
-    <script>
-        $(document).ready(function () {
-            $('#activtiesTable').DataTable();
-        });
-    </script>
-}
+    <div class="card shadow mb-4">
+        @await Html.PartialAsync("ActivityPartial",Model)
+    </div>
+    @section scripts {
+        <script>
+            $(document).ready(function () {
+                $('#activtiesTable').DataTable();
+            });
+        </script>
+    }

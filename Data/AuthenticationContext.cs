@@ -11,12 +11,14 @@ namespace OpsSecProject.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<NotificationToken> NotificationTokens { get; set; }
+        public DbSet<Activity> Activities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Role>().ToTable("Roles");
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<NotificationToken>().ToTable("NotificationTokens");
+            modelBuilder.Entity<Activity>().ToTable("Activities");
         }
     }
 }

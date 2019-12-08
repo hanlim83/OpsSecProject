@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.User;
+﻿@model OpsSecProject.Models.AccountOverallViewModel
 @{
     ViewData["Title"] = "Account";
 }
@@ -35,7 +35,7 @@
 <div class="row">
     <div class="col-lg-6">
         <div class="card shadow mb-4">
-            @await Html.PartialAsync("ProfilePartial", Model)
+            @await Html.PartialAsync("ProfilePartial", Model.User)
         </div>
     </div>
     <div class="col-lg-6">
@@ -45,7 +45,7 @@
     </div>
 </div>
 <div class="card shadow mb-4">
-    @await Html.PartialAsync("ActivityPartial")
+    @await Html.PartialAsync("ActivityPartial",Model.Useractivites)
 </div>
 @section scripts {
     <script>
