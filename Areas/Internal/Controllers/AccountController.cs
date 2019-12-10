@@ -211,7 +211,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 }
                 catch (DbUpdateException)
                 {
-                    return StatusCode(500);
+                    return StatusCode(503);
                 }
                 if (Credentials.ReturnUrl == null)
                     return Redirect("/Home");
@@ -390,7 +390,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 return View(NewCredentials);
             }
             else if (NewCredentials.Token == null && !HttpContext.User.Identity.IsAuthenticated)
-                return StatusCode(500);
+                return StatusCode(409);
             else if (NewCredentials.Token == null && HttpContext.User.Identity.IsAuthenticated)
             {
                 ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
@@ -501,7 +501,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         return RedirectToAction("SetSuccessful");
                     }
                 }
-                return StatusCode(500);
+                return StatusCode(503);
             }
         }
 
@@ -801,7 +801,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         public async Task<IActionResult> Choose2ndFactor([Bind("Username", "Method", "ReturnUrl")]TwoFactorChooseFormModel choice)
         {
             if (choice.Username == null || choice.Method == null)
-                return StatusCode(500);
+                return StatusCode(409);
             User identity = await _context.Users.Where(u => u.Username == choice.Username).FirstOrDefaultAsync();
             NotificationToken token = new NotificationToken
             {

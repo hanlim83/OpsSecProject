@@ -46,14 +46,21 @@
         }
         @if (Model.ShowStatusCode)
         {
-            <p class="mt-5 mb-3 text-muted">
-                <strong>HTTP Status Code: @Model.ErrorStatusCode</strong>
-            </p>
+    <p class="mt-5 mb-3 text-muted">
+        @if (Model.ErrorStatusCodeMessage.ContainsKey(Model.ErrorStatusCode))
+        {
+            <strong>Error Message: @Model.ErrorStatusCodeMessage[Model.ErrorStatusCode]</strong>
+        }
+        @if (!Model.ErrorStatusCodeMessage.ContainsKey(Model.ErrorStatusCode))
+        {
+            <strong>HTTP Error Status Code: @Model.ErrorStatusCode</strong>
+        }
+    </p>
         }
         @if (Model.ShowOriginalPath)
         {
             <p class="mt-5 mb-3 text-muted">
-                <strong>Requested Path: @Model.OriginalPath</strong>
+                <strong>Requested Page: @Model.OriginalPath</strong>
             </p>
         }
         <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>

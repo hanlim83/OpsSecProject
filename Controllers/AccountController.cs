@@ -101,7 +101,7 @@ namespace OpsSecProject.Controllers
             }
             else
             {
-                return StatusCode(500);
+                return StatusCode(400);
             }
         }
 
@@ -389,7 +389,7 @@ namespace OpsSecProject.Controllers
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
                 return StatusCode(403);
             else if (identity.Existence == Existence.External)
-                return StatusCode(500);
+                return Redirect("/Account/Unauthorised");
             else
             {
                 if (identity.Status == Status.Active)
@@ -423,9 +423,9 @@ namespace OpsSecProject.Controllers
         {
             User identity = await _Acontext.Users.Where(u => u.Username == WebUtility.HtmlDecode(Username)).FirstOrDefaultAsync();
             if (identity == null)
-                return StatusCode(404);
+                return StatusCode(503);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
-                return StatusCode(403);
+                return StatusCode(409);
             else
             {
                 identity.ForceSignOut = true;
@@ -451,9 +451,9 @@ namespace OpsSecProject.Controllers
         {
             User identity = await _Acontext.Users.Where(u => u.Username == WebUtility.HtmlDecode(Username)).FirstOrDefaultAsync();
             if (identity == null)
-                return StatusCode(404);
+                return StatusCode(503);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
-                return StatusCode(403);
+                return StatusCode(409);
             else
             {
                 _Acontext.Users.Remove(identity);
