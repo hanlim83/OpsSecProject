@@ -22,13 +22,15 @@ namespace OpsSecProject.Controllers
     public class AccountController : Controller
     {
 
-        private readonly AuthenticationContext _context;
+        private readonly AccountContext _Acontext;
+        private readonly SecurityContext _Scontext;
         private readonly IAmazonSimpleNotificationService _snsClient;
         private readonly IAmazonSimpleEmailService _sesClient;
 
-        public AccountController(AuthenticationContext context, IAmazonSimpleNotificationService snsClient, IAmazonSimpleEmailService sesClient)
+        public AccountController(AccountContext Acontext, SecurityContext Scontext, IAmazonSimpleNotificationService snsClient, IAmazonSimpleEmailService sesClient)
         {
-            _context = context;
+            _Acontext = Acontext;
+            _Scontext = Scontext;
             _snsClient = snsClient;
             _sesClient = sesClient;
         }
@@ -37,11 +39,11 @@ namespace OpsSecProject.Controllers
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User user = await _context.Users.FindAsync(currentIdentity);
+            User user = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             AccountOverallViewModel model = new AccountOverallViewModel
             {
                 User = user,
-                Useractivites = await _context.Activities.Where(a => a.LinkedUser == user).ToListAsync()
+                Useractivites = await _Scontext.Activities.Where(a => a.LinkedUserID == user.ID).ToListAsync()
             };
             return View(model);
         }
@@ -50,7 +52,7 @@ namespace OpsSecProject.Controllers
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User currentUser = await _context.Users.FindAsync(currentIdentity);
+            User currentUser = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             return View(currentUser);
         }
 
@@ -63,8 +65,8 @@ namespace OpsSecProject.Controllers
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User user = await _context.Users.FindAsync(currentIdentity);
-            return View(await _context.Activities.Where(a => a.LinkedUser == user).ToListAsync());
+            User user = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
+            return View(await _Scontext.Activities.Where(a => a.LinkedUserID == user.ID).ToListAsync());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -108,8 +110,8 @@ namespace OpsSecProject.Controllers
         {
             UsersOverallManagementViewModel model = new UsersOverallManagementViewModel
             {
-                allUsers = await _context.Users.ToListAsync(),
-                allRoles = await _context.Roles.ToListAsync()
+                allUsers = await _Acontext.Users.ToListAsync(),
+                allRoles = await _Acontext.Roles.ToListAsync()
             };
             return View(model);
         }
@@ -119,7 +121,7 @@ namespace OpsSecProject.Controllers
         {
             UserDataManagementViewModel model = new UserDataManagementViewModel
             {
-                allRoles = await _context.Roles.ToListAsync()
+                allRoles = await _Acontext.Roles.ToListAsync()
             };
             return View(model);
         }
@@ -132,7 +134,7 @@ namespace OpsSecProject.Controllers
             {
                 ViewData["Alert"] = "Danger";
                 ViewData["Message"] = "You must specify either a Phone Number or Email Address";
-                newUser.allRoles = await _context.Roles.ToListAsync();
+                newUser.allRoles = await _Acontext.Roles.ToListAsync();
                 return View(newUser);
             }
             else
@@ -148,24 +150,24 @@ namespace OpsSecProject.Controllers
                 };
                 if (!newUser.Role.Equals("User"))
                 {
-                    Role role = await _context.Roles.FindAsync(newUser.Role);
+                    Role role = await _Acontext.Roles.Where(r => r.RoleName == newUser.Role).FirstOrDefaultAsync();
                     addition.LinkedRole = role;
                 }
                 if (newUser.PhoneNumber == null)
                     addition.EmailAddress = newUser.EmailAddress;
                 else
                     addition.PhoneNumber = newUser.PhoneNumber;
-                _context.Users.Add(addition);
+                _Acontext.Users.Add(addition);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _Acontext.SaveChangesAsync();
                 } catch (DbUpdateException)
                 {
                     ViewData["Alert"] = "Danger";
                     ViewData["Message"] = "Something went wrong. Maybe try again?";
                     return View(newUser);
                 }
-                addition = await _context.Users.FindAsync(newUser.Username);
+                addition = await _Acontext.Users.Where(u => u.Username == newUser.Username).FirstOrDefaultAsync();
                 NotificationToken token = new NotificationToken
                 {
                     Type = Models.Type.Activate,
@@ -217,8 +219,8 @@ namespace OpsSecProject.Controllers
                         return StatusCode(500);
                     token.Mode = Mode.SMS;
                 }
-                await _context.NotificationTokens.AddAsync(token);
-                await _context.SaveChangesAsync();
+                await _Acontext.NotificationTokens.AddAsync(token);
+                await _Acontext.SaveChangesAsync();
                 TempData["Message"] = "Succesfully created " + addition.Name + "'s account. Please ask " + addition.Name + " to look at the email/SMS to activate the account";
                 TempData["Alert"] = "Success";
                 return RedirectToAction("Manage");
@@ -228,7 +230,7 @@ namespace OpsSecProject.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> EditUser(string Username)
         {
-            User identity = await _context.Users.FindAsync(Username);
+            User identity = await _Acontext.Users.Where(u => u.Username == Username).FirstOrDefaultAsync();
             if (identity == null)
                 return StatusCode(404);
             else
@@ -236,7 +238,7 @@ namespace OpsSecProject.Controllers
                 UserDataManagementViewModel model = new UserDataManagementViewModel
                 {
                     user = identity,
-                    allRoles = await _context.Roles.ToListAsync()
+                    allRoles = await _Acontext.Roles.ToListAsync()
                 };
                 if (identity.LinkedRole == null)
                     model.Role = "User";
@@ -249,7 +251,7 @@ namespace OpsSecProject.Controllers
         public async Task<IActionResult> EditUser([Bind("Username", "Name", "PhoneNumber", "EmailAddress", "Role")]UserDataManagementViewModel existingUser)
         {
             bool change = false;
-            User identity = await _context.Users.FindAsync(existingUser.Username);
+            User identity = await _Acontext.Users.Where(u => u.Username == existingUser.Username).FirstOrDefaultAsync();
             if (identity == null)
                 return StatusCode(404);
             else if (existingUser.PhoneNumber == null && existingUser.EmailAddress == null)
@@ -257,7 +259,7 @@ namespace OpsSecProject.Controllers
                 ViewData["Alert"] = "Danger";
                 ViewData["Message"] = "You must specify either a Phone Number or Email Address";
                 existingUser.user = identity;
-                existingUser.allRoles = await _context.Roles.ToListAsync();
+                existingUser.allRoles = await _Acontext.Roles.ToListAsync();
                 return View(existingUser);
             }
             else
@@ -275,7 +277,7 @@ namespace OpsSecProject.Controllers
                 }
                 if (!existingUser.Role.Equals("User") && identity.Existence == Existence.Internal)
                 {
-                    Role role = await _context.Roles.FindAsync(existingUser.Role);
+                    Role role = await _Acontext.Roles.Where(r => r.RoleName == existingUser.Role).FirstOrDefaultAsync();
                     if (identity.LinkedRole != role)
                     {
                         identity.LinkedRole = role;
@@ -303,7 +305,7 @@ namespace OpsSecProject.Controllers
                     if (response.HttpStatusCode != HttpStatusCode.OK)
                         return StatusCode(500);
                     token.Mode = Mode.SMS;
-                    _context.NotificationTokens.Add(token);
+                    _Acontext.NotificationTokens.Add(token);
                     change = true;
                 }
                 else if (existingUser.PhoneNumber == null && identity.PhoneNumber != null && (identity.OverridableField == OverridableField.PhoneNumber || identity.OverridableField == OverridableField.Both))
@@ -344,7 +346,7 @@ namespace OpsSecProject.Controllers
                     if (response.HttpStatusCode != HttpStatusCode.OK)
                         return StatusCode(500);
                     token.Mode = Mode.EMAIL;
-                    _context.NotificationTokens.Add(token);
+                    _Acontext.NotificationTokens.Add(token);
                     change = true;
                 }
                 else if (existingUser.EmailAddress == null && identity.EmailAddress != null && (identity.OverridableField == OverridableField.EmailAddress || identity.OverridableField == OverridableField.Both))
@@ -353,10 +355,10 @@ namespace OpsSecProject.Controllers
                     identity.VerifiedEmailAddress = false;
                     change = true;
                 }
-                _context.Users.Update(identity);
+                _Acontext.Users.Update(identity);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _Acontext.SaveChangesAsync();
                 }
                 catch (DbUpdateException)
                 {
@@ -381,7 +383,7 @@ namespace OpsSecProject.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> ChangeUserStatus(string Username)
         {
-            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            User identity = await _Acontext.Users.Where(u => u.Username == WebUtility.HtmlDecode(Username)).FirstOrDefaultAsync();
             if (identity == null)
                 return StatusCode(404);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
@@ -400,10 +402,10 @@ namespace OpsSecProject.Controllers
                     identity.Status = Status.Active;
                     TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
                 }
-                _context.Users.Update(identity);
+                _Acontext.Users.Update(identity);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _Acontext.SaveChangesAsync();
                 }
                 catch (DbUpdateException)
                 {
@@ -419,7 +421,7 @@ namespace OpsSecProject.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> RevokeUserSession(string Username)
         {
-            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            User identity = await _Acontext.Users.Where(u => u.Username == WebUtility.HtmlDecode(Username)).FirstOrDefaultAsync();
             if (identity == null)
                 return StatusCode(404);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
@@ -427,10 +429,10 @@ namespace OpsSecProject.Controllers
             else
             {
                 identity.ForceSignOut = true;
-                _context.Users.Update(identity);
+                _Acontext.Users.Update(identity);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _Acontext.SaveChangesAsync();
                 }
                 catch (DbUpdateException)
                 {
@@ -447,17 +449,17 @@ namespace OpsSecProject.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> RemoveUser(string Username)
         {
-            User identity = await _context.Users.FindAsync(WebUtility.HtmlDecode(Username));
+            User identity = await _Acontext.Users.Where(u => u.Username == WebUtility.HtmlDecode(Username)).FirstOrDefaultAsync();
             if (identity == null)
                 return StatusCode(404);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
                 return StatusCode(403);
             else
             {
-                _context.Users.Remove(identity);
+                _Acontext.Users.Remove(identity);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _Acontext.SaveChangesAsync();
                 }
                 catch (DbUpdateException)
                 {
@@ -473,7 +475,7 @@ namespace OpsSecProject.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> EditRole(string Role)
         {
-            Role role = await _context.Roles.FindAsync(Role);
+            Role role = await _Acontext.Roles.Where(r => r.RoleName == WebUtility.HtmlDecode(Role)).FirstOrDefaultAsync();
             if (role == null)
                 return StatusCode(404);
             else
@@ -483,19 +485,19 @@ namespace OpsSecProject.Controllers
         }
         [Authorize(Roles = "Administrator")]
         [HttpPost]
-        public async Task<IActionResult> EditRole([Bind("RoleName", "Existence", "IDPReference")]Role role)
+        public async Task<IActionResult> EditRole([Bind("RoleName", "Existence", "IDPReference")]Role modifiedRole)
         {
             bool change = false;
-            Role modified = await _context.Roles.FindAsync(role.RoleName);
-            if (!modified.IDPReference.Equals(role.IDPReference))
+            Role modified = await _Acontext.Roles.Where(r => r.RoleName == modifiedRole.RoleName).FirstOrDefaultAsync();
+            if (!modified.IDPReference.Equals(modifiedRole.IDPReference))
             {
-                modified.IDPReference = role.IDPReference;
+                modified.IDPReference = modifiedRole.IDPReference;
                 change = true;
             }
-            _context.Roles.Update(modified);
+            _Acontext.Roles.Update(modified);
             try
             {
-                await _context.SaveChangesAsync();
+                await _Acontext.SaveChangesAsync();
             } catch (DbUpdateException)
             {
                 ViewData["Message"] = "Something went wrong. Maybe try again?";
@@ -515,9 +517,14 @@ namespace OpsSecProject.Controllers
             return RedirectToAction("Manage");
         }
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Audit()
+        public IActionResult Audit()
         {
-            return View(await _context.Activities.ToListAsync());
+            AuditOverallViewModel model = new AuditOverallViewModel
+            {
+                Activites = _Scontext.Activities.ToList(),
+                allUsers = _Acontext.Users.ToList()
+            };
+            return View(model);
         }
     }
 }

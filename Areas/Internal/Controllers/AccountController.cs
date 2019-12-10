@@ -15,6 +15,7 @@ using OpsSecProject.Helpers;
 using OpsSecProject.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -27,11 +28,11 @@ namespace OpsSecProject.Areas.Internal.Controllers
     public class AccountController : Controller
     {
 
-        private readonly AuthenticationContext _context;
+        private readonly AccountContext _context;
         private readonly IAmazonSimpleNotificationService _snsClient;
         private readonly IAmazonSimpleEmailService _sesClient;
 
-        public AccountController(AuthenticationContext context, IAmazonSimpleNotificationService snsClient, IAmazonSimpleEmailService sesClient)
+        public AccountController(AccountContext context, IAmazonSimpleNotificationService snsClient, IAmazonSimpleEmailService sesClient)
         {
             _context = context;
             _snsClient = snsClient;
@@ -57,7 +58,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 Credentials.Password = null;
                 return View(Credentials);
             }
-            User challenge = _context.Users.Find(Credentials.Username);
+            User challenge = _context.Users.Where(u => u.Username == Credentials.Username).FirstOrDefault();
             if (challenge == null)
             {
                 ViewData["Alert"] = "Warning";
@@ -231,7 +232,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(User.recaptchaResponse))
             {
-                User identity = _context.Users.Find(User.Username);
+                User identity = _context.Users.Where(u => u.Username == User.Username).FirstOrDefault();
                 if (identity == null)
                 {
                     ViewData["Alert"] = "Warning";
@@ -343,7 +344,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             {
                 ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
                 string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-                User currentUser = await _context.Users.FindAsync(currentIdentity);
+                User currentUser = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
                 if (currentUser.LastAuthentication.AddMinutes(15).CompareTo(DateTime.Now) < 0)
                 {
                     var authenticationProperties = new AuthenticationProperties();
@@ -394,7 +395,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             {
                 ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
                 string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-                User currentUser = await _context.Users.FindAsync(currentIdentity);
+                User currentUser = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
                 if (Password.ValidatePassword(NewCredentials.ConfirmPassword, currentUser.Password))
                 {
                     ViewData["Alert"] = "Warning";
@@ -446,7 +447,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 {
                     if (Rtoken.Token.Equals(NewCredentials.Token))
                     {
-                        User identity = await _context.Users.FindAsync(Rtoken.LinkedUser.Username);
+                        User identity = await _context.Users.Where(u => u.Username == Rtoken.LinkedUser.Username).FirstOrDefaultAsync();
                         if (Password.ValidatePassword(NewCredentials.ConfirmPassword, identity.Password))
                         {
                             ViewData["Alert"] = "Danger";
@@ -512,7 +513,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
 
         public async Task<IActionResult> ChangePassword()
         {
-            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
             else if (identity.Existence == Existence.External)
@@ -524,7 +525,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         [HttpPost]
         public async Task<IActionResult> ChangePassword([Bind("CurrentPassword", "NewPassword", "ConfirmPassword", "recaptchaResponse")]ChangePasswordFormModel NewCredentials)
         {
-            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity.Existence == Existence.External)
                 return Redirect("/Account/Unauthorised");
             else if (!await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(NewCredentials.recaptchaResponse))
@@ -568,7 +569,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         }
         public async Task<IActionResult> EmailAddress()
         {
-            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
             else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.EmailAddress || identity.OverridableField != OverridableField.Both))
@@ -581,7 +582,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(newEmailAddress.recaptchaResponse))
             {
-                User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+                User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
                 if (!Password.ValidatePassword(newEmailAddress.Password, identity.Password))
                 {
                     ViewData["Alert"] = "Warning";
@@ -683,7 +684,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         }
         public async Task<IActionResult> PhoneNumber()
         {
-            User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+            User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
             else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.PhoneNumber || identity.OverridableField != OverridableField.Both))
@@ -696,7 +697,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             if (await GoogleRecaptchaHelper.IsReCaptchaV2PassedAsync(newPhoneNumber.recaptchaResponse))
             {
-                User identity = await _context.Users.FindAsync(HttpContext.User.FindFirstValue("preferred_username"));
+                User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
                 if (!Password.ValidatePassword(newPhoneNumber.Password, identity.Password))
                 {
                     ViewData["Alert"] = "Warning";
@@ -801,7 +802,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
         {
             if (choice.Username == null || choice.Method == null)
                 return StatusCode(500);
-            User identity = await _context.Users.FindAsync(choice.Username);
+            User identity = await _context.Users.Where(u => u.Username == choice.Username).FirstOrDefaultAsync();
             NotificationToken token = new NotificationToken
             {
                 Type = OpsSecProject.Models.Type.AddtionalAuthentication,

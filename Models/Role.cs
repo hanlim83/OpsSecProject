@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpsSecProject.Models
 {
     public class Role
     {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int ID { get; set; }
         [Display(Name = "Role")]
         [Required]
         public string RoleName { get; set; }

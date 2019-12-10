@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Primitives;
+using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,18 +12,19 @@ namespace OpsSecProject.Data
 {
     public class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
     {
-        private readonly AuthenticationContext _context;
-
-        public CustomCookieAuthenticationEvents(AuthenticationContext context)
+        private readonly AccountContext _Acontext;
+        private readonly SecurityContext _Scontext;
+        public CustomCookieAuthenticationEvents(AccountContext Acontext, SecurityContext Scontext)
         {
-            _context = context;
+            _Acontext = Acontext;
+            _Scontext = Scontext;
         }
 
         public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
         {
             var userPrincipal = context.Principal;
             var currentIdentity = (from c in userPrincipal.Claims where c.Type == "preferred_username" select c.Value).FirstOrDefault();
-            User currentUser = _context.Users.Find(currentIdentity);
+            User currentUser = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             var identityProvider = (from c in userPrincipal.Claims where c.Type == "http://schemas.microsoft.com/identity/claims/identityprovider" select c.Value).FirstOrDefault();
             if (currentUser == null || currentUser.ForceSignOut == true || currentUser.LastAuthentication.CompareTo(currentUser.LastPasswordChange) < 0)
             {
@@ -37,7 +39,7 @@ namespace OpsSecProject.Data
                 Activity activity = new Activity
                 {
                     Page = context.HttpContext.Request.Path.ToString().Substring(1, context.HttpContext.Request.Path.Value.Length - 1).Replace("/", " ") + context.HttpContext.Request.QueryString.ToString(),
-                    LinkedUser = currentUser,
+                    LinkedUserID = currentUser.ID,
                     Timestamp = DateTime.Now
                 };
                 if (context.Request.Method.Equals("GET"))
@@ -50,8 +52,8 @@ namespace OpsSecProject.Data
                     activity.Status = false;
                 if (!context.HttpContext.Request.Path.Value.Equals("/"))
                 {
-                    _context.Activities.Add(activity);
-                    await _context.SaveChangesAsync();
+                    _Scontext.Activities.Add(activity);
+                    await _Scontext.SaveChangesAsync();
                 }
             }
         }

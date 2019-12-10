@@ -7,7 +7,7 @@ namespace OpsSecProject.Data
 {
     public static class DbInitializer
     {
-        public static void InitializeAuthenticationContext(AuthenticationContext context)
+        public static void InitializeAccountContext(AccountContext context)
         {
             context.Database.EnsureCreated();
             if (!context.Roles.Any())
@@ -35,14 +35,19 @@ namespace OpsSecProject.Data
                     Password = Password.HashPassword("SmartInsights", Password.GetRandomSalt()),
                     PhoneNumber = "97931442",
                     VerifiedPhoneNumber = true,
-                    LinkedRole = context.Roles.Find("Administrator"),
+                    LinkedRole = context.Roles.Where(r => r.RoleName.Equals("Administrator")).FirstOrDefault(),
                     Existence = Existence.Internal,
                     Status = Status.Active,
                     OverridableField = OverridableField.Both,
-                    LastPasswordChange = DateTime.Now
+                    LastPasswordChange = DateTime.Now,
+                    LastAuthentication = DateTime.Now
                 });
                 context.SaveChanges();
             }
+        }
+        public static void InitializeSecurityContext(SecurityContext context)
+        {
+            context.Database.EnsureCreated();
         }
     }
 }

@@ -108,8 +108,8 @@ namespace OpsSecProject
                     OnTokenValidated = loginContext =>
                     {
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
-                        AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
-                        User retrieved = authenticationContext.Users.Find(claimsIdentity.FindFirst("preferred_username").Value);
+                        AccountContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AccountContext>();
+                        User retrieved = authenticationContext.Users.Where(u => u.Username == claimsIdentity.FindFirst("preferred_username").Value).FirstOrDefault();
                         if (retrieved == null)
                         {
                             User import = new User
@@ -257,9 +257,9 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonSimpleNotificationService>();
             services.AddAWSService<IAmazonSimpleEmailService>(SESAWSOptions);
             //Entity Framework Initialization
-            services.AddDbContext<AuthenticationContext>(options =>
+            services.AddDbContext<AccountContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Authentication"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Account"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(
@@ -268,7 +268,17 @@ namespace OpsSecProject
                             errorNumbersToAdd: null);
                     });
             });
-
+            services.AddDbContext<SecurityContext>(options =>
+            {
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Security"),
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 10,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    });
+            });
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
             //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();

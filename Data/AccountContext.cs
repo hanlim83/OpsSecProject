@@ -3,22 +3,20 @@ using OpsSecProject.Models;
 
 namespace OpsSecProject.Data
 {
-    public class AuthenticationContext : DbContext
+    public class AccountContext : DbContext
     {
-        public AuthenticationContext(DbContextOptions<AuthenticationContext> options) : base(options)
+        public AccountContext(DbContextOptions<AccountContext> options) : base(options)
         {
         }
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<NotificationToken> NotificationTokens { get; set; }
-        public DbSet<Activity> Activities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Role>().ToTable("Roles");
-            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Role>().ToTable("Roles").HasAlternateKey(r => r.RoleName).HasName("AlternateKey_RoleName");
+            modelBuilder.Entity<User>().ToTable("Users").HasAlternateKey(u => u.Username).HasName("AlternateKey_Username");
             modelBuilder.Entity<NotificationToken>().ToTable("NotificationTokens");
-            modelBuilder.Entity<Activity>().ToTable("Activities");
         }
     }
 }
