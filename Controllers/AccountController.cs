@@ -516,15 +516,5 @@ namespace OpsSecProject.Controllers
             }
             return RedirectToAction("Manage");
         }
-        [Authorize(Roles = "Administrator")]
-        public IActionResult Audit()
-        {
-            AuditOverallViewModel model = new AuditOverallViewModel
-            {
-                Activites = _Scontext.Activities.ToList(),
-                allUsers = _Acontext.Users.ToList()
-            };
-            return View(model);
-        }
     }
 }
