@@ -239,6 +239,17 @@ namespace OpsSecProject
                     });
             });
 
+            services.AddDbContext<LogContext>(options =>
+            {
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogData"),
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 10,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    });
+            });
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
             //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();
