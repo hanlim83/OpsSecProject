@@ -49,6 +49,7 @@ namespace OpsSecProject.Models
         [Required]
         public OverridableField OverridableField { get; set; }
         public string IDPReference { get; set; }
+        public int HybridSignIncount { get; set; }
 
         public virtual Role LinkedRole { get; set; }
         public virtual ICollection<NotificationToken> NotificationTokens { get; set; }

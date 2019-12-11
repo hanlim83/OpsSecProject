@@ -88,6 +88,13 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 ViewData["Message"] = "Invaild Username and Password combination";
                 Credentials.Password = null;
                 return View(Credentials);
+            } else if (challenge.Existence == Existence.Hybrid && challenge.HybridSignIncount > 6)
+            {
+                var authenticationProperties = new AuthenticationProperties();
+                authenticationProperties.Items["prompt"] = "login";
+                authenticationProperties.Items["login_hint"] = challenge.Username;
+                authenticationProperties.RedirectUri = "/";
+                return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
             }
             else
             {
@@ -191,6 +198,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         return View(Credentials);
                     }
                 }
+                if (challenge.Existence == Existence.Hybrid)
+                    challenge.HybridSignIncount++;
                 challenge.ForceSignOut = false;
                 challenge.LastAuthentication = DateTime.Now;
                 var claims = new List<Claim>{
@@ -902,6 +911,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     if (Rtoken.Token.Equals(token) && Rtoken.Type == OpsSecProject.Models.Type.AddtionalAuthentication && Rtoken.Mode == Mode.EMAIL && Rtoken.Vaild == true)
                     {
                         User identity = Rtoken.LinkedUser;
+                        if (identity.Existence == Existence.Hybrid)
+                            identity.HybridSignIncount++;
                         identity.ForceSignOut = false;
                         identity.LastAuthentication = DateTime.Now;
                         var claims = new List<Claim>{
@@ -940,6 +951,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     if (Rtoken.Token.Equals(response.Code) && Rtoken.Type == OpsSecProject.Models.Type.AddtionalAuthentication && Rtoken.Mode == Mode.SMS && Rtoken.Vaild == true)
                     {
                         User identity = Rtoken.LinkedUser;
+                        if (identity.Existence == Existence.Hybrid)
+                            identity.HybridSignIncount++;
                         identity.ForceSignOut = false;
                         identity.LastAuthentication = DateTime.Now;
                         var claims = new List<Claim>{
