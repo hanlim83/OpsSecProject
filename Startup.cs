@@ -109,7 +109,7 @@ namespace OpsSecProject
                     {
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
                         AccountContext accountContext = loginContext.HttpContext.RequestServices.GetRequiredService<AccountContext>();
-                        User retrieved = accountContext.Users.Where(u => u.Username == claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value).FirstOrDefault();
+                        User retrieved = accountContext.Users.Where(u => u.IDPReference == claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value).FirstOrDefault();
                         if (retrieved != null)
                         {
                             if (!retrieved.Username.Equals(claimsIdentity.FindFirst("preferred_username").Value))

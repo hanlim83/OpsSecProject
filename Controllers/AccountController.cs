@@ -270,6 +270,11 @@ namespace OpsSecProject.Controllers
                     Vaild = true,
                     LinkedUser = identity
                 };
+                if (identity.Existence == Existence.Internal && !existingUser.Username.Equals(identity.Username))
+                {
+                    identity.Username = existingUser.Username;
+                    change = true;
+                }
                 if (identity.Existence == Existence.Internal && !existingUser.Name.Equals(identity.Name))
                 {
                     identity.Name = existingUser.Name;
