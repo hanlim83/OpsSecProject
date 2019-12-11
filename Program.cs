@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OpsSecProject.Data;
 using System;
 using System.Linq;
+using System.IO;
 
 namespace OpsSecProject
 {
@@ -45,6 +46,8 @@ namespace OpsSecProject
                     var Scontext = services.GetRequiredService<SecurityContext>();
                     DbInitializer.InitializeAccountContext(Acontext);
                     DbInitializer.InitializeSecurityContext(Scontext);
+                    var Lcontext = services.GetRequiredService<LogContext>();
+                    DbInitializer.InitializeLogContext(Lcontext);
                 }
                 catch (Exception ex)
                 {

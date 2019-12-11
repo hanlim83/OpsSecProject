@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Models;
 
@@ -7,6 +8,10 @@ namespace OpsSecProject.Controllers
 {
     public class DashboardController : Controller
     {
+        public IActionResult MainDashboard()
+        {
+            return View();
+        }
 
         public IActionResult Bar()
         {
@@ -92,6 +97,17 @@ namespace OpsSecProject.Controllers
             });
 
             return View(lstModel);
+        }
+
+        //[HttpPost]
+        //public async Task<IActionResult> SearchResults(string query)
+        //{
+        //    return View();
+        //}
+
+        public IActionResult SearchResults()
+        {
+            return View();
         }
     }
 }
