@@ -1,6 +1,15 @@
 ﻿@{
     ViewData["Title"] = "Account Settings";
 }
+@if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @ViewData["Message"]
+        </div>
+
+    </div>
+}
 <h1 class="h3 mb-2 text-gray-800">Your Account</h1>
 <p class="mb-4"></p>
 

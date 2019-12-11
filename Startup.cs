@@ -195,6 +195,14 @@ namespace OpsSecProject
                                     import.OverridableField = OverridableField.EmailAddress;
                                 accountContext.Add(import);
                                 accountContext.SaveChanges();
+                                import = accountContext.Users.Where(u => u.IDPReference == claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value).FirstOrDefault();
+                                Settings settings = new Settings
+                                {
+                                    LinkedUserID = import.ID,
+                                    LinkedUser = import
+                                };
+                                accountContext.Settings.Add(settings);
+                                accountContext.SaveChanges();
                             }
                             else
                             {

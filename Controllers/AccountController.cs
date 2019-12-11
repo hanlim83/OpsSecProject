@@ -43,7 +43,8 @@ namespace OpsSecProject.Controllers
             AccountOverallViewModel model = new AccountOverallViewModel
             {
                 User = user,
-                Useractivites = await _Scontext.Activities.Where(a => a.LinkedUserID == user.ID).ToListAsync()
+                Useractivites = await _Scontext.Activities.Where(a => a.LinkedUserID == user.ID).ToListAsync(),
+                UserSettings = user.LinkedSettings
             };
             return View(model);
         }
@@ -58,7 +59,32 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> Settings()
         {
-            return View();
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User currentUser = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
+            return View(currentUser.LinkedSettings);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Settings([Bind("Always2FA")]Settings newSettings)
+        {
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User currentUser = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
+            Settings currentSettings = currentUser.LinkedSettings;
+            currentSettings.Always2FA = newSettings.Always2FA;
+            _Acontext.Settings.Update(currentSettings);
+            try
+            {
+                await _Acontext.SaveChangesAsync();
+            } catch (DbUpdateException)
+            {
+                ViewData["Alert"] = "Warning";
+                ViewData["Message"] = "Your settings couldn't be saved successfully";
+                return View(newSettings);
+            }
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Your settings were saved successfully";
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Activity()
@@ -168,6 +194,12 @@ namespace OpsSecProject.Controllers
                     return View(newUser);
                 }
                 addition = await _Acontext.Users.Where(u => u.Username == newUser.Username).FirstOrDefaultAsync();
+                Settings settings = new Settings
+                {
+                    LinkedUserID = addition.ID,
+                    LinkedUser = addition
+                };
+                await _Acontext.Settings.AddAsync(settings);
                 NotificationToken token = new NotificationToken
                 {
                     Type = Models.Type.Activate,

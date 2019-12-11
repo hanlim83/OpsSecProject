@@ -98,7 +98,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             }
             else
             {
-                if (double.Parse(recaptcha.score) <= 0.7)
+                if (double.Parse(recaptcha.score) <= 0.7 || challenge.LinkedSettings.Always2FA)
                 {
                     if (challenge.VerifiedEmailAddress && challenge.VerifiedPhoneNumber)
                     {

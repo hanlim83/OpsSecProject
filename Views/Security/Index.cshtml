@@ -24,30 +24,30 @@
                 <tbody>
                     @foreach (var activity in Model.Activites)
                     {
-                    <tr>
-                        <th scope="row">@activity.Timestamp</th>
-                        <td>@activity.Page</td>
-                        @for (int index = 0; index < Model.allUsers.Count(); index++)
-                        {
-                            @if (Model.allUsers[index].ID.Equals(activity.LinkedUserID))
+                        <tr>
+                            <th scope="row">@activity.Timestamp</th>
+                            <td>@activity.Page</td>
+                            <td>
+                                @for (int index = 0; index < Model.allUsers.Count(); index++)
+                                {
+
+                                    @if (Model.allUsers[index].ID.Equals(activity.LinkedUserID))
+                                    {
+                                        @Model.allUsers[index].Username
+                                    }
+
+                                }
+                            </td>
+                            <td>@activity.Action.ToString()</td>
+                            @if (activity.Status == true)
                             {
-                                <td>@Model.allUsers[index].Username</td>
+                                <td>Success</td>
                             }
-                            @if (!Model.allUsers[index].ID.Equals(activity.LinkedUserID) && index + 1 == Model.allUsers.Count())
+                            @if (activity.Status == false)
                             {
-                                <td>Deleted User</td>
+                                <td>Failed</td>
                             }
-                        }
-                        <td>@activity.Action.ToString()</td>
-                        @if (activity.Status == true)
-                        {
-                            <td>Success</td>
-                        }
-                        @if (activity.Status == false)
-                        {
-                            <td>Failed</td>
-                        }
-                    </tr>
+                        </tr>
                     }
                 </tbody>
             </table>

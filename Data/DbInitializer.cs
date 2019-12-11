@@ -43,6 +43,12 @@ namespace OpsSecProject.Data
                     LastAuthentication = DateTime.Now
                 });
                 context.SaveChanges();
+                context.Settings.Add(new Settings
+                {
+                    LinkedUserID = context.Users.Where(u => u.Username.Equals("Admin")).FirstOrDefault().ID,
+                    LinkedUser = context.Users.Where(u => u.Username.Equals("Admin")).FirstOrDefault()
+                });
+                context.SaveChanges();
             }
         }
         public static void InitializeSecurityContext(SecurityContext context)

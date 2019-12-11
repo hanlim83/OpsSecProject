@@ -52,6 +52,8 @@ namespace OpsSecProject.Models
         public int HybridSignIncount { get; set; }
 
         public virtual Role LinkedRole { get; set; }
-        public virtual ICollection<NotificationToken> NotificationTokens { get; set; }
+        public virtual ICollection<NotificationToken> LinkedTokens { get; set; }
+        [Required]
+        public virtual Settings LinkedSettings { get; set; }
     }
 }

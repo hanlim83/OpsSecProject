@@ -6,5 +6,7 @@ namespace OpsSecProject.Models
     {
         public User User { get; set; }
         public List<Activity> Useractivites { get; set; }
+
+        public Settings UserSettings { get; set; }
     }
 }
