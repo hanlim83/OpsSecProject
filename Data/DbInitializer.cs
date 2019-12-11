@@ -44,5 +44,10 @@ namespace OpsSecProject.Data
                 context.SaveChanges();
             }
         }
+        public static void InitializeLogContext(LogContext context)
+        {
+            context.Database.EnsureCreated();
+           
+        }
     }
 }
