@@ -1,0 +1,63 @@
+﻿@model OpsSecProject.Models.Role
+@{
+    ViewData["Title"] = "Edit Role";
+}
+<h1 class="h3 mb-2 text-gray-800">Manage Users</h1>
+<p class="mb-4"></p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Role: @Model.RoleName</h6>
+    </div>
+    <div class="card-body">
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-danger" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-success" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        <form class="needs-validation" novalidate asp-action="EditRole">
+            <div class="form-group row">
+                <label asp-for="RoleName" class="col-sm-4 col-form-label">Role</label>
+                <div class="col-sm-8">
+                    <input asp-for="RoleName" readonly class="form-control-plaintext" value="@Model.RoleName">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label asp-for="Existence" class="col-sm-4 col-form-label">Realm</label>
+                <div class="col-sm-8">
+                    <input asp-for="Existence" readonly class="form-control-plaintext" value="@Model.Existence.ToString()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="IDPReference">External Identity Provider Reference</label>
+                <input asp-for="IDPReference" value="@Model.IDPReference" class="form-control" required>
+                <div class="invalid-feedback">
+                    Please enter the reference given by the identity provider
+                </div>
+            </div>
+            <button type="submit" id="formBtnSubmit" class="btn btn-primary">Modify Role</button>
+        </form>
+    </div>
+</div>

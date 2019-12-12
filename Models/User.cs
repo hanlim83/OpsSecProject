@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpsSecProject.Models
 {
@@ -21,7 +20,8 @@ namespace OpsSecProject.Models
     }
     public class User
     {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int ID { get; set; }
+        [Required]
         public string Username { get; set; }
         [Required]
         [DataType(DataType.Password)]
@@ -49,8 +49,11 @@ namespace OpsSecProject.Models
         [Required]
         public OverridableField OverridableField { get; set; }
         public string IDPReference { get; set; }
+        public int HybridSignIncount { get; set; }
 
         public virtual Role LinkedRole { get; set; }
-        public virtual ICollection<NotificationToken> NotificationTokens { get; set; }
+        public virtual ICollection<NotificationToken> LinkedTokens { get; set; }
+        [Required]
+        public virtual Settings LinkedSettings { get; set; }
     }
 }

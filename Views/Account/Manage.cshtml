@@ -1,0 +1,188 @@
+﻿@model OpsSecProject.Models.UsersOverallManagementViewModel
+@{
+    ViewData["Title"] = "Manage Users and Roles";
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-success" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+<h1 class="h3 mb-2 text-gray-800">Manage Users</h1>
+<p class="mb-4"></p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
+    </div>
+    <div class="card-body">
+        <a class="btn btn-primary float-right" asp-action="CreateUser">Add New User</a>
+        <br />
+        <br />
+        <div class="table-responsive">
+            <table id="usersTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Account Status</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Email Address</th>
+                        <th scope="col">Phone Number</th>
+                        <th scope="col">Last Signed In</th>
+                        <th scope="col">Password Last Changed</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.allUsers)
+                    {
+                        <tr>
+                            <th scope="row">@Html.ValueForModel(user.Name)</th>
+                            <td>@Html.ValueForModel(user.Username)</td>
+                            <td>@Html.ValueForModel(user.Status.ToString())</td>
+                            @if (user.LinkedRole != null)
+                            {
+                                <td>@Html.ValueForModel(user.LinkedRole.RoleName)</td>
+                            }
+                            @if (user.LinkedRole == null)
+                            {
+                                <td>User</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == false)
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Not Verified)</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == true && (user.OverridableField == OverridableField.EmailAddress || user.OverridableField == OverridableField.Both))
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Verified)</td>
+                            }
+                            @if (user.EmailAddress != null && user.VerifiedEmailAddress == true && (user.OverridableField == OverridableField.PhoneNumber || user.OverridableField == OverridableField.None))
+                            {
+                                <td>@Html.ValueForModel(user.EmailAddress) (Imported From Identity Provider)</td>
+                            }
+                            @if (user.EmailAddress == null)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == false)
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Not Verified)</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == true && (user.OverridableField == OverridableField.PhoneNumber || user.OverridableField == OverridableField.Both))
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Verified)</td>
+                            }
+                            @if (user.PhoneNumber != null && user.VerifiedPhoneNumber == true && (user.OverridableField == OverridableField.EmailAddress || user.OverridableField == OverridableField.None))
+                            {
+                                <td>@Html.ValueForModel(user.PhoneNumber) (Imported From Identity Provider)</td>
+                            }
+                            @if (user.PhoneNumber == null)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Status == Status.Pending)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Status != Status.Pending)
+                            {
+                                <td>@Html.ValueForModel(user.LastAuthentication.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
+                            }
+                            @if (user.Existence == Existence.External)
+                            {
+                                <td>N.A</td>
+                            }
+                            @if (user.Existence != Existence.External)
+                            {
+                                <td>@Html.ValueForModel(user.LastPasswordChange.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
+                            }
+                            <td>
+                                @if (@User.Claims.First(c => c.Type == "name").Value != user.Name)
+                                {
+                                <div class="btn-group" role="group" aria-label="Account Actions">
+                                    <a class="btn btn-secondary" asp-action="EditUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
+                                    @if (user.Status == Status.Active && user.Existence != Existence.External)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
+                                    }
+                                    @if (user.Status == Status.Disabled && user.Existence != Existence.External)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
+                                    }
+                                    @if (user.ForceSignOut == false)
+                                    {
+                                        <a class="btn btn-secondary" asp-action="RevokeUserSession" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Revoke Session</a>
+                                    }
+                                    <a class="btn btn-secondary" asp-action="RemoveUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
+                                </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">User Roles</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="rolesTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Realm</th>
+                        <th scope="col">External Reference</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model.allRoles)
+                    {
+                        <tr>
+                            <th scope="row">@Html.ValueForModel(role.RoleName)</th>
+                            <td>@Html.ValueForModel(role.Existence.ToString())</td>
+                            <td>@Html.ValueForModel(role.IDPReference)</td>
+                            <td>
+                                <a class="btn btn-secondary" asp-action="EditRole" asp-route-Role="@HttpUtility.HtmlEncode(role.RoleName)">Modify Role Details</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable();
+            $('#rolesTable').DataTable();
+        });
+    </script>
+}

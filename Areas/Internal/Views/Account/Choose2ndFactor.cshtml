@@ -1,7 +1,7 @@
-﻿@model OpsSecProject.Areas.Internal.Models.ChangePasswordFormModel
+﻿@model OpsSecProject.Areas.Internal.Models.TwoFactorChooseFormModel
 @{
     Layout = null;
-    ViewData["Title"] = "Change Password";
+    ViewData["Title"] = "2 Factor Authentication";
 }
 <!DOCTYPE html>
 <html>
@@ -90,13 +90,12 @@
                     color: #777;
                 }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="text-center">
-    <form class="form-signin needs-validation" asp-action="ChangePassword" novalidate>
+    <form class="form-signin needs-validation" asp-action="Choose2ndFactor" novalidate>
         <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Change Password</h1>
-            <p>Please enter your current and new passwords</p>
+            <h1 class="h3 mb-3 font-weight-normal">Verify Your Identity</h1>
+            <p>Choose an method to verify your identity</p>
         </div>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
         {
@@ -117,31 +116,24 @@
             </div>
         }
         <div class="form-label-group">
-            <input asp-for="CurrentPassword" class="form-control" placeholder="Current Password" required />
-            <label asp-for="CurrentPassword">Current Password</label>
-            <div class="invalid-feedback">
-                Please enter your current password
-            </div>
+            <input asp-for="Username" type="hidden" value="@TempData["Identity"]" required/>
         </div>
         <div class="form-label-group">
-            <input asp-for="NewPassword" class="form-control" placeholder="New Password" required />
-            <label asp-for="NewPassword">New Password</label>
-            <div class="invalid-feedback">
-                Please enter your new password
-            </div>
+            <input asp-for="ReturnUrl" type="hidden" value="@TempData["ReturnUrl"]" />
         </div>
         <div class="form-label-group">
-            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm New Password" required />
-            <label asp-for="ConfirmPassword">Confirm New Password</label>
-            <div class="invalid-feedback">
-                Please confirm your new password
-            </div>
+            @foreach (var option in Model.Methods)
+            {
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="Method" value="@option" id="@option" class="custom-control-input" required>
+                    <label class="custom-control-label" for="@option">@option</label>
+                </div>
+            }
         </div>
-        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Change Password</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" id="formBtnSubmit">Verify Me</button>
         <div class="text-center mb-4">
             <hr>
         </div>
-        <a class="btn btn-lg btn-secondary btn-block" asp-area="" asp-controller="Account" asp-action="Index">Cancel</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
     </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
@@ -153,8 +145,5 @@
             integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o">
     </script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @section Scripts {
-        @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    }
 </body>
 </html>

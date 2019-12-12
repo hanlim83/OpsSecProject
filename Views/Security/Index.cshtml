@@ -1,0 +1,63 @@
+﻿@model OpsSecProject.Models.SecurityOverallViewModel
+@{
+    ViewData["Title"] = "Security Logs";
+}
+<h1 class="h3 mb-2 text-gray-800">Security Logs</h1>
+<p class="mb-4"></p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Activities log for all users</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="activtiesTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col">Page</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var activity in Model.Activites)
+                    {
+                        <tr>
+                            <th scope="row">@activity.Timestamp</th>
+                            <td>@activity.Page</td>
+                            <td>
+                                @for (int index = 0; index < Model.allUsers.Count(); index++)
+                                {
+
+                                    @if (Model.allUsers[index].ID.Equals(activity.LinkedUserID))
+                                    {
+                                        @Model.allUsers[index].Username
+                                    }
+
+                                }
+                            </td>
+                            <td>@activity.Action.ToString()</td>
+                            @if (activity.Status == true)
+                            {
+                                <td>Success</td>
+                            }
+                            @if (activity.Status == false)
+                            {
+                                <td>Failed</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#activtiesTable').DataTable();
+        });
+    </script>
+}

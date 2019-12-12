@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Models;
-using System.Diagnostics;
+using Activity = System.Diagnostics.Activity;
 
 namespace OpsSecProject.Controllers
 {

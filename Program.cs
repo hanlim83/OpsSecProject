@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using OpsSecProject.Data;
 using System;
 using System.Linq;
-using System.IO;
 
 namespace OpsSecProject
 {
@@ -42,11 +41,12 @@ namespace OpsSecProject
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<AuthenticationContext>();
-                    DbInitializer.InitializeAuthenticationContext(context);
-
-                    var context2 = services.GetRequiredService<LogContext>();
-                    DbInitializer.InitializeLogContext(context2);
+                    var Acontext = services.GetRequiredService<AccountContext>();
+                    var Scontext = services.GetRequiredService<SecurityContext>();
+                    DbInitializer.InitializeAccountContext(Acontext);
+                    DbInitializer.InitializeSecurityContext(Scontext);
+                    var Lcontext = services.GetRequiredService<LogContext>();
+                    DbInitializer.InitializeLogContext(Lcontext);
                 }
                 catch (Exception ex)
                 {

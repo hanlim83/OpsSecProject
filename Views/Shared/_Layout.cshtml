@@ -64,21 +64,16 @@
                     Log Inputs
                 </div>
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Add">
+                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Create">
                         <i class="fas fa-plus"></i>
                         <span>New Log Input</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputs" aria-expanded="false" aria-controls="collapseInputs">
+                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Index">
                         <i class="fas fa-wrench"></i>
                         <span>Manage Existing Inputs</span>
                     </a>
-                    <div id="collapseInputs" class="collapse" aria-labelledby="headingInputs" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            <a class="collapse-item" asp-area="" asp-controller="Inputs" asp-action="Modify">DATA INPUT NAME</a>
-                        </div>
-                    </div>
                 </li>
             }
             <hr class="sidebar-divider">
@@ -127,6 +122,12 @@
                         <span>Manage Users</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Security" asp-action="Index">
+                        <i class="fas fa-address-book"></i>
+                        <span>Security Logs</span>
+                    </a>
+                </li>
             }
             <hr class="sidebar-divider d-none d-md-block">
             <div class="text-center d-none d-md-inline">
@@ -139,11 +140,11 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form asp-controller="Analytics" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
+                                <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
                                 </button>
                             </div>
@@ -177,24 +178,24 @@
                                 </a>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
                                     <div class="mr-3">
-                                        <div class="icon-circle bg-success">
-                                            <i class="fas fa-donate text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 7, 2019</div>
-                                        $290.29 has been deposited into your account!
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
                                         <div class="icon-circle bg-warning">
                                             <i class="fas fa-exclamation-triangle text-white"></i>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="small text-gray-500">December 2, 2019</div>
-                                        Spending Alert: We've noticed unusually high spending for your account.
+                                        <div class="small text-gray-500">December 11, 2019</div>
+                                        Metric Alert: One of your log inputs' metric has exceeded the warning level
+                                    </div>
+                                </a>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <div class="mr-3">
+                                        <div class="icon-circle bg-success">
+                                            <i class="fas fa-database text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="small text-gray-500">December 11, 2019</div>
+                                        Congrats! We're receiving log data from your newly set-up log input!
                                     </div>
                                 </a>
                                 <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
@@ -204,7 +205,14 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">@User.Claims.First(c => c.Type == "name").Value</span>
-                                <img class="img-profile rounded-circle" src="https://aadcdn.msauth.net/ests/2.1/content/images/picker_account_msa.svg">
+                                @if (User.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/identityprovider").Value.Equals("https://smartinsights.hansen-lim.me"))
+                                {
+                                    <img class="img-profile rounded-circle" src="https://aadcdn.msauth.net/ests/2.1/content/images/picker_account_msa.svg">
+                                }
+                                @if (!User.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/identityprovider").Value.Equals("https://smartinsights.hansen-lim.me"))
+                                {
+                                    <img class="img-profile rounded-circle" src="https://aadcdn.msauth.net/ests/2.1/content/images/picker_account_aad.svg">
+                                }
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">

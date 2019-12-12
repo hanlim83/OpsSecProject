@@ -6,12 +6,19 @@ using OpsSecProject.Models;
 
 namespace OpsSecProject.Controllers
 {
-    public class DashboardController : Controller
+    public class AnalyticsController : Controller
     {
-        public IActionResult MainDashboard()
+        public async Task<IActionResult> Web()
         {
             return View();
         }
+        [HttpPost]
+        public async Task<IActionResult> Search(string query)
+        {
+            return View();
+        }
+
+        //Imported methods 
 
         public IActionResult Bar()
         {
@@ -97,17 +104,6 @@ namespace OpsSecProject.Controllers
             });
 
             return View(lstModel);
-        }
-
-        //[HttpPost]
-        //public async Task<IActionResult> SearchResults(string query)
-        //{
-        //    return View();
-        //}
-
-        public IActionResult SearchResults()
-        {
-            return View();
         }
     }
 }

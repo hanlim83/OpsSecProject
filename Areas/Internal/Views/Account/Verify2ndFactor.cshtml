@@ -1,7 +1,7 @@
-﻿@model OpsSecProject.Areas.Internal.Models.ChangePasswordFormModel
+﻿@model OpsSecProject.Areas.Internal.Models.TwoFactorVerifyFormModel
 @{
     Layout = null;
-    ViewData["Title"] = "Change Password";
+    ViewData["Title"] = "2 Factor Authentication";
 }
 <!DOCTYPE html>
 <html>
@@ -93,10 +93,10 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="text-center">
-    <form class="form-signin needs-validation" asp-action="ChangePassword" novalidate>
+    <form class="form-signin needs-validation" asp-action="Verify2ndFactor" novalidate>
         <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Change Password</h1>
-            <p>Please enter your current and new passwords</p>
+            <h1 class="h3 mb-3 font-weight-normal">Verify Your Identity</h1>
+            <p>Enter the verification code sent via SMS to verify your identity</p>
         </div>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
         {
@@ -117,31 +117,20 @@
             </div>
         }
         <div class="form-label-group">
-            <input asp-for="CurrentPassword" class="form-control" placeholder="Current Password" required />
-            <label asp-for="CurrentPassword">Current Password</label>
-            <div class="invalid-feedback">
-                Please enter your current password
-            </div>
+            <input asp-for="ReturnUrl" type="hidden" />
         </div>
         <div class="form-label-group">
-            <input asp-for="NewPassword" class="form-control" placeholder="New Password" required />
-            <label asp-for="NewPassword">New Password</label>
+            <input asp-for="Code" class="form-control" placeholder="Verification Code" required />
+            <label asp-for="Code">Verification Code</label>
             <div class="invalid-feedback">
-                Please enter your new password
+                Please enter your verification code
             </div>
         </div>
-        <div class="form-label-group">
-            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm New Password" required />
-            <label asp-for="ConfirmPassword">Confirm New Password</label>
-            <div class="invalid-feedback">
-                Please confirm your new password
-            </div>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Change Password</button>
+        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Send Password Reset Request</button>
         <div class="text-center mb-4">
             <hr>
         </div>
-        <a class="btn btn-lg btn-secondary btn-block" asp-area="" asp-controller="Account" asp-action="Index">Cancel</a>
+        <a class="btn btn-lg btn-secondary btn-block" asp-action="SignIn" asp-route-ReturnUrl="@ViewData["ReturnURL"]">Return back to Login</a>
         <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
     </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
@@ -153,8 +142,5 @@
             integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o">
     </script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @section Scripts {
-        @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    }
 </body>
 </html>

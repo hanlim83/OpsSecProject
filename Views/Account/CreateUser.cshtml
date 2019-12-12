@@ -1,0 +1,86 @@
+﻿@model OpsSecProject.Models.UserDataManagementViewModel
+@{
+    ViewData["Title"] = "Create User";
+}
+<h1 class="h3 mb-2 text-gray-800">Manage Users</h1>
+<p class="mb-4"></p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Create User</h6>
+    </div>
+    <div class="card-body">
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-danger" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-success" role="alert">
+                    @ViewData["Message"]
+                </div>
+
+            </div>
+        }
+        <form class="needs-validation" novalidate asp-action="CreateUser">
+            <div class="form-group">
+                <label asp-for="Username">Assigned Username</label>
+                <input asp-for="Username" class="form-control" required>
+                <small asp-for="Username" class="form-text text-muted">The user cannot change the username after account creation</small>
+                <div class="invalid-feedback">
+                    Please enter a username
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name">User's Name</label>
+                <input asp-for="Name" class="form-control" required>
+                <div class="invalid-feedback">
+                    Please enter the user's name
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmailAddress">User's Email Address</label>
+                <input asp-for="EmailAddress" class="form-control">
+                <div class="invalid-feedback">
+                    Please enter a vaild email address
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber">User's Phone Number</label>
+                <input asp-for="PhoneNumber" class="form-control" pattern="[0-9]{8}">
+                <div class="invalid-feedback">
+                    Please enter a vaild phone number
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Role">User's Role</label>
+                <select class="custom-select" asp-for="Role" required>
+                    <option selected value="User">User</option>
+                    @foreach (var role in Model.allRoles)
+                    {
+                        <option value="@role.RoleName">@role.RoleName</option>
+                    }
+                </select>
+                <div class="invalid-feedback">
+                    Please select the user's role
+                </div>
+            </div>
+            <button type="submit" id="formBtnSubmit" class="btn btn-primary">Add User</button>
+        </form>
+    </div>
+</div>

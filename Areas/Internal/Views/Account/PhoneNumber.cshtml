@@ -117,7 +117,7 @@
             </div>
         }
         <div class="form-label-group">
-            <input asp-for="PhoneNumber" class="form-control" placeholder="New Phone Number" required />
+            <input asp-for="PhoneNumber" class="form-control" placeholder="New Phone Number" pattern="[0-9]{8}" required />
             <label asp-for="PhoneNumber">New Phone Number</label>
             <div class="invalid-feedback">
                 Please enter your new phone number
@@ -130,7 +130,7 @@
                 Please enter your password
             </div>
         </div>
-        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit">Change Phone Number</button>
+        <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Change Phone Number</button>
         <div class="text-center mb-4">
             <hr>
         </div>

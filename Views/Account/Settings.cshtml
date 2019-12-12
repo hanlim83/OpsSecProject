@@ -1,38 +1,18 @@
 ﻿@{
     ViewData["Title"] = "Account Settings";
 }
+@if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @ViewData["Message"]
+        </div>
+
+    </div>
+}
 <h1 class="h3 mb-2 text-gray-800">Your Account</h1>
 <p class="mb-4"></p>
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Settings</h6>
-    </div>
-    <div class="card-body">
-        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Success"))
-        {
-            <div class="alert alert-success" role="alert">
-                Your settings are saved
-            </div>
-        }
-        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning"))
-        {
-            <div class="alert alert-warning" role="alert">
-                Your settings couldn't be saved
-            </div>
-        }
-        <form asp-action="Account">
-            <div class="form-group">
-                <label for="exampleFormControlSetting1">Setting1</label>
-                <select class="form-control" id="exampleFormControlSetting1">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Save Settings</button>
-        </form>
-    </div>
+    @await Html.PartialAsync("SettingsPartial")
 </div>

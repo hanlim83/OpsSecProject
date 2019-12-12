@@ -63,7 +63,6 @@ namespace OpsSecProject
                 options.TokenValidationParameters.ValidateIssuer = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SkipUnrecognizedRequests = true;
-                options.MaxAge = TimeSpan.FromHours(1);
                 options.UseTokenLifetime = true;
                 options.RemoteSignOutPath = "/single-signout";
                 options.Events = new OpenIdConnectEvents
@@ -88,6 +87,10 @@ namespace OpsSecProject
                         {
                             context.ProtocolMessage.Prompt = prompt;
                         }
+                        if (context.Properties.Items.TryGetValue("login_hint", out string loginHint))
+                        {
+                            context.ProtocolMessage.LoginHint = loginHint;
+                        }
                         return Task.CompletedTask;
                     },
                     OnRedirectToIdentityProviderForSignOut = context =>
@@ -105,62 +108,101 @@ namespace OpsSecProject
                     OnTokenValidated = loginContext =>
                     {
                         var claimsIdentity = (ClaimsIdentity)loginContext.Principal.Identity;
-                        AuthenticationContext authenticationContext = loginContext.HttpContext.RequestServices.GetRequiredService<AuthenticationContext>();
-                        User retrieved = authenticationContext.Users.Find(claimsIdentity.FindFirst("preferred_username").Value);
-                        if (retrieved == null)
+                        AccountContext accountContext = loginContext.HttpContext.RequestServices.GetRequiredService<AccountContext>();
+                        User retrieved = accountContext.Users.Where(u => u.IDPReference == claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value).FirstOrDefault();
+                        if (retrieved != null)
                         {
-                            User import = new User
-                            {
-                                Username = claimsIdentity.FindFirst("preferred_username").Value,
-                                Name = claimsIdentity.FindFirst("name").Value,
-                                Password = Password.GetRandomSalt(),
-                                EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value,
-                                VerifiedEmailAddress = true,
-                                VerifiedPhoneNumber = false,
-                                Existence = Existence.External,
-                                ForceSignOut = false,
-                                IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
-                                LastPasswordChange = DateTime.Now,
-                                LastAuthentication = DateTime.Now,
-                                Status = Status.Active,
-                                OverridableField = OverridableField.PhoneNumber
-                            };
+                            if (!retrieved.Username.Equals(claimsIdentity.FindFirst("preferred_username").Value))
+                                retrieved.Username = claimsIdentity.FindFirst("preferred_username").Value;
+                            retrieved.ForceSignOut = false;
+                            retrieved.HybridSignIncount = 0;
                             foreach (var claim in claimsIdentity.Claims)
                             {
                                 if (claim.Type.Equals("groups"))
                                 {
-                                    List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                    List<Role> retrievedRoles = accountContext.Roles.ToList();
                                     foreach (var retrievedRole in retrievedRoles)
                                     {
                                         if (retrievedRole.IDPReference.Equals(claim.Value))
-                                            import.LinkedRole = retrievedRole;
+                                            retrieved.LinkedRole = retrievedRole;
                                     }
                                 }
+                                else if (claim.Type.Equals(ClaimTypes.Email))
+                                {
+                                    retrieved.EmailAddress = claim.Value;
+                                    retrieved.VerifiedEmailAddress = true;
+                                }
+                                else if (claim.Type.Equals(ClaimTypes.MobilePhone))
+                                {
+                                    retrieved.PhoneNumber = claim.Value;
+                                    retrieved.VerifiedPhoneNumber = true;
+                                }
                             }
-                            authenticationContext.Add(import);
-                            authenticationContext.SaveChanges();
+                            if (retrieved.VerifiedEmailAddress && retrieved.VerifiedPhoneNumber)
+                                retrieved.OverridableField = OverridableField.None;
+                            else if (retrieved.VerifiedEmailAddress)
+                                retrieved.OverridableField = OverridableField.PhoneNumber;
+                            else if (retrieved.VerifiedPhoneNumber)
+                                retrieved.OverridableField = OverridableField.EmailAddress;
+                            retrieved.LastAuthentication = DateTime.Now;
+                            accountContext.Update(retrieved);
+                            accountContext.SaveChanges();
                         }
                         else
                         {
-                            if (retrieved.IDPReference.Equals(claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value))
+                            retrieved = accountContext.Users.Where(u => u.Username == claimsIdentity.FindFirst("preferred_username").Value).FirstOrDefault();
+                            if (retrieved == null)
                             {
-                                retrieved.ForceSignOut = false;
-                                retrieved.EmailAddress = claimsIdentity.FindFirst(ClaimTypes.Email).Value;
-                                retrieved.LastAuthentication = DateTime.Now;
+                                User import = new User
+                                {
+                                    Username = claimsIdentity.FindFirst("preferred_username").Value,
+                                    Name = claimsIdentity.FindFirst("name").Value,
+                                    Password = Password.GetRandomSalt(),
+                                    Existence = Existence.External,
+                                    IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
+                                    LastPasswordChange = DateTime.Now,
+                                    LastAuthentication = DateTime.Now,
+                                    Status = Status.Active,
+                                    OverridableField = OverridableField.Both
+                                };
                                 foreach (var claim in claimsIdentity.Claims)
                                 {
                                     if (claim.Type.Equals("groups"))
                                     {
-                                        List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                        List<Role> retrievedRoles = accountContext.Roles.ToList();
                                         foreach (var retrievedRole in retrievedRoles)
                                         {
                                             if (retrievedRole.IDPReference.Equals(claim.Value))
-                                                retrieved.LinkedRole = retrievedRole;
+                                                import.LinkedRole = retrievedRole;
                                         }
                                     }
+                                    else if (claim.Type.Equals(ClaimTypes.Email))
+                                    {
+                                        import.EmailAddress = claim.Value;
+                                        import.VerifiedEmailAddress = true;
+                                    }
+                                    else if (claim.Type.Equals(ClaimTypes.MobilePhone))
+                                    {
+                                        import.PhoneNumber = claim.Value;
+                                        import.VerifiedPhoneNumber = true;
+                                    }
                                 }
-                                authenticationContext.Update(retrieved);
-                                authenticationContext.SaveChanges();
+                                if (import.VerifiedEmailAddress && import.VerifiedPhoneNumber)
+                                    import.OverridableField = OverridableField.None;
+                                else if (import.VerifiedEmailAddress)
+                                    import.OverridableField = OverridableField.PhoneNumber;
+                                else if (import.VerifiedPhoneNumber)
+                                    import.OverridableField = OverridableField.EmailAddress;
+                                accountContext.Add(import);
+                                accountContext.SaveChanges();
+                                import = accountContext.Users.Where(u => u.IDPReference == claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value).FirstOrDefault();
+                                Settings settings = new Settings
+                                {
+                                    LinkedUserID = import.ID,
+                                    LinkedUser = import
+                                };
+                                accountContext.Settings.Add(settings);
+                                accountContext.SaveChanges();
                             }
                             else
                             {
@@ -168,13 +210,12 @@ namespace OpsSecProject
                                 loginContext.HandleResponse();
                                 return Task.FromResult(0);
                             }
-
                         }
                         foreach (var claim in claimsIdentity.Claims.ToList())
                         {
                             if (claim.Type.Equals("groups"))
                             {
-                                List<Role> retrievedRoles = authenticationContext.Roles.ToList();
+                                List<Role> retrievedRoles = accountContext.Roles.ToList();
                                 foreach (var retrievedRole in retrievedRoles)
                                 {
                                     if (retrievedRole.IDPReference.Equals(claim.Value))
@@ -227,9 +268,9 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonSimpleNotificationService>();
             services.AddAWSService<IAmazonSimpleEmailService>(SESAWSOptions);
             //Entity Framework Initialization
-            services.AddDbContext<AuthenticationContext>(options =>
+            services.AddDbContext<AccountContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Authentication"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Account"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(
@@ -238,7 +279,17 @@ namespace OpsSecProject
                             errorNumbersToAdd: null);
                     });
             });
-
+            services.AddDbContext<SecurityContext>(options =>
+            {
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Security"),
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 10,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    });
+            });
             services.AddDbContext<LogContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogData"),
@@ -250,6 +301,7 @@ namespace OpsSecProject
                             errorNumbersToAdd: null);
                     });
             });
+          
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
             //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();

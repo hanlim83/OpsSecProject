@@ -132,6 +132,14 @@
                 </div>
             </div>
         }
+        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("2FAEmail"))
+        {
+            <div class="form-label-group">
+                <div class="alert alert-success" role="alert">
+                    An email has been sent to your email address. Please follow the instructions to login
+                </div>
+            </div>
+        }
         <div class="form-label-group">
             @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
             {
@@ -157,7 +165,7 @@
                 Please enter your password
             </div>
         </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit" id="formBtnSubmit">Sign in</button>
         <div class="text-center mb-4">
             <hr>
         </div>
