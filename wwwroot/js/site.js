@@ -58,6 +58,7 @@ function reCaptchaV3Callback() {
                     event.stopPropagation();
                 }
                 else if (form.checkValidity() === true) {
+                    document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
                     document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
                 }
             }, false);

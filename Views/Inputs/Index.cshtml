@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Manage Log Inputs";
+
+}
+<h1 align="center">New Log Input</h1>
+
+<form asp-action="Create">
+    <div>
+        <table align="center" style="margin-top:75px">
+            <tr>
+                <td>File Path:</td>
+                <td><input id="FilePath" name="FilePath" type="text" class="form-control bg-light small" /></td>
+                <td><input type="submit" value="Submit" class="btn btn-primary" /></td>
+            </tr>
+        </table>
+    </div>
+</form>
+<br />
+<br />
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Existing Data Inputs</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table" align="center" style="margin-top:25px">
+                <thead>
+                    <tr>
+                        <th scope="col">Log Input Name</th>
+                        <th scope="col">Log Input Type</th>
+                        <th scope="col">Log File Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">111221092327</th>
+                        <td>.log</td>
+                        <td>C:\Users\Tom\AppData\Local\SDL\InfoShare Client\1.23\Log\111221092327.log</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">090520192328</th>
+                        <td>.txt</td>
+                        <td>C:\Users\Tom\AppData\Local\SDL\InfoShare Client\1.23\Log\111221092328.log</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

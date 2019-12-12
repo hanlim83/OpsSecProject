@@ -64,21 +64,16 @@
                     Log Inputs
                 </div>
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Add">
+                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Create">
                         <i class="fas fa-plus"></i>
                         <span>New Log Input</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputs" aria-expanded="false" aria-controls="collapseInputs">
+                    <a class="nav-link" asp-area="" asp-controller="Inputs" asp-action="Index">
                         <i class="fas fa-wrench"></i>
                         <span>Manage Existing Inputs</span>
                     </a>
-                    <div id="collapseInputs" class="collapse" aria-labelledby="headingInputs" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            <a class="collapse-item" asp-area="" asp-controller="Inputs" asp-action="Modify">DATA INPUT NAME</a>
-                        </div>
-                    </div>
                 </li>
             }
             <hr class="sidebar-divider">
@@ -145,11 +140,11 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form asp-controller="Analytics" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
+                                <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
                                 </button>
                             </div>
