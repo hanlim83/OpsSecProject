@@ -1,4 +1,6 @@
-﻿using Amazon.KinesisFirehose;
+﻿using Amazon.Elasticsearch;
+using Amazon.KinesisAnalyticsV2;
+using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SageMaker;
@@ -254,18 +256,21 @@ namespace OpsSecProject
             var defaultAWSOptions = Configuration.GetAWSOptions();
             defaultAWSOptions.Region = Amazon.RegionEndpoint.APSoutheast1;
             defaultAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
-            var SESAWSOptions = Configuration.GetAWSOptions();
-            SESAWSOptions.Region = Amazon.RegionEndpoint.USEast1;
-            SESAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
             services.AddDefaultAWSOptions(defaultAWSOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
+            //ElasticSearch Initialization
+            services.AddAWSService<IAmazonElasticsearch>();
             //SagerMaker Initialization
             services.AddAWSService<IAmazonSageMaker>();
-            //Kinesis Firehose Initialization
+            //Kinesis Initialization
+            services.AddAWSService<IAmazonKinesisAnalyticsV2>();
             services.AddAWSService<IAmazonKinesisFirehose>();
             //Simple Notification / Email Services Initialization
             services.AddAWSService<IAmazonSimpleNotificationService>();
+            var SESAWSOptions = Configuration.GetAWSOptions();
+            SESAWSOptions.Region = Amazon.RegionEndpoint.USEast1;
+            SESAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
             services.AddAWSService<IAmazonSimpleEmailService>(SESAWSOptions);
             //Entity Framework Initialization
             services.AddDbContext<AccountContext>(options =>
