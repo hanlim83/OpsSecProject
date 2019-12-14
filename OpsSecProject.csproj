@@ -9,13 +9,15 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.3.104.3" />
+    <PackageReference Include="AWSSDK.Core" Version="3.3.104.5" />
+    <PackageReference Include="AWSSDK.Elasticsearch" Version="3.3.103.5" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.100.1" />
-    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.8" />
-    <PackageReference Include="AWSSDK.S3" Version="3.3.109.2" />
-    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.108.2" />
-    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.80" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.98" />
+    <PackageReference Include="AWSSDK.KinesisAnalyticsV2" Version="3.3.102.8" />
+    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.11" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.110" />
+    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.108.5" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.83" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.101" />
     <PackageReference Include="BCrypt.Net-Next" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.2.0" />
