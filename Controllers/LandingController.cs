@@ -58,7 +58,7 @@ namespace OpsSecProject.Controllers
                     } else
                     {
                         ViewData["Alert"] = "Danger";
-                        ViewData["Message"] = "We can't find an account with that Username. Please double check with your entered Usernmae?";
+                        ViewData["Message"] = "We can't find an account with that Username";
                         return View(user);
                     }
                 } else if (identity.Existence != Existence.Internal)

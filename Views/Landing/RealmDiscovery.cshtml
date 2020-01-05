@@ -1,10 +1,7 @@
 ﻿@model OpsSecProject.Models.RealmDiscoveryModel;
 @{
     Layout = "_ExternalLayout";
-    ViewData["Title"] = "Realm Discovery";
-}
-@section Recaptcha {
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    ViewData["Title"] = "Welcome";
 }
 <form class="form-signin needs-validation" asp-action="RealmDiscovery" novalidate>
     <div class="text-center mb-4">
@@ -77,7 +74,8 @@
             Please enter your username
         </div>
     </div>
-    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Continue</button>
+    <div id="recap"></div>
+    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaCallback' type="submit" id="formBtnSubmit">Continue</button>
     <div class="text-center mb-4">
         <hr>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))

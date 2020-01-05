@@ -35,7 +35,7 @@ Hence, our solution aims to combat these problems presented by traditional SIEMs
   - Log Data can be visualised into pre-defined useful dashboards
 
 ## External Resources Used
-- [Bootstrap](https://github.com/twbs/bootstrap) (Local JS & CSS when in Development, CDN when in Production)
+- [Bootstrap](https://github.com/twbs/bootstrap)
    - [Start Boostrap 2 - Dashboard Template](https://github.com/BlackrockDigital/startbootstrap-sb-admin-2) 
    - [jQuery](https://github.com/jquery/jquery) 
       - [jQuery Vaildation](https://github.com/jquery-validation/jquery-validation) 
@@ -43,6 +43,7 @@ Hence, our solution aims to combat these problems presented by traditional SIEMs
       - [jQuery Easing](https://github.com/gdsmith/jquery.easing) 
    - [Popper](https://github.com/FezVrasta/popper.js)
 - [Font Awesome Icons](https://fontawesome.com/)
+- [TurboLinks](https://github.com/turbolinks/turbolinks)
 - [Chart.js](https://www.chartjs.org/)
 - [DataTables](https://datatables.net/) 
 

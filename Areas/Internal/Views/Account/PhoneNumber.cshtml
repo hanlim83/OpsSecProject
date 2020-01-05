@@ -2,9 +2,6 @@
 @{
     ViewData["Title"] = "Change Phone Number";
 }
-@section Recaptcha {
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-}
 <form class="form-signin needs-validation" asp-action="PhoneNumber" novalidate>
     <div class="text-center mb-4">
         <h1 class="h3 mb-3 font-weight-normal">Change Phone Number</h1>
@@ -29,18 +26,18 @@
         </div>
     }
     <div class="form-group">
-        <input asp-for="PhoneNumber" class="form-control" placeholder="New Phone Number" pattern="[0-9]{8}" required />
+        <input asp-for="PhoneNumber" class="form-control form-control-user" placeholder="New Phone Number" pattern="[0-9]{8}" required />
         <div class="invalid-feedback">
             Please enter your new phone number
         </div>
     </div>
     <div class="form-group">
-        <input asp-for="Password" class="form-control" placeholder="Password" required />
+        <input asp-for="Password" class="form-control form-control-user" placeholder="Password" required />
         <div class="invalid-feedback">
             Please enter your password
         </div>
     </div>
-    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Change Phone Number</button>
+    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaCallback' type="submit" id="formBtnSubmit">Change Phone Number</button>
     <div class="text-center mb-4">
         <hr>
     </div>
