@@ -39,10 +39,12 @@ namespace OpsSecProject.Areas.Internal.Controllers
             _sesClient = sesClient;
         }
         [AllowAnonymous]
-        public IActionResult SignIn(string ReturnUrl)
+        public IActionResult SignIn()
         {
-            if (ReturnUrl != null)
-                ViewData["ReturnURL"] = ReturnUrl;
+            if (!String.IsNullOrEmpty(Convert.ToString(TempData["Username"])))
+                ViewData["Username"] = TempData["Username"];
+            if (!String.IsNullOrEmpty(Convert.ToString(TempData["ReturnUrl"])))
+                ViewData["ReturnURL"] = TempData["ReturnUrl"];
             return View();
         }
         [HttpPost]
@@ -56,15 +58,17 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 ViewData["Alert"] = "Warning";
                 ViewData["Message"] = "Login Timeout. Please try again";
                 Credentials.Password = null;
+                ViewData["Username"] = Credentials.Username;
                 return View(Credentials);
             }
             User challenge = _context.Users.Where(u => u.Username == Credentials.Username).FirstOrDefault();
             if (challenge == null)
             {
-                ViewData["Alert"] = "Warning";
-                ViewData["Message"] = "Invaild Username and Password combination";
-                Credentials.Password = null;
-                return View(Credentials);
+                TempData["State"] = "UserNotFound";
+                if (!String.IsNullOrEmpty(Credentials.ReturnUrl))
+                    return Redirect("/Landing/RealmDiscovery?RedirectUrl=" + WebUtility.UrlEncode(Credentials.ReturnUrl));
+                else
+                    return Redirect("/Landing/RealmDiscovery");
             }
             else if (challenge.Existence.Equals(Existence.External))
             {
@@ -78,17 +82,19 @@ namespace OpsSecProject.Areas.Internal.Controllers
             {
                 ViewData["Alert"] = "Danger";
                 ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
-                Credentials.Username = null;
                 Credentials.Password = null;
+                ViewData["Username"] = Credentials.Username;
                 return View(Credentials);
             }
             else if (!Password.ValidatePassword(Credentials.Password, challenge.Password))
             {
                 ViewData["Alert"] = "Warning";
-                ViewData["Message"] = "Invaild Username and Password combination";
+                ViewData["Message"] = "Wrong Password";
                 Credentials.Password = null;
+                ViewData["Username"] = Credentials.Username;
                 return View(Credentials);
-            } else if (challenge.Existence == Existence.Hybrid && challenge.HybridSignIncount > 6)
+            }
+            else if (challenge.Existence == Existence.Hybrid && challenge.HybridSignIncount > 6)
             {
                 var authenticationProperties = new AuthenticationProperties();
                 authenticationProperties.Items["prompt"] = "login";
@@ -163,7 +169,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         _context.NotificationTokens.Add(token);
                         await _context.SaveChangesAsync();
                         TempData["State"] = "2FAEmail";
-                        return RedirectToAction("SignIn", new { RedirectUrl = Credentials.ReturnUrl });
+                        return Redirect("/Landing/RealmDiscovery?RedirectUrl=" + WebUtility.UrlEncode(Credentials.ReturnUrl));
                     }
                     else if (challenge.VerifiedPhoneNumber)
                     {
@@ -193,7 +199,6 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     {
                         ViewData["Alert"] = "Danger";
                         ViewData["Message"] = "Your login session is suspicious. Please contact your administrator for assistance";
-                        Credentials.Username = null;
                         Credentials.Password = null;
                         return View(Credentials);
                     }
@@ -334,7 +339,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         TempData["State"] = "PasswordResetEmail";
                     else
                         TempData["State"] = "PasswordResetPhone";
-                    return RedirectToAction("SignIn", new { RedirectUrl = User.ReturnUrl });
+                    return Redirect("/Landing/RealmDiscovery?RedirectUrl=" + WebUtility.UrlEncode(User.ReturnUrl));
                 }
             }
             else
@@ -887,7 +892,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             if (choice.Method.Equals("Email"))
             {
                 TempData["State"] = "2FAEmail";
-                return RedirectToAction("SignIn", new { RedirectUrl = choice.ReturnUrl });
+                return Redirect("/Landing/RealmDiscovery?RedirectUrl=" + WebUtility.UrlEncode(choice.ReturnUrl));
             }
             else
                 return RedirectToAction("Verify2ndFactor", new { RedirectUrl = choice.ReturnUrl });

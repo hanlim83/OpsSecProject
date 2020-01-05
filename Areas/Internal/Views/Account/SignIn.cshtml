@@ -1,185 +1,63 @@
 ﻿@model OpsSecProject.Areas.Internal.Models.LoginFormModel
 @{
-    Layout = null;
     ViewData["Title"] = "Login";
 }
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SmartInsights</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-          crossorigin="anonymous"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <style>
-        body {
-            display: -ms-flexbox;
-            display: flex;
-            -ms-flex-align: center;
-            align-items: center;
-            padding-top: 40px;
-            padding-bottom: 40px;
-            background-color: #f5f5f5;
-        }
-
-        .form-signin {
-            width: 100%;
-            max-width: 420px;
-            padding: 15px;
-            margin: auto;
-        }
-
-        .form-label-group {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-            .form-label-group > input,
-            .form-label-group > label {
-                height: 3.125rem;
-                padding: .75rem;
-            }
-
-            .form-label-group > label {
-                position: absolute;
-                top: 0;
-                left: 0;
-                display: block;
-                width: 100%;
-                margin-bottom: 0; /* Override default `<label>` margin */
-                line-height: 1.5;
-                color: #495057;
-                pointer-events: none;
-                cursor: text; /* Match the input under the label */
-                border: 1px solid transparent;
-                border-radius: .25rem;
-                transition: all .1s ease-in-out;
-            }
-
-            .form-label-group input::-webkit-input-placeholder {
-                color: transparent;
-            }
-
-            .form-label-group input:-ms-input-placeholder {
-                color: transparent;
-            }
-
-            .form-label-group input::-ms-input-placeholder {
-                color: transparent;
-            }
-
-            .form-label-group input::-moz-placeholder {
-                color: transparent;
-            }
-
-            .form-label-group input::placeholder {
-                color: transparent;
-            }
-
-            .form-label-group input:not(:placeholder-shown) {
-                padding-top: 1.25rem;
-                padding-bottom: .25rem;
-            }
-
-                .form-label-group input:not(:placeholder-shown) ~ label {
-                    padding-top: .25rem;
-                    padding-bottom: .25rem;
-                    font-size: 12px;
-                    color: #777;
-                }
-    </style>
+@section Recaptcha {
     <script src="https://www.google.com/recaptcha/api.js?onload=reCaptchaV3Callback&render=@System.Environment.GetEnvironmentVariable("RECAPTCHAV3_SITE_KEY")" async defer></script>
-</head>
-<body class="text-center">
-    <form class="form-signin needs-validation" asp-action="SignIn" novalidate>
-        <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-            <p>Please use your assigned Username and Password</p>
-        </div>
-        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
-        {
-            <div class="form-label-group">
-                <div class="alert alert-warning" role="alert">
-                    @ViewData["Message"]
-                </div>
+}
+<form class="form-signin needs-validation" asp-action="SignIn" novalidate>
+    <div class="text-center mb-4">
+        <h1 class="h3 mb-3 font-weight-normal">Welcome back, @ViewData["Username"]!</h1>
+        <p>Please enter your Password</p>
+    </div>
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+    {
+        <div class="form-group">
+            <div class="alert alert-warning" role="alert">
+                @ViewData["Message"]
+            </div>
 
+        </div>
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+    {
+        <div class="form-group">
+            <div class="alert alert-danger" role="alert">
+                @ViewData["Message"]
             </div>
-        }
-        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
-        {
-            <div class="form-label-group">
-                <div class="alert alert-danger" role="alert">
-                    @ViewData["Message"]
-                </div>
 
-            </div>
-        }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("PasswordResetEmail"))
+        </div>
+    }
+    <div class="form-group">
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
         {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    An email has been sent to your email address. Please follow the instructions to reset your password
-                </div>
-            </div>
+            <input asp-for="ReturnUrl" type="hidden" value="@ViewData["ReturnURL"]" />
         }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("PasswordResetPhone"))
+        @if (String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
         {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    A SMS has been sent to your phone. Please follow the instructions to reset your password
-                </div>
-            </div>
+            <input asp-for="ReturnUrl" type="hidden" />
         }
-        @if (!String.IsNullOrEmpty(Convert.ToString(TempData["State"])) && TempData["State"].Equals("2FAEmail"))
+    </div>
+    <div class="form-group">
+        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Username"])))
         {
-            <div class="form-label-group">
-                <div class="alert alert-success" role="alert">
-                    An email has been sent to your email address. Please follow the instructions to login
-                </div>
-            </div>
+            <input asp-for="Username" type="hidden" value="@ViewData["Username"]" />
         }
-        <div class="form-label-group">
-            @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
-            {
-                <input asp-for="ReturnUrl" type="hidden" value="@ViewData["ReturnURL"]" />
-            }
-            @if (String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
-            {
-                <input asp-for="ReturnUrl" type="hidden" />
-            }
+        @if (String.IsNullOrEmpty(Convert.ToString(ViewData["Username"])))
+        {
+            <input asp-for="Username" type="hidden" />
+        }
+    </div>
+    <div class="form-group">
+        <input asp-for="Password" class="form-control form-control-user" placeholder="Password" required />
+        <div class="invalid-feedback">
+            Please enter your password
         </div>
-        <div class="form-label-group">
-            <input asp-for="Username" class="form-control" placeholder="Username" required />
-            <label asp-for="Username">Username</label>
-            <div class="invalid-feedback">
-                Please enter your username
-            </div>
-        </div>
-
-        <div class="form-label-group">
-            <input asp-for="Password" class="form-control" placeholder="Password" required />
-            <label asp-for="Password">Password</label>
-            <div class="invalid-feedback">
-                Please enter your password
-            </div>
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit" id="formBtnSubmit">Sign in</button>
-        <div class="text-center mb-4">
-            <hr>
-        </div>
-        <a class="btn btn-lg btn-secondary btn-block" asp-action="ForgetPassword" asp-route-ReturnUrl="@ViewData["ReturnURL"]">Forget Password?</a>
-        <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
-    </form>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
-            crossorigin="anonymous"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=">
-    </script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"
-            integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o">
-    </script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-</body>
-</html>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit" id="formBtnSubmit">Sign in</button>
+    <div class="text-center mb-4">
+        <hr>
+    </div>
+    <a class="btn btn-lg btn-secondary btn-block" asp-action="ForgetPassword" asp-route-ReturnUrl="@ViewData["ReturnURL"]">Forget Password?</a>
+    <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
+</form>

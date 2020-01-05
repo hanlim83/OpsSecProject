@@ -1,4 +1,4 @@
-﻿using Amazon.Elasticsearch;
+﻿using Amazon.Glue;
 using Amazon.KinesisAnalyticsV2;
 using Amazon.KinesisFirehose;
 using Amazon.Runtime;
@@ -56,7 +56,7 @@ namespace OpsSecProject
                     options.SlidingExpiration = true;
                     options.Cookie.SameSite = SameSiteMode.Strict;
                     options.EventsType = typeof(CustomCookieAuthenticationEvents);
-                    options.LoginPath = "/Landing/Login";
+                    options.LoginPath = "/Landing/RealmDiscovery";
                 });
 
             services.Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options =>
@@ -232,7 +232,7 @@ namespace OpsSecProject
             services.Configure<CookieAuthenticationOptions>(AzureADDefaults.CookieScheme, options =>
             {
                 options.AccessDeniedPath = "/Account/Unauthorised";
-                options.LoginPath = "/Landing/Login";
+                options.LoginPath = "/Landing/RealmDiscovery";
                 options.EventsType = typeof(CustomCookieAuthenticationEvents);
             });
             services.AddScoped<CustomCookieAuthenticationEvents>();
@@ -259,8 +259,8 @@ namespace OpsSecProject
             services.AddDefaultAWSOptions(defaultAWSOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
-            //ElasticSearch Initialization
-            services.AddAWSService<IAmazonElasticsearch>();
+            //glue Initialization
+            services.AddAWSService<IAmazonGlue>();
             //SagerMaker Initialization
             services.AddAWSService<IAmazonSageMaker>();
             //Kinesis Initialization
