@@ -1,6 +1,8 @@
 ﻿function SLOCountDown(secs) {
     var countDownInterval = function () {
-        if (secs < 1) {
+        if (window.location.pathname != "/Landing/Logout" && window.location.pathname != "/Account/Logout")
+            return;
+        else if (secs < 1) {
             document.getElementById('sloLink').innerHTML = "Auto Logout in progress";
             var element = document.getElementById("sloReject");
             element.parentNode.removeChild(element);
@@ -16,7 +18,7 @@
     };
     var interval = setInterval(countDownInterval, 1000);
 }
-function reCaptchaV2Callback(token) {
+function reCaptchaCallback(token) {
     var tokenInput = document.getElementById("recaptchaResponse");
     if (tokenInput == null && token != null) {
         tokenInput = document.createElement("input");
@@ -37,20 +39,23 @@ function reCaptchaV2Callback(token) {
         grecaptcha.reset();
     }
 }
-function reCaptchaV3Callback() {
-    grecaptcha.execute("6LfccsUUAAAAAAhL7iOWfm0Fkv9yXcQB3I1UHOOc", { action: 'login' }).then(function (token) {
-        var tokenInput = document.createElement("input");
-        tokenInput.setAttribute("type", "hidden");
-        tokenInput.setAttribute("name", "recaptchaResponse");
-        tokenInput.setAttribute("value", token);
-        document.getElementsByClassName("form-signin")[0].appendChild(tokenInput);
-    });
-}
 (function () {
     'use strict';
-    window.addEventListener('load', function () {
+    document.addEventListener('turbolinks:load', function () {
+        var path = window.location.pathname;
+        var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
+        var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
+        if (checkNormal) {
+            $('a[href="' + path + '"]').parent().addClass('active');
+        } else if (checkCollapse) {
+            $('a[href="' + path + '"]').addClass('active');
+            $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
+            $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
+            $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
+            $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
+        }
         var forms = document.getElementsByClassName('needs-validation');
-        var validation = Array.prototype.filter.call(forms, function (form) {
+        Array.prototype.filter.call(forms, function (form) {
             form.addEventListener('submit', function (event) {
                 form.classList.add('was-validated');
                 if (form.checkValidity() === false) {
@@ -63,6 +68,30 @@ function reCaptchaV3Callback() {
                 }
             }, false);
         });
+        var canvas = document.getElementById("particles");
+        if (canvas !== null && Particles.options == null) {
+            Particles.init({
+                selector: '.background',
+                color: '#75A5B7',
+                maxParticles: 130,
+                connectParticles: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        options: {
+                            maxParticles: 80
+                        }
+                    }, {
+                        breakpoint: 375,
+                        options: {
+                            maxParticles: 50
+                        }
+                    }
+                ]
+            });
+        }
+        if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
+            grecaptcha.render('formBtnSubmit');
     }, false);
     window.addEventListener("focus", windowHasFocus, false);
     window.addEventListener("blur", windowLostFocus, false);
@@ -73,20 +102,6 @@ function reCaptchaV3Callback() {
     document.addEventListener("touchMove", reset, false);
     document.addEventListener("touchEnd", reset, false);
 })();
-$(document).ready(function () {
-    var path = window.location.pathname;
-    var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
-    var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
-    if (checkNormal) {
-        $('a[href="' + path + '"]').parent().addClass('active');
-    } else if (checkCollapse) {
-        $('a[href="' + path + '"]').addClass('active');
-        $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
-        $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
-        $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
-        $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
-    }
-});
 var refresh_rate = 60 * 5
 var last_user_action = 0;
 var has_focus = false;

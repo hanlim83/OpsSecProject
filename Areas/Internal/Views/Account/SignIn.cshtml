@@ -2,9 +2,6 @@
 @{
     ViewData["Title"] = "Login";
 }
-@section Recaptcha {
-    <script src="https://www.google.com/recaptcha/api.js?onload=reCaptchaV3Callback&render=@System.Environment.GetEnvironmentVariable("RECAPTCHAV3_SITE_KEY")" async defer></script>
-}
 <form class="form-signin needs-validation" asp-action="SignIn" novalidate>
     <div class="text-center mb-4">
         <h1 class="h3 mb-3 font-weight-normal">Welcome back, @ViewData["Username"]!</h1>
@@ -54,7 +51,7 @@
             Please enter your password
         </div>
     </div>
-    <button class="btn btn-lg btn-primary btn-block" type="submit" id="formBtnSubmit">Sign in</button>
+    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV3_SITE_KEY")" data-callback='reCaptchaCallback' type="submit" id="formBtnSubmit">Sign in</button>
     <div class="text-center mb-4">
         <hr>
     </div>

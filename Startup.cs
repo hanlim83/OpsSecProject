@@ -327,7 +327,7 @@ namespace OpsSecProject
                 app.UseExceptionHandler("/Landing/Error");
                 app.UseHsts();
             }
-            app.UseStatusCodePagesWithReExecute("/Landing/Error", "?code={0}");
+            app.UseStatusCodePagesWithRedirects("/Landing/Error?code={0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();

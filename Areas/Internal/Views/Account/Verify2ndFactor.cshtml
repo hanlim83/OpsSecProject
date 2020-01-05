@@ -2,9 +2,6 @@
 @{
     ViewData["Title"] = "2 Factor Authentication";
 }
-@section Recaptcha {
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-}
 <form class="form-signin needs-validation" asp-action="Verify2ndFactor" novalidate>
     <div class="text-center mb-4">
         <h1 class="h3 mb-3 font-weight-normal">Verify Your Identity</h1>
@@ -32,12 +29,12 @@
         <input asp-for="ReturnUrl" type="hidden" />
     </div>
     <div class="form-group">
-        <input asp-for="Code" class="form-control" placeholder="Verification Code" required />
+        <input asp-for="Code" class="form-control form-control-user" placeholder="Verification Code" required />
         <div class="invalid-feedback">
             Please enter your verification code
         </div>
     </div>
-    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaV2Callback' type="submit" id="formBtnSubmit">Send Password Reset Request</button>
+    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaCallback' type="submit" id="formBtnSubmit">Send Password Reset Request</button>
     <div class="text-center mb-4">
         <hr>
     </div>
