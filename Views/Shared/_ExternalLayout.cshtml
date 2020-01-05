@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SmartInsights</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          crossorigin="anonymous"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" />
+    <link rel="stylesheet" href="~/css/sb-admin-2.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @RenderSection("Recaptcha", required: false)
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .background {
+            position: absolute;
+            display: block;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-gradient-primary">
+    <canvas class="background"></canvas>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col">
+                                <div class="p-5">
+                                    @RenderBody()
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+            crossorigin="anonymous"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"
+            integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.3/particles.min.js" integrity="sha256-cy35RxCREfCgW7nc5h5HlCw5eEF4JKc9O+mb9BN07kY=" crossorigin="anonymous"></script>
+    <script src="~/js/sb-admin-2.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        window.onload = function () {
+            Particles.init({
+                selector: '.background',
+                color: '#75A5B7',
+                maxParticles: 130,
+                connectParticles: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        options: {
+                            maxParticles: 80
+                        }
+                    }, {
+                        breakpoint: 375,
+                        options: {
+                            maxParticles: 50
+                        }
+                    }
+                ]
+            });
+        };
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
