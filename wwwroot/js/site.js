@@ -41,58 +41,113 @@ function reCaptchaCallback(token) {
 }
 (function () {
     'use strict';
-    document.addEventListener('turbolinks:load', function () {
-        var path = window.location.pathname;
-        var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
-        var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
-        if (checkNormal) {
-            $('a[href="' + path + '"]').parent().addClass('active');
-        } else if (checkCollapse) {
-            $('a[href="' + path + '"]').addClass('active');
-            $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
-            $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
-            $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
-            $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
-        }
-        var forms = document.getElementsByClassName('needs-validation');
-        Array.prototype.filter.call(forms, function (form) {
-            form.addEventListener('submit', function (event) {
-                form.classList.add('was-validated');
-                if (form.checkValidity() === false) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                else if (form.checkValidity() === true) {
-                    document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
-                    document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
-                }
-            }, false);
-        });
-        var canvas = document.getElementById("particles");
-        if (canvas !== null && Particles.options == null) {
-            Particles.init({
-                selector: '.background',
-                color: '#75A5B7',
-                maxParticles: 130,
-                connectParticles: true,
-                responsive: [
-                    {
-                        breakpoint: 768,
-                        options: {
-                            maxParticles: 80
-                        }
-                    }, {
-                        breakpoint: 375,
-                        options: {
-                            maxParticles: 50
-                        }
+    if (Turbolinks.supported) {
+        document.addEventListener('turbolinks:load', function () {
+            var path = window.location.pathname;
+            var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
+            var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
+            if (checkNormal) {
+                $('a[href="' + path + '"]').parent().addClass('active');
+            } else if (checkCollapse) {
+                $('a[href="' + path + '"]').addClass('active');
+                $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
+            }
+            var forms = document.getElementsByClassName('needs-validation');
+            Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    form.classList.add('was-validated');
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
                     }
-                ]
+                    else if (form.checkValidity() === true) {
+                        document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
+                        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+                    }
+                }, false);
             });
-        }
-        if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
-            grecaptcha.render('formBtnSubmit');
-    }, false);
+            var canvas = document.getElementById("particles");
+            if (canvas !== null && Particles.options == null) {
+                Particles.init({
+                    selector: '.background',
+                    color: '#75A5B7',
+                    maxParticles: 130,
+                    connectParticles: true,
+                    responsive: [
+                        {
+                            breakpoint: 768,
+                            options: {
+                                maxParticles: 80
+                            }
+                        }, {
+                            breakpoint: 375,
+                            options: {
+                                maxParticles: 50
+                            }
+                        }
+                    ]
+                });
+            }
+            if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
+                grecaptcha.render('formBtnSubmit');
+        }, false);
+    } else {
+        $(document).ready(function () {
+            var path = window.location.pathname;
+            var checkCollapse = $('a[href="' + path + '"]').hasClass("collapse-item");
+            var checkNormal = $('a[href="' + path + '"]').hasClass("nav-link");
+            if (checkNormal) {
+                $('a[href="' + path + '"]').parent().addClass('active');
+            } else if (checkCollapse) {
+                $('a[href="' + path + '"]').addClass('active');
+                $('a[href="' + path + '"]').parent().parent().parent().addClass('active');
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).attr("aria-expanded", "true");
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(0).removeClass("collapsed");
+                $('a[href="' + path + '"]').parent().parent().parent().children().eq(1).addClass("show");
+            }
+            var forms = document.getElementsByClassName('needs-validation');
+            Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    form.classList.add('was-validated');
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    else if (form.checkValidity() === true) {
+                        document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
+                        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+                    }
+                }, false);
+            });
+            var canvas = document.getElementById("particles");
+            if (canvas !== null && Particles.options == null) {
+                Particles.init({
+                    selector: '.background',
+                    color: '#75A5B7',
+                    maxParticles: 130,
+                    connectParticles: true,
+                    responsive: [
+                        {
+                            breakpoint: 768,
+                            options: {
+                                maxParticles: 80
+                            }
+                        }, {
+                            breakpoint: 375,
+                            options: {
+                                maxParticles: 50
+                            }
+                        }
+                    ]
+                });
+            }
+            if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
+                grecaptcha.render('formBtnSubmit');
+        });
+    }
     window.addEventListener("focus", windowHasFocus, false);
     window.addEventListener("blur", windowLostFocus, false);
     window.addEventListener("click", reset, false);
