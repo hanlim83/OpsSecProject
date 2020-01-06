@@ -165,10 +165,10 @@ var focus_margin = 10;
 
 function reset() {
     last_user_action = 0;
-    updateVisualTimer('Reset Timer');
+    updateTimer('Reset Timer');
 }
 
-function updateVisualTimer(value) {
+function updateTimer(value) {
     if (value) {
         console.log(value);
     } else if (has_focus) {
@@ -193,14 +193,16 @@ function windowLostFocus() {
 setInterval(function () {
     last_user_action++;
     refreshCheck();
-    updateVisualTimer();
+    updateTimer();
 }, 1000);
 
 function refreshCheck() {
     var focus = window.onfocus;
     if ((last_user_action >= refresh_rate && !has_focus && document.readyState == "complete") || lost_focus_count > focus_margin) {
-        window.location.reload();
+        if (Turbolinks.supported)
+            Turbolinks.visit(window.location.pathname, { action: "replace" });
+        else
+            window.location.reload();
         reset();
     }
-
 }
