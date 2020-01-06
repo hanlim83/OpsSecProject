@@ -208,7 +208,7 @@ namespace OpsSecProject
                             }
                             else
                             {
-                                loginContext.Response.Redirect("/Landing/Unauthenticated?reason=mismatch");
+                                loginContext.Response.Redirect("/Landing/Unauthenticated");
                                 loginContext.HandleResponse();
                                 return Task.FromResult(0);
                             }
@@ -327,7 +327,7 @@ namespace OpsSecProject
                 app.UseExceptionHandler("/Landing/Error");
                 app.UseHsts();
             }
-            app.UseStatusCodePagesWithRedirects("/Landing/Error?code={0}");
+            app.UseStatusCodePagesWithReExecute("/Landing/Error","?code={0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
