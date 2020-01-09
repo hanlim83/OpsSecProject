@@ -10,6 +10,17 @@
                 <label asp-for="Always2FA" class="custom-control-label">Enforce 2FA for all Logins (Applies to internal logins only)</label>
             </div>
         </div>
+        <div class="form-group">
+            <h6 class="mb-3">Preferred Communication Option:</h6>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="CommmuicationOptions" value="@CommmuicationOptions.EMAIL" id="CommOptionsEmail" class="custom-control-input" required>
+                <label class="custom-control-label" for="CommOptionsEmail">Email</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="CommmuicationOptions" value="@CommmuicationOptions.SMS" id="CommOptionsSMS" class="custom-control-input" required>
+                <label class="custom-control-label" for="CommOptionsSMS">SMS</label>
+            </div>
+        </div>
         <button type="submit" id="formBtnSubmit" class="btn btn-primary">Save Settings</button>
     </form>
 </div>

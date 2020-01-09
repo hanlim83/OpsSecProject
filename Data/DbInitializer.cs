@@ -1,4 +1,5 @@
-﻿using OpsSecProject.Areas.Internal.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OpsSecProject.Areas.Internal.Data;
 using OpsSecProject.Models;
 using System;
 using System.Linq;
@@ -12,24 +13,33 @@ namespace OpsSecProject.Data
             context.Database.EnsureCreated();
             if (!context.Roles.Any())
             {
+                context.Database.OpenConnection();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Roles ON");
                 context.Roles.Add(new Role
                 {
+                    ID = 2,
                     RoleName = "Power User",
                     Existence = Existence.Hybrid,
                     IDPReference = "9eb7a8cb-db12-4f3e-bbb3-f4576868b3ec"
                 });
                 context.Roles.Add(new Role
                 {
+                    ID = 1,
                     RoleName = "Administrator",
                     Existence = Existence.Hybrid,
                     IDPReference = "8325c997-07db-4297-8f1e-e2c8b506e309"
                 });
                 context.SaveChanges();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Roles OFF");
+                context.Database.CloseConnection();
             }
             if (!context.Users.Any())
             {
+                context.Database.OpenConnection();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Users ON");
                 context.Users.Add(new User
                 {
+                    ID = 1,
                     Username = "Admin",
                     Name = "Administrator",
                     Password = Password.HashPassword("SmartInsights", Password.GetRandomSalt()),
@@ -37,18 +47,21 @@ namespace OpsSecProject.Data
                     VerifiedPhoneNumber = true,
                     LinkedRole = context.Roles.Where(r => r.RoleName.Equals("Administrator")).FirstOrDefault(),
                     Existence = Existence.Internal,
-                    Status = Status.Active,
+                    Status = UserStatus.Active,
                     OverridableField = OverridableField.Both,
                     LastPasswordChange = DateTime.Now,
                     LastAuthentication = DateTime.Now
                 });
                 context.SaveChanges();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Users OFF");
                 context.Settings.Add(new Settings
                 {
-                    LinkedUserID = context.Users.Where(u => u.Username.Equals("Admin")).FirstOrDefault().ID,
-                    LinkedUser = context.Users.Where(u => u.Username.Equals("Admin")).FirstOrDefault()
+                    LinkedUserID = 1,
+                    LinkedUser = context.Users.Find(1),
+                    CommmuicationOptions = CommmuicationOptions.SMS
                 });
                 context.SaveChanges();
+                context.Database.CloseConnection();
             }
         }
 
@@ -60,6 +73,32 @@ namespace OpsSecProject.Data
         public static void InitializeLogContext(LogContext context)
         {
             context.Database.EnsureCreated();
+            if (!context.S3Buckets.Any())
+            {
+                context.Database.OpenConnection();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets ON");
+                context.S3Buckets.Add(new S3Bucket
+                {
+                    ID = 1,
+                    Name = "master-aggergated-ingest-data"
+                });
+                context.SaveChanges();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets OFF");
+                context.Database.CloseConnection();
+            }
+            if (!context.GlueDatabases.Any())
+            {
+                context.Database.OpenConnection();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases ON");
+                context.GlueDatabases.Add(new GlueDatabase
+                {
+                    ID = 1,
+                    Name = "master"
+                });
+                context.SaveChanges();
+                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases OFF");
+                context.Database.CloseConnection();
+            }
         }
     }
 }

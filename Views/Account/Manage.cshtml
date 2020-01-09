@@ -102,11 +102,11 @@
                             {
                                 <td>N.A</td>
                             }
-                            @if (user.Status == Status.Pending)
+                            @if (user.Status == UserStatus.Pending)
                             {
                                 <td>N.A</td>
                             }
-                            @if (user.Status != Status.Pending)
+                            @if (user.Status != UserStatus.Pending)
                             {
                                 <td>@Html.ValueForModel(user.LastAuthentication.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
                             }
@@ -123,11 +123,11 @@
                                 {
                                 <div class="btn-group" role="group" aria-label="Account Actions">
                                     <a class="btn btn-secondary" asp-action="EditUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
-                                    @if (user.Status == Status.Active && user.Existence != Existence.External)
+                                    @if (user.Status == UserStatus.Active && user.Existence != Existence.External)
                                     {
                                         <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
                                     }
-                                    @if (user.Status == Status.Disabled && user.Existence != Existence.External)
+                                    @if (user.Status == UserStatus.Disabled && user.Existence != Existence.External)
                                     {
                                         <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
                                     }

@@ -43,7 +43,7 @@ namespace OpsSecProject.Controllers
             _logContext.LogInputs.Add(new LogInput
             {
                 FilePath = "SYSTEM32/COMMAND PROMPT",
-                LinkedUserName = "TOM",
+                LinkedUserID = 1,
                 Name = "TOTALLY LEGIT"
             });
             _logContext.SaveChanges();

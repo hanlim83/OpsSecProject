@@ -164,7 +164,7 @@ namespace OpsSecProject
                                     IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
                                     LastPasswordChange = DateTime.Now,
                                     LastAuthentication = DateTime.Now,
-                                    Status = Status.Active,
+                                    Status = UserStatus.Active,
                                     OverridableField = OverridableField.Both
                                 };
                                 foreach (var claim in claimsIdentity.Claims)
@@ -203,6 +203,10 @@ namespace OpsSecProject
                                     LinkedUserID = import.ID,
                                     LinkedUser = import
                                 };
+                                if (import.VerifiedEmailAddress == true)
+                                    settings.CommmuicationOptions = CommmuicationOptions.EMAIL;
+                                else if (import.VerifiedPhoneNumber == true || import.OverridableField == OverridableField.None)
+                                    settings.CommmuicationOptions = CommmuicationOptions.SMS;
                                 accountContext.Settings.Add(settings);
                                 accountContext.SaveChanges();
                             }
@@ -297,7 +301,7 @@ namespace OpsSecProject
             });
             services.AddDbContext<LogContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogData"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogInputs"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(

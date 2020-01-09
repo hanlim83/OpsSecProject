@@ -65,18 +65,33 @@ namespace OpsSecProject.Controllers
             return View(currentUser.LinkedSettings);
         }
         [HttpPost]
-        public async Task<IActionResult> Settings([Bind("Always2FA")]Settings newSettings)
+        public async Task<IActionResult> Settings([Bind("Always2FA", "CommmuicationOptions")]Settings newSettings)
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
             User currentUser = await _Acontext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             Settings currentSettings = currentUser.LinkedSettings;
             currentSettings.Always2FA = newSettings.Always2FA;
+            if (newSettings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && currentUser.VerifiedEmailAddress == false)
+            {
+                ViewData["Alert"] = "Danger";
+                ViewData["Message"] = "You can't set Email as your preferred communication option as your email address is not yet verified!";
+                return View(currentUser.LinkedSettings);
+            }
+            else if (newSettings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && currentUser.VerifiedPhoneNumber == false)
+            {
+                ViewData["Alert"] = "Danger";
+                ViewData["Message"] = "You can't set SMS as your preferred communication option as your phone number is not yet verified!";
+                return View(currentUser.LinkedSettings);
+            }
+            else
+                currentSettings.CommmuicationOptions = newSettings.CommmuicationOptions;
             _Acontext.Settings.Update(currentSettings);
             try
             {
                 await _Acontext.SaveChangesAsync();
-            } catch (DbUpdateException)
+            }
+            catch (DbUpdateException)
             {
                 ViewData["Alert"] = "Warning";
                 ViewData["Message"] = "Your settings couldn't be saved successfully";
@@ -171,7 +186,7 @@ namespace OpsSecProject.Controllers
                     Name = newUser.Name,
                     Existence = Existence.Internal,
                     Password = Password.GetRandomSalt(),
-                    Status = Status.Pending,
+                    Status = UserStatus.Pending,
                     OverridableField = OverridableField.Both
                 };
                 if (!newUser.Role.Equals("User"))
@@ -187,7 +202,8 @@ namespace OpsSecProject.Controllers
                 try
                 {
                     await _Acontext.SaveChangesAsync();
-                } catch (DbUpdateException)
+                }
+                catch (DbUpdateException)
                 {
                     ViewData["Alert"] = "Danger";
                     ViewData["Message"] = "Something went wrong. Maybe try again?";
@@ -429,14 +445,14 @@ namespace OpsSecProject.Controllers
                 return Redirect("/Account/Unauthorised");
             else
             {
-                if (identity.Status == Status.Active)
+                if (identity.Status == UserStatus.Active)
                 {
-                    identity.Status = Status.Disabled;
+                    identity.Status = UserStatus.Disabled;
                     TempData["Message"] = "Succesfully disabled " + identity.Name + "'s account";
                 }
-                else if (identity.Status == Status.Disabled)
+                else if (identity.Status == UserStatus.Disabled)
                 {
-                    identity.Status = Status.Active;
+                    identity.Status = UserStatus.Active;
                     TempData["Message"] = "Succesfully enabled " + identity.Name + "'s account";
                 }
                 _Acontext.Users.Update(identity);
@@ -491,6 +507,8 @@ namespace OpsSecProject.Controllers
                 return StatusCode(503);
             else if (identity.Name.Equals(User.Claims.First(c => c.Type == "name").Value))
                 return StatusCode(409);
+            else if (identity.ID == 1)
+                return StatusCode(409);
             else
             {
                 _Acontext.Users.Remove(identity);
@@ -535,7 +553,8 @@ namespace OpsSecProject.Controllers
             try
             {
                 await _Acontext.SaveChangesAsync();
-            } catch (DbUpdateException)
+            }
+            catch (DbUpdateException)
             {
                 ViewData["Message"] = "Something went wrong. Maybe try again?";
                 ViewData["Alert"] = "Danger";
