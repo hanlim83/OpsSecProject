@@ -5,3 +5,28 @@
 <h1 class="h3 mb-3 font-weight-normal">You have signed-out succesfully</h1>
 <a class="btn btn-lg btn-primary btn-block" asp-action="RealmDiscovery">Go back to login page</a>
 <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
+@section Scripts {
+    <script>
+        if (Particles.options == null) {
+            Particles.init({
+                selector: '.background',
+                color: '#75A5B7',
+                maxParticles: 130,
+                connectParticles: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        options: {
+                            maxParticles: 80
+                        }
+                    }, {
+                        breakpoint: 375,
+                        options: {
+                            maxParticles: 50
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+}

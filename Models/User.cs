@@ -55,5 +55,6 @@ namespace OpsSecProject.Models
         public virtual ICollection<NotificationToken> LinkedTokens { get; set; }
         [Required]
         public virtual Settings LinkedSettings { get; set; }
+        public virtual ICollection<Alert> LinkedAlerts { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace OpsSecProject.Controllers
@@ -10,23 +11,17 @@ namespace OpsSecProject.Controllers
     public class SecurityController : Controller
     {
 
-        private readonly AccountContext _Acontext;
-        private readonly SecurityContext _Scontext;
+        private readonly AccountContext _context;
 
-        public SecurityController(AccountContext Acontext, SecurityContext Scontext)
+        public SecurityController(AccountContext context)
         {
-            _Acontext = Acontext;
-            _Scontext = Scontext;
+            _context = context;
         }
 
         public IActionResult Index()
         {
-            SecurityOverallViewModel model = new SecurityOverallViewModel
-            {
-                Activites = _Scontext.Activities.ToList(),
-                allUsers = _Acontext.Users.ToList()
-            };
-            return View(model);
+            List<Activity> Activites = _context.Activities.ToList();
+            return View(Activites);
         }
     }
 }

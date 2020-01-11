@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.RealmDiscoveryModel;
+﻿@model OpsSecProject.ViewModels.RealmDiscoveryModel;
 @{
     Layout = "_ExternalLayout";
     ViewData["Title"] = "Welcome";
@@ -6,7 +6,7 @@
 <form class="form-signin needs-validation" asp-action="RealmDiscovery" novalidate>
     <div class="text-center mb-4">
         <h1 class="h3 mb-3 font-weight-normal">Welcome!</h1>
-        <p>Please enter your username to continue</p>
+        <p>Please enter your username / email address to continue</p>
     </div>
     @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
     {
@@ -69,9 +69,9 @@
         }
     </div>
     <div class="form-group">
-        <input asp-for="Username" class="form-control form-control-user" placeholder="Username" required />
+        <input asp-for="Username" class="form-control form-control-user" placeholder="Username / Email Address" required />
         <div class="invalid-feedback">
-            Please enter your username
+            Please enter your username or email address
         </div>
     </div>
     <div id="recap"></div>
@@ -86,6 +86,8 @@
         {
             <a class="small" asp-action="Login">Skip Realm Discovery</a>
         }
+        |
+        <a class="small" asp-action="Reauthenticate">Login via IDP</a>
     </div>
     <p class="mt-5 mb-3 text-muted">&copy; 2020 - SmartInsights</p>
 </form>

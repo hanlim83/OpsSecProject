@@ -1,12 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Access Denied";
 }
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-danger text-center">Access Denied</h6>
-    </div>
-    <div class="card-body">
-        <h5 class="h5 text-center">You don't have currently have access to this function!</h5>
+<div class="container">
+    <div class="text-center">
+        <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/security_o890.svg" style="max-width: 50%; max-height: 50%;">
+        <h3 class="m-0 font-weight-bold text-danger text-center">You don't have currently have access to this function!</h3>
         <br />
         <p>If you require access, please contact the administrator to grant access</p>
         <p class="text-muted">Request ID: @ViewData["RequestID"]</p>

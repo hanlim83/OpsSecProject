@@ -288,17 +288,6 @@ namespace OpsSecProject
                             errorNumbersToAdd: null);
                     });
             });
-            services.AddDbContext<SecurityContext>(options =>
-            {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Security"),
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 10,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                    });
-            });
             services.AddDbContext<LogContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogInputs"),
@@ -354,7 +343,7 @@ namespace OpsSecProject
             string username = Configuration.GetValue<string>("RDS_USERNAME");
             string password = Configuration.GetValue<string>("RDS_PASSWORD");
 
-            return $"Data Source={hostname},{port};Initial Catalog={name};User ID={username};Password={password};";
+            return $"Server=(localdb)\\mssqllocaldb;Initial Catalog={name};Trusted_Connection=True;MultipleActiveResultSets=true;";
         }
     }
 }

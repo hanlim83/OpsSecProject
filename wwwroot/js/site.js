@@ -72,6 +72,7 @@ function reCaptchaCallback(token) {
                 }, false);
             });
             var canvas = document.getElementById("particles");
+            var canvas = document.getElementById("particles");
             if (canvas !== null && Particles.options == null) {
                 Particles.init({
                     selector: '.background',
@@ -92,9 +93,16 @@ function reCaptchaCallback(token) {
                         }
                     ]
                 });
+            } else if (canvas == null && Particles.options != null) {
+                Particles.options = null;
             }
             if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
                 grecaptcha.render('formBtnSubmit');
+        }, false);
+        document.addEventListener('turbolinks:before-visit', function () {
+            Chart.helpers.each(Chart.instances, function (instance) {
+                instance.destroy();
+            });
         }, false);
     } else {
         $(document).ready(function () {
@@ -147,7 +155,9 @@ function reCaptchaCallback(token) {
                         }
                     ]
                 });
-            }
+            } else if (canvas == null && Particles.options != null) {
+                Particles.options = null;
+            } 
             if (window.location.pathname.includes("/Landing/") || window.location.pathname.includes("/Internal/Account/"))
                 grecaptcha.render('formBtnSubmit');
         });

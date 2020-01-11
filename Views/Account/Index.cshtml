@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.AccountOverallViewModel
+﻿@model OpsSecProject.ViewModels.AccountOverallViewModel
 @{
     ViewData["Title"] = "Account";
 }
@@ -45,12 +45,20 @@
     </div>
 </div>
 <div class="card shadow mb-4">
-    @await Html.PartialAsync("ActivityPartial",Model.Useractivites)
+    @await Html.PartialAsync("ActivityPartial", Model.Useractivites)
 </div>
 @section scripts {
     <script>
-        $(document).ready(function () {
+        function Handler(event) {
             $('#activtiesTable').DataTable();
-        });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
     </script>
 }

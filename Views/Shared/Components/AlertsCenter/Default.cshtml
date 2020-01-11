@@ -1,0 +1,103 @@
+﻿@model IEnumerable<OpsSecProject.Models.Alert>
+<li class="nav-item dropdown no-arrow mx-1">
+    <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bell fa-fw"></i>
+        @if (Model.Count() != 0)
+        {
+            <span class="badge badge-danger badge-counter">@Model.Count()</span>
+        }
+    </a>
+    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
+        <h6 class="dropdown-header">
+            Alerts Center
+        </h6>
+        @foreach (var Alert in Model)
+        {
+            <a class="dropdown-item d-flex align-items-center" asp-area="" asp-controller="Alerts" asp-action="View" asp-route-ID="@Alert.ID">
+                <div class="mr-3">
+                    @if (Alert.AlertType.Equals(AlertType.ReportReady))
+                    {
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-file-alt text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.MetricExceeded))
+                    {
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-poll text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.InputIngestSuccess))
+                    {
+                        <div class="icon-circle bg-success">
+                            <i class="fas fa-database text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.InputIngestPending))
+                    {
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-clock text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.InputError))
+                    {
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-exclamation-triangle text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.MajorInformationChange))
+                    {
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-user-shield text-white fa-lg"></i>
+                        </div>
+                    }
+                </div>
+                <div>
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalSeconds) < 60)
+                    {
+                        <div class="small text-gray-500">A few seconds ago</div>
+                    }
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalSeconds) >= 60 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) < 2)
+                    {
+                        <div class="small text-gray-500">A minute ago</div>
+                    }
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) >= 2 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) < 60)
+                    {
+                        <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes, 0) minutes ago</div>
+                    }
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) >= 60 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) < 120)
+                    {
+                        <div class="small text-gray-500">An hour ago</div>
+                    }
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalMinutes) >= 120 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) < 24)
+                    {
+                        <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours, 0) hours ago</div>
+                    }
+                    @if ( Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) >= 24 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) < 48)
+                    {
+                        <div class="small text-gray-500">Yesterday</div>
+                    }
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) >= 48 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalDays) < 30)
+                    {
+                        <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalDays,0) days ago</div>
+                    }
+                    <span class="font-weight-bold">@Alert.Message</span>
+                </div>
+            </a>
+        }
+        @if (Model.Count() == 0)
+        {
+            <div class="dropdown-item d-flex align-items-center">
+                <div class="mr-3">
+                    <div class="icon-circle bg-secondary">
+                        <i class="fas fa-grin-beam-sweat text-white fa-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-weight-bold">There are no recent alerts yet...</span>
+                </div>
+            </div>
+        }
+        <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
+    </div>
+</li>

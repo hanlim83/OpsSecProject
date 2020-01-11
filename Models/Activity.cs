@@ -20,5 +20,7 @@ namespace OpsSecProject.Models
         public bool Status { get; set; }
         [Required]
         public int LinkedUserID { get; set; }
+        [Required]
+        public virtual User LinkedUser { get; set; }
     }
 }

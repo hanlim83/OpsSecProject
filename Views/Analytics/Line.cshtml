@@ -1,4 +1,4 @@
-﻿@model List<ChartsViewModel>
+﻿@model List<OpsSecProject.ViewModels.ChartsViewModel>
 @{
     var XLabels = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.DimensionOne).ToList());
     var YValues = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Quantity).ToList());

@@ -184,7 +184,7 @@
                     </button>
                     <form asp-controller="Analytics" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" required>
                             <div class="input-group-append">
                                 <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
@@ -198,51 +198,7 @@
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
                         </li>
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Alerts Center
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-warning">
-                                            <i class="fas fa-exclamation-triangle text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 11, 2019</div>
-                                        Metric Alert: One of your log inputs' metric has exceeded the warning level
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-success">
-                                            <i class="fas fa-database text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 11, 2019</div>
-                                        Congrats! We're receiving log data from your newly set-up log input!
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
-                            </div>
-                        </li>
+                        @await Component.InvokeAsync("AlertsCenter")
                         <div class="topbar-divider d-none d-sm-block"></div>
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
