@@ -25,6 +25,7 @@
         "RECAPTCHAV2_SECRET_KEY": "6LfWcsUUAAAAACiOMcfzeXTUU1qMwLCHBO4-fJ_m",
         "RECAPTCHAV3_SECRET_KEY": "6LfccsUUAAAAABk6H5E-ZWoInF12i_bOt0h0Adn_"
       },
+      "sqlDebugging": true,
       "nativeDebugging": true
     },
     "OpsSecProject": {

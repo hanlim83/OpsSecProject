@@ -17,9 +17,8 @@
 
 
     <script type="text/javascript">
-
-        $(function () {
-    var chartName = "chart";
+        function Handler(event) {
+            var chartName = "chart";
         var ctx = document.getElementById(chartName).getContext('2d');
         var data = {
                 labels: @Html.Raw(XLabels),
@@ -89,7 +88,15 @@ var options = {
                 type:'line'
 
             });
-        });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
     </script>
 
 }

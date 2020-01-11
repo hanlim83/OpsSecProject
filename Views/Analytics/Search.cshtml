@@ -61,8 +61,16 @@
 </div>
 @section scripts {
     <script>
-        $(document).ready(function () {
+        function Handler(event) {
             $('#dataTable').DataTable();
-        });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
     </script>
 }

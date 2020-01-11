@@ -594,7 +594,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
-            else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.EmailAddress || identity.OverridableField != OverridableField.Both))
+            else if (identity.Existence == Existence.External && identity.OverridableField != OverridableField.EmailAddress && identity.OverridableField != OverridableField.Both)
                 return Redirect("/Account/Unauthorised");
             else
                 return View();
@@ -709,7 +709,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
-            else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.PhoneNumber || identity.OverridableField != OverridableField.Both))
+            else if (identity.Existence == Existence.External && identity.OverridableField != OverridableField.PhoneNumber && identity.OverridableField != OverridableField.Both)
                 return Redirect("/Account/Unauthorised");
             else
                 return View();
