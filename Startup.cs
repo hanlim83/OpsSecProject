@@ -4,6 +4,7 @@ using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SageMaker;
+using Amazon.SageMakerRuntime;
 using Amazon.SimpleEmail;
 using Amazon.SimpleNotificationService;
 using Microsoft.AspNetCore.Authentication;
@@ -229,6 +230,8 @@ namespace OpsSecProject
                                 }
                             }
                         }
+                        if (claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider") == null)
+                            claimsIdentity.AddClaim(new Claim("http://schemas.microsoft.com/identity/claims/identityprovider", claimsIdentity.FindFirst("iss").Value.Remove(claimsIdentity.FindFirst("iss").Value.Length - 4)));
                         return Task.FromResult(0);
                     }
                 };
@@ -267,6 +270,7 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonGlue>();
             //SagerMaker Initialization
             services.AddAWSService<IAmazonSageMaker>();
+            services.AddAWSService<IAmazonSageMakerRuntime>();
             //Kinesis Initialization
             services.AddAWSService<IAmazonKinesisAnalyticsV2>();
             services.AddAWSService<IAmazonKinesisFirehose>();
@@ -302,8 +306,7 @@ namespace OpsSecProject
           
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
-            //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();
-            //services.AddScoped<IScopedSetupService, ScopedSetupService>();
+            services.AddScoped<IScopedSetupService, ScopedSetupService>();
             services.AddHostedService<QueuedHostedService>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         }
@@ -343,7 +346,7 @@ namespace OpsSecProject
             string username = Configuration.GetValue<string>("RDS_USERNAME");
             string password = Configuration.GetValue<string>("RDS_PASSWORD");
 
-            return $"Server=(localdb)\\mssqllocaldb;Initial Catalog={name};Trusted_Connection=True;MultipleActiveResultSets=true;";
+            return $"Data Source={hostname},{port};Initial Catalog={name};User ID={username};Password={password};";
         }
     }
 }

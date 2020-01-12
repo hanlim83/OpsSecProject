@@ -68,32 +68,6 @@ namespace OpsSecProject.Data
         public static void InitializeLogContext(LogContext context)
         {
             context.Database.EnsureCreated();
-            if (!context.S3Buckets.Any())
-            {
-                context.Database.OpenConnection();
-                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets ON");
-                context.S3Buckets.Add(new S3Bucket
-                {
-                    ID = 1,
-                    Name = "master-aggergated-ingest-data"
-                });
-                context.SaveChanges();
-                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets OFF");
-                context.Database.CloseConnection();
-            }
-            if (!context.GlueDatabases.Any())
-            {
-                context.Database.OpenConnection();
-                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases ON");
-                context.GlueDatabases.Add(new GlueDatabase
-                {
-                    ID = 1,
-                    Name = "master"
-                });
-                context.SaveChanges();
-                context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases OFF");
-                context.Database.CloseConnection();
-            }
         }
     }
 }

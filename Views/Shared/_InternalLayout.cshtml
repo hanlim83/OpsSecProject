@@ -78,7 +78,7 @@
             </li>
             <hr class="sidebar-divider">
             <div class="sidebar-heading">
-                Examples
+                Developement
             </div>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseExamples" aria-expanded="false" aria-controls="collapseExamples">
@@ -87,18 +87,33 @@
                 </a>
                 <div id="collapseExamples" class="collapse" aria-labelledby="collapseExamples" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Index">Dashboard</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Charts">Charts</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Table">Table</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Buttons">Buttons</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Cards">Cards</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Colours">Colours</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Borders">Borders</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Animations">Animations</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Others">Others</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Index">Dashboard</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Charts">Charts</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Table">Table</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Buttons">Buttons</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Cards">Cards</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Colours">Colours</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Borders">Borders</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Animations">Animations</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Others">Others</a>
                     </div>
                 </div>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Development" asp-controller="MachineLearning" asp-action="Index">
+                    <i class="fas fa-brain"></i>
+                    <span>Machine Learning Testing</span>
+                </a>
+            </li>
+            @if (!User.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/identityprovider").Value.Equals("https://smartinsights.hansen-lim.me"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="https://myapps.microsoft.com/signin/Amazon%20Web%20Services%20(AWS)/afb9360c-12df-4e03-bc19-d06bedc9d75c?tenantId=7fb9f88e-7b5e-48db-b34c-dbc2d3321196" target="_blank">
+                        <i class="fab fa-aws"></i>
+                        <span>Access AWS Console</span>
+                    </a>
+                </li>
+            }
             @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
             {
                 <hr class="sidebar-divider">

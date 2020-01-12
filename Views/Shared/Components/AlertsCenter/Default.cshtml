@@ -73,13 +73,13 @@
                     {
                         <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours, 0) hours ago</div>
                     }
-                    @if ( Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) >= 24 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) < 48)
+                    @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) >= 24 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) < 48)
                     {
                         <div class="small text-gray-500">Yesterday</div>
                     }
                     @if (Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalHours) >= 48 && Math.Abs(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalDays) < 30)
                     {
-                        <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalDays,0) days ago</div>
+                        <div class="small text-gray-500">@Math.Round(new TimeSpan(DateTime.Now.Ticks - Alert.TimeStamp.Ticks).TotalDays, 0) days ago</div>
                     }
                     <span class="font-weight-bold">@Alert.Message</span>
                 </div>

@@ -43,7 +43,7 @@ namespace OpsSecProject.Controllers
                 _context.Alerts.Update(a);
                 try
                 {
-                    _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
                     return View(a);
                 }
                 catch (DbUpdateException)
