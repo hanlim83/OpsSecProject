@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.SecurityOverallViewModel
+﻿@model IEnumerable<OpsSecProject.Models.Activity>
 @{
     ViewData["Title"] = "Security Logs";
 }
@@ -22,22 +22,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var activity in Model.Activites)
+                    @foreach (var activity in Model)
                     {
                         <tr>
                             <th scope="row">@activity.Timestamp</th>
                             <td>@activity.Page</td>
-                            <td>
-                                @for (int index = 0; index < Model.allUsers.Count(); index++)
-                                {
-
-                                    @if (Model.allUsers[index].ID.Equals(activity.LinkedUserID))
-                                    {
-                                        @Model.allUsers[index].Username
-                                    }
-
-                                }
-                            </td>
+                            <td>@activity.LinkedUser.Username</td>
                             <td>@activity.Action.ToString()</td>
                             @if (activity.Status == true)
                             {
@@ -56,8 +46,16 @@
 </div>
 @section scripts {
     <script>
-        $(document).ready(function () {
+        function Handler(event) {
             $('#activtiesTable').DataTable();
-        });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
     </script>
 }

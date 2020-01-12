@@ -4,6 +4,7 @@ using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SageMaker;
+using Amazon.SageMakerRuntime;
 using Amazon.SimpleEmail;
 using Amazon.SimpleNotificationService;
 using Microsoft.AspNetCore.Authentication;
@@ -164,7 +165,7 @@ namespace OpsSecProject
                                     IDPReference = claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value,
                                     LastPasswordChange = DateTime.Now,
                                     LastAuthentication = DateTime.Now,
-                                    Status = Status.Active,
+                                    Status = UserStatus.Active,
                                     OverridableField = OverridableField.Both
                                 };
                                 foreach (var claim in claimsIdentity.Claims)
@@ -203,12 +204,16 @@ namespace OpsSecProject
                                     LinkedUserID = import.ID,
                                     LinkedUser = import
                                 };
+                                if (import.VerifiedEmailAddress == true)
+                                    settings.CommmuicationOptions = CommmuicationOptions.EMAIL;
+                                else if (import.VerifiedPhoneNumber == true || import.OverridableField == OverridableField.None)
+                                    settings.CommmuicationOptions = CommmuicationOptions.SMS;
                                 accountContext.Settings.Add(settings);
                                 accountContext.SaveChanges();
                             }
                             else
                             {
-                                loginContext.Response.Redirect("/Landing/Unauthenticated?reason=mismatch");
+                                loginContext.Response.Redirect("/Landing/Unauthenticated");
                                 loginContext.HandleResponse();
                                 return Task.FromResult(0);
                             }
@@ -225,6 +230,8 @@ namespace OpsSecProject
                                 }
                             }
                         }
+                        if (claimsIdentity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider") == null)
+                            claimsIdentity.AddClaim(new Claim("http://schemas.microsoft.com/identity/claims/identityprovider", claimsIdentity.FindFirst("iss").Value.Remove(claimsIdentity.FindFirst("iss").Value.Length - 4)));
                         return Task.FromResult(0);
                     }
                 };
@@ -263,6 +270,7 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonGlue>();
             //SagerMaker Initialization
             services.AddAWSService<IAmazonSageMaker>();
+            services.AddAWSService<IAmazonSageMakerRuntime>();
             //Kinesis Initialization
             services.AddAWSService<IAmazonKinesisAnalyticsV2>();
             services.AddAWSService<IAmazonKinesisFirehose>();
@@ -284,20 +292,9 @@ namespace OpsSecProject
                             errorNumbersToAdd: null);
                     });
             });
-            services.AddDbContext<SecurityContext>(options =>
-            {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Security"),
-                    sqlServerOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 10,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorNumbersToAdd: null);
-                    });
-            });
             services.AddDbContext<LogContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogData"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogInputs"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(
@@ -309,8 +306,7 @@ namespace OpsSecProject
           
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
-            //services.AddScoped<IScopedUpdateService, ScopedUpdateService>();
-            //services.AddScoped<IScopedSetupService, ScopedSetupService>();
+            services.AddScoped<IScopedSetupService, ScopedSetupService>();
             services.AddHostedService<QueuedHostedService>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         }
@@ -327,7 +323,7 @@ namespace OpsSecProject
                 app.UseExceptionHandler("/Landing/Error");
                 app.UseHsts();
             }
-            app.UseStatusCodePagesWithRedirects("/Landing/Error?code={0}");
+            app.UseStatusCodePagesWithReExecute("/Landing/Error","?code={0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();

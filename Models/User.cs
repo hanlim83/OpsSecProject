@@ -14,7 +14,7 @@ namespace OpsSecProject.Models
         EmailAddress,PhoneNumber,Both,None
     }
 
-    public enum Status
+    public enum UserStatus
     {
         Pending,Active,Disabled
     }
@@ -45,7 +45,7 @@ namespace OpsSecProject.Models
         [Required]
         public bool VerifiedPhoneNumber { get; set; }
         [Required]
-        public Status Status { get; set; }
+        public UserStatus Status { get; set; }
         [Required]
         public OverridableField OverridableField { get; set; }
         public string IDPReference { get; set; }
@@ -55,5 +55,6 @@ namespace OpsSecProject.Models
         public virtual ICollection<NotificationToken> LinkedTokens { get; set; }
         [Required]
         public virtual Settings LinkedSettings { get; set; }
+        public virtual ICollection<Alert> LinkedAlerts { get; set; }
     }
 }

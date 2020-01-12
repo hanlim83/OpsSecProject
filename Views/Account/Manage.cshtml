@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.Models.UsersOverallManagementViewModel
+﻿@model OpsSecProject.ViewModels.UsersOverallManagementViewModel
 @{
     ViewData["Title"] = "Manage Users and Roles";
 }
@@ -102,11 +102,11 @@
                             {
                                 <td>N.A</td>
                             }
-                            @if (user.Status == Status.Pending)
+                            @if (user.Status == UserStatus.Pending)
                             {
                                 <td>N.A</td>
                             }
-                            @if (user.Status != Status.Pending)
+                            @if (user.Status != UserStatus.Pending)
                             {
                                 <td>@Html.ValueForModel(user.LastAuthentication.ToString("dddd, dd MMMM yyyy hh:mm tt"))</td>
                             }
@@ -121,22 +121,25 @@
                             <td>
                                 @if (@User.Claims.First(c => c.Type == "name").Value != user.Name)
                                 {
-                                <div class="btn-group" role="group" aria-label="Account Actions">
-                                    <a class="btn btn-secondary" asp-action="EditUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
-                                    @if (user.Status == Status.Active && user.Existence != Existence.External)
-                                    {
-                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
-                                    }
-                                    @if (user.Status == Status.Disabled && user.Existence != Existence.External)
-                                    {
-                                        <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
-                                    }
-                                    @if (user.ForceSignOut == false)
-                                    {
-                                        <a class="btn btn-secondary" asp-action="RevokeUserSession" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Revoke Session</a>
-                                    }
-                                    <a class="btn btn-secondary" asp-action="RemoveUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
-                                </div>
+                                    <div class="btn-group" role="group" aria-label="Account Actions">
+                                        <a class="btn btn-secondary" asp-action="EditUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Edit Details</a>
+                                        @if (user.Status == UserStatus.Active && user.Existence != Existence.External)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Disable Account</a>
+                                        }
+                                        @if (user.Status == UserStatus.Disabled && user.Existence != Existence.External)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="ChangeUserStatus" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Enable Account</a>
+                                        }
+                                        @if (user.ForceSignOut == false)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="RevokeUserSession" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Revoke Session</a>
+                                        }
+                                        @if (user.ID != 1)
+                                        {
+                                            <a class="btn btn-secondary" asp-action="RemoveUser" asp-route-Username="@HttpUtility.HtmlEncode(user.Username)">Remove Account</a>
+                                        }
+                                    </div>
                                 }
                             </td>
                         </tr>
@@ -180,9 +183,17 @@
 </div>
 @section scripts {
     <script>
-        $(document).ready(function () {
+        function Handler(event) {
             $('#usersTable').DataTable();
             $('#rolesTable').DataTable();
-        });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
     </script>
 }

@@ -78,7 +78,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 authenticationProperties.RedirectUri = "/Landing/";
                 return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
             }
-            else if (challenge.Status != Status.Active)
+            else if (challenge.Status != UserStatus.Active)
             {
                 ViewData["Alert"] = "Danger";
                 ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
@@ -267,7 +267,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     authenticationProperties.RedirectUri = "/Internal/Account/SetPassword";
                     return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
                 }
-                else if (identity.Status != Status.Active)
+                else if (identity.Status != UserStatus.Active)
                 {
                     ViewData["Alert"] = "Danger";
                     ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
@@ -426,7 +426,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     NewCredentials.ConfirmPassword = null;
                     return View(NewCredentials);
                 }
-                else if (currentUser.Status != Status.Active)
+                else if (currentUser.Status != UserStatus.Active)
                 {
                     ViewData["Alert"] = "Danger";
                     ViewData["Message"] = "Your account is disabled / pending. Please contact your administrator";
@@ -478,7 +478,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             NewCredentials.ConfirmPassword = null;
                             return View(NewCredentials);
                         }
-                        else if (identity.Status == Status.Disabled)
+                        else if (identity.Status == UserStatus.Disabled)
                         {
                             ViewData["Alert"] = "Danger";
                             ViewData["Message"] = "Your account is disabled. Please contact your administrator";
@@ -490,11 +490,19 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         identity.LastPasswordChange = DateTime.Now;
                         if (Rtoken.Type == OpsSecProject.Models.Type.Activate)
                         {
+                            Settings userSettings = await _context.Settings.Where(s => s.LinkedUserID == identity.ID).FirstOrDefaultAsync();
                             if (Rtoken.Mode == Mode.EMAIL)
+                            {
                                 identity.VerifiedEmailAddress = true;
+                                userSettings.CommmuicationOptions = CommmuicationOptions.EMAIL;
+                            }
                             else
+                            {
                                 identity.VerifiedPhoneNumber = true;
-                            identity.Status = Status.Active;
+                                userSettings.CommmuicationOptions = CommmuicationOptions.SMS;
+                            }
+                            identity.Status = UserStatus.Active;
+                            _context.Settings.Update(userSettings);
                         }
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
@@ -586,7 +594,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
-            else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.EmailAddress || identity.OverridableField != OverridableField.Both))
+            else if (identity.Existence == Existence.External && identity.OverridableField != OverridableField.EmailAddress && identity.OverridableField != OverridableField.Both)
                 return Redirect("/Account/Unauthorised");
             else
                 return View();
@@ -701,7 +709,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
             User identity = await _context.Users.Where(u => u.Username == HttpContext.User.FindFirstValue("preferred_username")).FirstOrDefaultAsync();
             if (identity == null)
                 return Redirect("/Account/Unauthorised");
-            else if (identity.Existence == Existence.External && (identity.OverridableField != OverridableField.PhoneNumber || identity.OverridableField != OverridableField.Both))
+            else if (identity.Existence == Existence.External && identity.OverridableField != OverridableField.PhoneNumber && identity.OverridableField != OverridableField.Both)
                 return Redirect("/Account/Unauthorised");
             else
                 return View();

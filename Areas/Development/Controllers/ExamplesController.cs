@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace OpsSecProject.Controllers
+namespace OpsSecProject.Areas.Development.Controllers
 {
+    [Area("Development")]
     public class ExamplesController : Controller
     {
         public IActionResult Index()

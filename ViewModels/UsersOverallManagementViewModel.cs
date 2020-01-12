@@ -1,7 +1,7 @@
-﻿
+﻿using OpsSecProject.Models;
 using System.Collections.Generic;
 
-namespace OpsSecProject.Models
+namespace OpsSecProject.ViewModels
 {
     public class UsersOverallManagementViewModel
     {

@@ -42,9 +42,7 @@ namespace OpsSecProject
                 try
                 {
                     var Acontext = services.GetRequiredService<AccountContext>();
-                    var Scontext = services.GetRequiredService<SecurityContext>();
                     DbInitializer.InitializeAccountContext(Acontext);
-                    DbInitializer.InitializeSecurityContext(Scontext);
                     var Lcontext = services.GetRequiredService<LogContext>();
                     DbInitializer.InitializeLogContext(Lcontext);
                 }

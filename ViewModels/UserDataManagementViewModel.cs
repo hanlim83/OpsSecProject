@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using OpsSecProject.Models;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace OpsSecProject.Models
+namespace OpsSecProject.ViewModels
 {
     public class UserDataManagementViewModel
     {

@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "Machine Learning";
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-success" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+<h1 class="h3 mb-2 text-gray-800">Machine Learning</h1>
+<p class="mb-4"></p>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Create Training Job</h6>
+            </div>
+            <div class="card-body">
+
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Create Inference Endpoint</h6>
+            </div>
+            <div class="card-body">
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Create HyperParameter Tuning Job</h6>
+            </div>
+            <div class="card-body">
+
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Create BatchTransform Endpoint</h6>
+            </div>
+            <div class="card-body">
+
+            </div>
+        </div>
+    </div>
+</div>

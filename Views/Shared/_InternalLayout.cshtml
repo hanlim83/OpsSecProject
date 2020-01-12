@@ -67,7 +67,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="far fa-lightbulb"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">Smart Insights <sup>Alpha</sup></div>
+                <div class="sidebar-brand-text mx-3">Smart Insights <sup>Beta</sup></div>
             </a>
             <hr class="sidebar-divider my-0">
             <li class="nav-item">
@@ -78,7 +78,7 @@
             </li>
             <hr class="sidebar-divider">
             <div class="sidebar-heading">
-                Examples
+                Developement
             </div>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseExamples" aria-expanded="false" aria-controls="collapseExamples">
@@ -87,18 +87,33 @@
                 </a>
                 <div id="collapseExamples" class="collapse" aria-labelledby="collapseExamples" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Index">Dashboard</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Charts">Charts</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Table">Table</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Buttons">Buttons</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Cards">Cards</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Colours">Colours</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Borders">Borders</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Animations">Animations</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Examples" asp-action="Others">Others</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Index">Dashboard</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Charts">Charts</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Table">Table</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Buttons">Buttons</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Cards">Cards</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Colours">Colours</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Borders">Borders</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Animations">Animations</a>
+                        <a class="collapse-item" asp-area="Development" asp-controller="Examples" asp-action="Others">Others</a>
                     </div>
                 </div>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Development" asp-controller="MachineLearning" asp-action="Index">
+                    <i class="fas fa-brain"></i>
+                    <span>Machine Learning Testing</span>
+                </a>
+            </li>
+            @if (!User.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/identityprovider").Value.Equals("https://smartinsights.hansen-lim.me"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="https://myapps.microsoft.com/signin/Amazon%20Web%20Services%20(AWS)/afb9360c-12df-4e03-bc19-d06bedc9d75c?tenantId=7fb9f88e-7b5e-48db-b34c-dbc2d3321196" target="_blank">
+                        <i class="fab fa-aws"></i>
+                        <span>Access AWS Console</span>
+                    </a>
+                </li>
+            }
             @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
             {
                 <hr class="sidebar-divider">
@@ -184,7 +199,7 @@
                     </button>
                     <form asp-controller="Analytics" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" required>
                             <div class="input-group-append">
                                 <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
                                     <i class="fas fa-search fa-sm"></i>
@@ -198,51 +213,7 @@
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
                         </li>
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Alerts Center
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-warning">
-                                            <i class="fas fa-exclamation-triangle text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 11, 2019</div>
-                                        Metric Alert: One of your log inputs' metric has exceeded the warning level
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-success">
-                                            <i class="fas fa-database text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 11, 2019</div>
-                                        Congrats! We're receiving log data from your newly set-up log input!
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" asp-area="" asp-controller="Alerts" asp-action="Index">Show All Alerts</a>
-                            </div>
-                        </li>
+                        @await Component.InvokeAsync("AlertsCenter")
                         <div class="topbar-divider d-none d-sm-block"></div>
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

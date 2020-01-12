@@ -1,4 +1,4 @@
-﻿namespace OpsSecProject.Models
+﻿namespace OpsSecProject.ViewModels
 {
     public class ChartsViewModel
     {
