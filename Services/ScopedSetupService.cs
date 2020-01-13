@@ -76,7 +76,18 @@ namespace OpsSecProject.Services
                         }
                     }
                 });
-                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "master-aggergated-ingest-data",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 1,
@@ -103,7 +114,18 @@ namespace OpsSecProject.Services
                         }
                     }
                 });
-                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse2 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "master-sagemaker-data",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 2,
