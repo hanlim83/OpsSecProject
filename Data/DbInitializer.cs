@@ -11,9 +11,9 @@ namespace OpsSecProject.Data
         public static void InitializeAccountContext(AccountContext context)
         {
             context.Database.EnsureCreated();
+            context.Database.OpenConnection();
             if (!context.Roles.Any())
             {
-                context.Database.OpenConnection();
                 context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Roles ON");
                 context.Roles.Add(new Role
                 {
@@ -31,11 +31,9 @@ namespace OpsSecProject.Data
                 });
                 context.SaveChanges();
                 context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Roles OFF");
-                context.Database.CloseConnection();
             }
             if (!context.Users.Any())
             {
-                context.Database.OpenConnection();
                 context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.Users ON");
                 context.Users.Add(new User
                 {
@@ -60,9 +58,41 @@ namespace OpsSecProject.Data
                     LinkedUser = context.Users.Find(1),
                     CommmuicationOptions = CommmuicationOptions.SMS
                 });
+                context.Alerts.Add(new Alert
+                {
+                    Message = "Test Message #1",
+                    AlertType = AlertType.ReportReady,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.SMS,
+                    LinkedUserID = 1
+                });
+                context.Alerts.Add(new Alert
+                {
+                    Message = "Test Message #2",
+                    AlertType = AlertType.MetricExceeded,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.SMS,
+                    LinkedUserID = 1
+                });
+                context.Alerts.Add(new Alert
+                {
+                    Message = "Test Message #3",
+                    AlertType = AlertType.InputIngestSuccess,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.NONE,
+                    LinkedUserID = 1
+                });
+                context.Alerts.Add(new Alert
+                {
+                    Message = "Your Account information has been changed recently",
+                    AlertType = AlertType.MajorInformationChange,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.NONE,
+                    LinkedUserID = 1
+                });
                 context.SaveChanges();
-                context.Database.CloseConnection();
             }
+            context.Database.CloseConnection();
         }
 
         public static void InitializeLogContext(LogContext context)

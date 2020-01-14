@@ -2,7 +2,7 @@
 
 namespace OpsSecProject.Models
 {
-    public class GlueConsolidatedInputEntity
+    public class GlueConsolidatedEntity
     {
         public int ID { get; set; }
         [Required]

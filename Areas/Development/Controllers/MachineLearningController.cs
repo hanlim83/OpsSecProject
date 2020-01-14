@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using OpsSecProject.Data;
 using System.Net;
 using System.Threading.Tasks;
+using OpsSecProject.Areas.Development.Models;
 
 namespace OpsSecProject.Areas.Development.Controllers
 {
@@ -27,7 +28,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Training(string jobName, string s3inputuri, string s3outputpath)
+        public async Task<IActionResult> Training([Bind("jobName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
         {
             CreateTrainingJobResponse createTrainingJobResponse = await _Sclient.CreateTrainingJobAsync(new CreateTrainingJobRequest
             {
@@ -97,7 +98,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                             {
                                 S3DataDistributionType = S3DataDistribution.FullyReplicated,
                                 S3DataType = S3DataType.S3Prefix,
-                                S3Uri=s3inputuri
+                                S3Uri=data.s3InputUri
                             }
                         },
                         ContentType = "text/csv",
@@ -107,7 +108,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 },
                 OutputDataConfig = new OutputDataConfig
                 {
-                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + s3outputpath
+                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
                 },
                 ResourceConfig = new ResourceConfig
                 {
@@ -128,7 +129,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 },
-                TrainingJobName = jobName
+                TrainingJobName = data.jobName
             });
             if (createTrainingJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
             {
@@ -144,7 +145,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Inferencing(string configName, string endpointName)
+        public async Task<IActionResult> Inferencing([Bind("configName", "endpointName")]MachineLearningOverrallFormModel data)
         {
             CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(new CreateEndpointConfigRequest
             {
@@ -152,7 +153,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 {
 
                 },
-                EndpointConfigName = configName,
+                EndpointConfigName = data.configName,
                 ProductionVariants = new List<ProductionVariant>
                 {
 
@@ -168,8 +169,8 @@ namespace OpsSecProject.Areas.Development.Controllers
             });
             CreateEndpointResponse createEndpointResponse = await _Sclient.CreateEndpointAsync(new CreateEndpointRequest
             {
-                EndpointConfigName = configName,
-                EndpointName = endpointName,
+                EndpointConfigName = data.configName,
+                EndpointName = data.endpointName,
                 Tags = new List<Tag>
                 {
                     new Tag
@@ -193,7 +194,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Tuning(string jobName, string s3inputuri, string s3outputpath)
+        public async Task<IActionResult> Tuning([Bind("jobName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
         {
             CreateHyperParameterTuningJobResponse createHyperParameterTuningJobResponse = await _Sclient.CreateHyperParameterTuningJobAsync(new CreateHyperParameterTuningJobRequest
             {
@@ -229,7 +230,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                         TargetObjectiveMetricValue = 0.988F
                     }
                 },
-                HyperParameterTuningJobName = jobName,
+                HyperParameterTuningJobName = data.jobName,
                 Tags = new List<Tag>
                 {
                     new Tag
@@ -306,7 +307,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                                 {
                                     S3DataDistributionType = S3DataDistribution.FullyReplicated,
                                     S3DataType = S3DataType.S3Prefix,
-                                    S3Uri=s3inputuri
+                                    S3Uri = data.s3InputUri
                                 }
                             },
                             ContentType = "text/csv",
@@ -316,7 +317,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                     },
                     OutputDataConfig = new OutputDataConfig
                     {
-                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + s3outputpath
+                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
                     },
                     ResourceConfig = new ResourceConfig
                     {
@@ -345,12 +346,12 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Transforming(string jobName, string modelName, string s3inputuri, string s3outputpath)
+        public async Task<IActionResult> Transforming([Bind("jobName","modelName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
         {
             CreateTransformJobResponse createTransformJobResponse = await _Sclient.CreateTransformJobAsync(new CreateTransformJobRequest
             {
-                TransformJobName = jobName,
-                ModelName = modelName,
+                TransformJobName = data.jobName,
+                ModelName = data.modelName,
                 TransformInput = new TransformInput
                 {
                     CompressionType = CompressionType.None,
@@ -361,7 +362,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                         S3DataSource = new TransformS3DataSource
                         {
                             S3DataType = S3DataType.S3Prefix,
-                            S3Uri = s3inputuri
+                            S3Uri = data.s3InputUri
                         }
                     }
                 },
@@ -369,7 +370,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 {
                     AssembleWith = AssemblyType.Line,
                     Accept = "text/csv",
-                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + s3outputpath
+                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
                 },
                 TransformResources = new TransformResources
                 {
