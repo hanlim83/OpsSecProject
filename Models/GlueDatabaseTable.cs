@@ -16,6 +16,6 @@ namespace OpsSecProject.Models
         [Required]
         public int LinkedGlueConsolidatedInputEntityID { get; set; }
         [Required]
-        public virtual GlueConsolidatedInputEntity LinkedGlueConsolidatedInputEntity { get; set; }
+        public virtual GlueConsolidatedEntity LinkedGlueConsolidatedInputEntity { get; set; }
     }
 }
