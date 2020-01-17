@@ -30,7 +30,7 @@ namespace OpsSecProject.Services
             _context.Database.OpenConnection();
             _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets ON");
             ListBucketsResponse listBucketResponse = await _S3Client.ListBucketsAsync(new ListBucketsRequest());
-            bool aggergateBucketFound = false, sageMakerBucketFound = false;
+            bool aggergateBucketFound = false, sageMakerBucketFound = false, apacheWebLogBucketFound = false;
             foreach (var bucket in listBucketResponse.Buckets)
             {
                 if (bucket.BucketName.Equals("master-aggergated-ingest-data"))
@@ -53,7 +53,17 @@ namespace OpsSecProject.Services
                             Name = "master-sagemaker-data"
                         });
                 }
-                if (aggergateBucketFound && sageMakerBucketFound)
+                if (bucket.BucketName.Equals("smartinsights-apache-web-logs"))
+                {
+                    apacheWebLogBucketFound = true;
+                    if (_context.S3Buckets.Find(3) == null)
+                        _context.S3Buckets.Add(new Models.S3Bucket
+                        {
+                            ID = 3,
+                            Name = "smartinsights-apache-web-logs"
+                        });
+                }
+                if (aggergateBucketFound && sageMakerBucketFound && apacheWebLogBucketFound)
                     break;
             }
             if (!aggergateBucketFound && _context.S3Buckets.Find(1) == null)
@@ -87,7 +97,7 @@ namespace OpsSecProject.Services
                         RestrictPublicBuckets = true
                     }
                 });
-                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
+                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 1,
@@ -125,11 +135,49 @@ namespace OpsSecProject.Services
                         RestrictPublicBuckets = true
                     }
                 });
-                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
+                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 2,
                         Name = "master-sagemaker-data"
+                    });
+            }
+            if (!apacheWebLogBucketFound && _context.S3Buckets.Find(3) == null)
+            {
+                PutBucketResponse putBucketResponse3 = await _S3Client.PutBucketAsync(new PutBucketRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    UseClientRegion = true,
+                    CannedACL = S3CannedACL.Private
+                });
+                PutBucketTaggingResponse putBucketTaggingResponse3 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    TagSet = new List<Tag>
+                    {
+                        new Tag
+                        {
+                            Key = "Project",
+                            Value = "OSPJ"
+                        }
+                    }
+                });
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse3 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse3.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse3.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    _context.S3Buckets.Add(new Models.S3Bucket
+                    {
+                        ID = 3,
+                        Name = "smartinsights-apache-web-logs"
                     });
             }
             await _context.SaveChangesAsync();
@@ -168,8 +216,41 @@ namespace OpsSecProject.Services
             {
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases OFF");
-                _context.Database.CloseConnection();
             }
+            if (_context.LogInputs.Find(1) == null)
+            {
+                _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs ON");
+                _context.LogInputs.Add(new Models.LogInput
+                {
+                    ID = 1,
+                    Name = "Apache Web Logs",
+                    ConfigurationJSON = "",
+                    FilePath = "",
+                    LinkedUserID = 1,
+                    LinkedS3BucketID = _context.S3Buckets.Find(3).ID,
+                    LinkedS3Bucket = _context.S3Buckets.Find(3)
+                });
+                await _context.SaveChangesAsync();
+                _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "",
+                    DBConnectionName = "OSPJ Dev DB",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
+                {
+                    SagemakerStatus = Models.SagemakerStatus.Untrained,
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                await _context.SaveChangesAsync();
+            }
+            _context.Database.CloseConnection();
         }
     }
 }

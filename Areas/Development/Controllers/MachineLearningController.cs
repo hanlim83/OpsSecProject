@@ -36,46 +36,9 @@ namespace OpsSecProject.Areas.Development.Controllers
                 {
                     TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com:1",
                     TrainingInputMode = TrainingInputMode.File,
-                    MetricDefinitions = new List<MetricDefinition>
-                    {
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_cross_entropy:epoch",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, train binary_classification_cross_entropy <loss>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_accuracy",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, batch=\\S+ train binary_classification_accuracy <score>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_cross_entropy",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, batch=\\S+ train binary_classification_cross_entropy <loss>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:progress",
-                            Regex = "#progress_metric: host=\\S+, completed (\\S+) %"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "validation:discriminator_auc",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, validation discriminator_auc <score>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:throughput",
-                            Regex = "#throughput_metric: host=\\S+, train throughput=(\\S+) records/second"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_accuracy:epoch",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, train binary_classification_accuracy <score>=(\\S+)"
-                        }
-                    }
+                    EnableSageMakerMetricsTimeSeries = false
                 },
-                EnableManagedSpotTraining = false,
+                EnableManagedSpotTraining = true,
                 EnableInterContainerTrafficEncryption = false,
                 EnableNetworkIsolation = false,
                 HyperParameters = new Dictionary<string, string>
@@ -101,9 +64,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                                 S3Uri=data.s3InputUri
                             }
                         },
-                        ContentType = "text/csv",
-                        CompressionType = CompressionType.None,
-                        RecordWrapperType = RecordWrapper.None
+                        ContentType = "text/csv"
                     }
                 },
                 OutputDataConfig = new OutputDataConfig
@@ -113,13 +74,14 @@ namespace OpsSecProject.Areas.Development.Controllers
                 ResourceConfig = new ResourceConfig
                 {
                     InstanceCount = 1,
-                    InstanceType = TrainingInstanceType.MlM4Xlarge,
+                    InstanceType = TrainingInstanceType.MlP32xlarge,
                     VolumeSizeInGB = 30
                 },
                 RoleArn = "arn:aws:iam::188363912800:role/service-role/AmazonSageMaker-ExecutionRole-20191023T101168",
                 StoppingCondition = new StoppingCondition
                 {
-                    MaxRuntimeInSeconds = 86400
+                    MaxRuntimeInSeconds = 14400,
+                    MaxWaitTimeInSeconds = 86400
                 },
                 Tags = new List<Tag>
                 {
@@ -129,7 +91,11 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 },
-                TrainingJobName = data.jobName
+                TrainingJobName = data.jobName,
+                CheckpointConfig = new CheckpointConfig
+                {
+                    S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + data.jobName
+                }
             });
             if (createTrainingJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
             {
@@ -145,18 +111,21 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Inferencing([Bind("configName", "endpointName")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Inferencing([Bind("configName", "endpointName", "modelName", "variantName")]MachineLearningOverrallFormModel data)
         {
             CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(new CreateEndpointConfigRequest
             {
-                DataCaptureConfig = new DataCaptureConfig
-                {
-
-                },
                 EndpointConfigName = data.configName,
                 ProductionVariants = new List<ProductionVariant>
                 {
-
+                    new ProductionVariant
+                    {
+                        VariantName = data.variantName,
+                        ModelName = data.modelName,
+                        InitialInstanceCount = 1,
+                        InstanceType = ProductionVariantInstanceType.MlM5Xlarge,
+                        InitialVariantWeight = 1
+                    }
                 },
                 Tags = new List<Tag>
                 {
@@ -224,11 +193,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                         MaxParallelTrainingJobs = 2
                     },
                     Strategy = HyperParameterTuningJobStrategyType.Bayesian,
-                    TrainingJobEarlyStoppingType = TrainingJobEarlyStoppingType.Off,
-                    TuningJobCompletionCriteria = new TuningJobCompletionCriteria
-                    {
-                        TargetObjectiveMetricValue = 0.988F
-                    }
+                    TrainingJobEarlyStoppingType = TrainingJobEarlyStoppingType.Off
                 },
                 HyperParameterTuningJobName = data.jobName,
                 Tags = new List<Tag>
@@ -244,58 +209,11 @@ namespace OpsSecProject.Areas.Development.Controllers
                     AlgorithmSpecification = new HyperParameterAlgorithmSpecification
                     {
                         TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com:1",
-                        TrainingInputMode = TrainingInputMode.File,
-                        MetricDefinitions = new List<MetricDefinition>
-                    {
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_cross_entropy:epoch",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, train binary_classification_cross_entropy <loss>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_accuracy",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, batch=\\S+ train binary_classification_accuracy <score>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_cross_entropy",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, batch=\\S+ train binary_classification_cross_entropy <loss>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:progress",
-                            Regex = "#progress_metric: host=\\S+, completed (\\S+) %"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "validation:discriminator_auc",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, validation discriminator_auc <score>=(\\S+)"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:throughput",
-                            Regex = "#throughput_metric: host=\\S+, train throughput=(\\S+) records/second"
-                        },
-                        new MetricDefinition
-                        {
-                            Name = "train:binary_classification_accuracy:epoch",
-                            Regex = "#quality_metric: host=\\S+, epoch=\\S+, train binary_classification_accuracy <score>=(\\S+)"
-                        }
-                    }
+                        TrainingInputMode = TrainingInputMode.File
                     },
-                    EnableManagedSpotTraining = false,
+                    EnableManagedSpotTraining = true,
                     EnableInterContainerTrafficEncryption = false,
                     EnableNetworkIsolation = false,
-                    StaticHyperParameters = new Dictionary<string, string>
-                    {
-                        {"num_entity_vectors","20000"},
-                        {"random_negative_sampling_rate","5"},
-                        {"vector_dim","128"},
-                        {"mini_batch_size","1000"},
-                        {"epochs","5"},
-                        {"learning_rate","0.01" }
-                    },
                     InputDataConfig = new List<Channel>
                     {
                         new Channel
@@ -322,13 +240,18 @@ namespace OpsSecProject.Areas.Development.Controllers
                     ResourceConfig = new ResourceConfig
                     {
                         InstanceCount = 1,
-                        InstanceType = TrainingInstanceType.MlM4Xlarge,
+                        InstanceType = TrainingInstanceType.MlP32xlarge,
                         VolumeSizeInGB = 30
                     },
                     RoleArn = "arn:aws:iam::188363912800:role/service-role/AmazonSageMaker-ExecutionRole-20191023T101168",
                     StoppingCondition = new StoppingCondition
                     {
-                        MaxRuntimeInSeconds = 86400
+                        MaxRuntimeInSeconds = 14400,
+                        MaxWaitTimeInSeconds = 86400
+                    },
+                    CheckpointConfig = new CheckpointConfig
+                    {
+                        S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + data.jobName
                     }
                 }
             });
@@ -346,7 +269,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Transforming([Bind("jobName","modelName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Transforming([Bind("jobName", "modelName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
         {
             CreateTransformJobResponse createTransformJobResponse = await _Sclient.CreateTransformJobAsync(new CreateTransformJobRequest
             {

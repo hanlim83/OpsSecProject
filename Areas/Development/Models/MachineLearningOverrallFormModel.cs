@@ -16,5 +16,7 @@ namespace OpsSecProject.Areas.Development.Models
         public string endpointName { get; set; }
         [Required]
         public string modelName { get; set; }
+        [Required]
+        public string variantName { get; set; }
     }
 }
