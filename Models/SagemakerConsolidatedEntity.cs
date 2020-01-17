@@ -10,7 +10,11 @@ namespace OpsSecProject.Models
     {
         public int ID { get; set; }
         public SagemakerStatus SagemakerStatus { get; set; }
-        public string SagemakerReference { get; set; }
+        public string SagemakerTrainingARN { get; set; }
+        public string SagemakerEndpointConfigurationARN { get; set; }
+        public string SagemakerEndpointDeploymentARN { get; set; }
+        public string SagemakerHyperParameterTurningARN { get; set; }
+        public string SagemakerBatchTransformARN { get; set; }
         public string SagemakerEndpoint { get; set; }
         [Required]
         public int LinkedLogInputID { get; set; }

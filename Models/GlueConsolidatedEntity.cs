@@ -15,7 +15,6 @@ namespace OpsSecProject.Models
         public int LinkedLogInputID { get; set; }
         [Required]
         public virtual LogInput LinkedLogInput { get; set; }
-        [Required]
         public virtual GlueDatabaseTable LinkedTable { get; set; }
     }
 }
