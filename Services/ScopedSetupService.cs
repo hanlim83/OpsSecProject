@@ -5,6 +5,7 @@ using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpsSecProject.Data;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -217,6 +218,87 @@ namespace OpsSecProject.Services
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases OFF");
             }
+            GetConnectionsResponse getConnectionsResponse = await _GlueClient.GetConnectionsAsync(new GetConnectionsRequest
+            {
+                HidePassword = false
+            });
+            bool GlueDBConnectionNameMatch = false, GlueDBConnectionParamtetersMatch = false;
+            foreach (Connection c in getConnectionsResponse.ConnectionList)
+            {
+                if (c.Name.Equals(Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME")))
+                    GlueDBConnectionNameMatch = true;
+                c.ConnectionProperties.TryGetValue("JDBC_CONNECTION_URL", out string DBHost);
+                c.ConnectionProperties.TryGetValue("USERNAME", out string DBUserName);
+                c.ConnectionProperties.TryGetValue("PASSWORD", out string DBPassword);
+                if (DBHost.Contains(Environment.GetEnvironmentVariable("RDS_HOSTNAME")) && DBUserName.Equals(Environment.GetEnvironmentVariable("RDS_USERNAME")) && DBPassword.Equals(Environment.GetEnvironmentVariable("RDS_PASSWORD")))
+                    GlueDBConnectionParamtetersMatch = true;
+                if (GlueDBConnectionNameMatch && GlueDBConnectionParamtetersMatch)
+                    break;
+            }
+            if (!GlueDBConnectionParamtetersMatch)
+            {
+                if (GlueDBConnectionNameMatch)
+                {
+                    DeleteConnectionResponse deleteConnectionResponse = await _GlueClient.DeleteConnectionAsync(new DeleteConnectionRequest
+                    {
+                        ConnectionName = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME")
+                    });
+                    if (deleteConnectionResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    {
+                        await _GlueClient.CreateConnectionAsync(new CreateConnectionRequest
+                        {
+                            ConnectionInput = new ConnectionInput
+                            {
+                                ConnectionProperties = new Dictionary<string, string>()
+                        {
+                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_ENFORCE_SSL", "false" },
+                            { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
+                            { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
+                        },
+                                ConnectionType = ConnectionType.JDBC,
+                                Name = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME"),
+                                PhysicalConnectionRequirements = new PhysicalConnectionRequirements
+                                {
+                                    AvailabilityZone = "ap-southeast-1c",
+                                    SubnetId = "subnet-0dec37fd36704f38d ",
+                                    SecurityGroupIdList = new List<string>
+                            {
+                                "sg-0e1e79f6d49b3ed11"
+                            }
+                                }
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    await _GlueClient.CreateConnectionAsync(new CreateConnectionRequest
+                    {
+                        ConnectionInput = new ConnectionInput
+                        {
+                            ConnectionProperties = new Dictionary<string, string>()
+                        {
+                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_ENFORCE_SSL", "false" },
+                            { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
+                            { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
+                        },
+                            ConnectionType = ConnectionType.JDBC,
+                            Name = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME"),
+                            PhysicalConnectionRequirements = new PhysicalConnectionRequirements
+                            {
+                                AvailabilityZone = "ap-southeast-1c",
+                                SubnetId = "subnet-0dec37fd36704f38d ",
+                                SecurityGroupIdList = new List<string>
+                            {
+                                "sg-0e1e79f6d49b3ed11"
+                            }
+                            }
+                        }
+                    });
+                }
+            }
             if (_context.LogInputs.Find(1) == null)
             {
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs ON");
@@ -235,7 +317,6 @@ namespace OpsSecProject.Services
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
                     CrawlerName = "",
-                    DBConnectionName = "OSPJ Dev DB",
                     LinkedLogInputID = _context.LogInputs.Find(1).ID
                 });
                 _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
@@ -245,8 +326,13 @@ namespace OpsSecProject.Services
                 });
                 _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
                 {
-                    SagemakerStatus = Models.SagemakerStatus.Untrained,
-                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    SagemakerAlgorithm = Models.SagemakerAlgorithm.IP_Insights
+                });
+                _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
+                {
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    SagemakerAlgorithm = Models.SagemakerAlgorithm.Random_Cut_Forest
                 });
                 await _context.SaveChangesAsync();
             }
