@@ -8,6 +8,11 @@ using OpsSecProject.Data;
 using System.Net;
 using System.Threading.Tasks;
 using OpsSecProject.Areas.Development.Models;
+using System;
+using OpsSecProject.Models;
+using System.Linq;
+using System.IO;
+using System.Text;
 
 namespace OpsSecProject.Areas.Development.Controllers
 {
@@ -28,29 +33,31 @@ namespace OpsSecProject.Areas.Development.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Training([Bind("jobName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Training([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
         {
-            CreateTrainingJobResponse createTrainingJobResponse = await _Sclient.CreateTrainingJobAsync(new CreateTrainingJobRequest
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Untrained))
             {
-                AlgorithmSpecification = new AlgorithmSpecification
+                CreateTrainingJobRequest createTrainingJobRequest = new CreateTrainingJobRequest
                 {
-                    TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com:1",
-                    TrainingInputMode = TrainingInputMode.File,
-                    EnableSageMakerMetricsTimeSeries = false
-                },
-                EnableManagedSpotTraining = true,
-                EnableInterContainerTrafficEncryption = false,
-                EnableNetworkIsolation = false,
-                HyperParameters = new Dictionary<string, string>
+                    AlgorithmSpecification = new AlgorithmSpecification
+                    {
+                        TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
+                        TrainingInputMode = TrainingInputMode.File,
+                        EnableSageMakerMetricsTimeSeries = false
+                    },
+                    EnableManagedSpotTraining = true,
+                    EnableInterContainerTrafficEncryption = false,
+                    EnableNetworkIsolation = false,
+                    HyperParameters = new Dictionary<string, string>
                 {
-                    {"num_entity_vectors","20000"},
-                    {"random_negative_sampling_rate","5"},
-                    {"vector_dim","128"},
-                    {"mini_batch_size","1000"},
-                    {"epochs","5"},
-                    {"learning_rate","0.01" }
+                    { "num_entity_vectors", "20000" },
+                    { "random_negative_sampling_rate", "5" },
+                    { "vector_dim", "128" },
+                    { "mini_batch_size", "1000" },
+                    { "epochs", "5" },
+                    { "learning_rate", "0.01" }
                 },
-                InputDataConfig = new List<Channel>
+                    InputDataConfig = new List<Channel>
                 {
                     new Channel
                     {
@@ -61,29 +68,29 @@ namespace OpsSecProject.Areas.Development.Controllers
                             {
                                 S3DataDistributionType = S3DataDistribution.FullyReplicated,
                                 S3DataType = S3DataType.S3Prefix,
-                                S3Uri=data.s3InputUri
+                                S3Uri = "s3://" + _context.S3Buckets.Find(3).Name + "/" + data.s3InputPath
                             }
                         },
                         ContentType = "text/csv"
                     }
                 },
-                OutputDataConfig = new OutputDataConfig
-                {
-                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
-                },
-                ResourceConfig = new ResourceConfig
-                {
-                    InstanceCount = 1,
-                    InstanceType = TrainingInstanceType.MlP32xlarge,
-                    VolumeSizeInGB = 30
-                },
-                RoleArn = "arn:aws:iam::188363912800:role/service-role/AmazonSageMaker-ExecutionRole-20191023T101168",
-                StoppingCondition = new StoppingCondition
-                {
-                    MaxRuntimeInSeconds = 14400,
-                    MaxWaitTimeInSeconds = 86400
-                },
-                Tags = new List<Tag>
+                    OutputDataConfig = new OutputDataConfig
+                    {
+                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/model/model.tar.gz"
+                    },
+                    ResourceConfig = new ResourceConfig
+                    {
+                        InstanceCount = 1,
+                        InstanceType = TrainingInstanceType.MlP32xlarge,
+                        VolumeSizeInGB = 30
+                    },
+                    RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                    StoppingCondition = new StoppingCondition
+                    {
+                        MaxRuntimeInSeconds = 14400,
+                        MaxWaitTimeInSeconds = 86400
+                    },
+                    Tags = new List<Tag>
                 {
                     new Tag
                     {
@@ -91,43 +98,78 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 },
-                TrainingJobName = data.jobName,
-                CheckpointConfig = new CheckpointConfig
+                    TrainingJobName = _context.LogInputs.Find(1).Name + "Training" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    CheckpointConfig = new CheckpointConfig
+                    {
+                        S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + _context.LogInputs.Find(1).Name + "Training" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")
+                    }
+                };
+                CreateTrainingJobResponse createTrainingJobResponse = await _Sclient.CreateTrainingJobAsync(createTrainingJobRequest);
+                if (createTrainingJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
                 {
-                    S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + data.jobName
+                    SagemakerConsolidatedEntity entity = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0);
+                    entity.SagemakerStatus = SagemakerStatus.Training;
+                    entity.TrainingJobName = createTrainingJobRequest.TrainingJobName;
+                    entity.TrainingJobARN = createTrainingJobResponse.TrainingJobArn;
+                    _context.SagemakerConsolidatedEntities.Update(entity);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Training Job Created with ARN: " + createTrainingJobResponse.TrainingJobArn;
+                    return RedirectToAction("Index");
                 }
-            });
-            if (createTrainingJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
-            {
-                TempData["Alert"] = "Success";
-                TempData["Message"] = "Training Job Created with ARN: " + createTrainingJobResponse.TrainingJobArn;
-                return RedirectToAction("Index");
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Training Job Failed to create";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
-                TempData["Alert"] = "Warning";
-                TempData["Message"] = "Training Job Failed to create";
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
                 return RedirectToAction("Index");
             }
         }
-        [HttpPost]
-        public async Task<IActionResult> Inferencing([Bind("configName", "endpointName", "modelName", "variantName")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Deploying()
         {
-            CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(new CreateEndpointConfigRequest
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Trained))
             {
-                EndpointConfigName = data.configName,
-                ProductionVariants = new List<ProductionVariant>
+                CreateModelRequest createModelRequest = new CreateModelRequest
+                {
+                    EnableNetworkIsolation = false,
+                    ModelName = _context.LogInputs.Find(1).Name + "Model" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    ExecutionRoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                },
+                    PrimaryContainer = new ContainerDefinition
+                    {
+                        Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
+                        ModelDataUrl = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/model/model.tar.gz"
+                    }
+                };
+                CreateModelResponse createModelResponse = await _Sclient.CreateModelAsync(createModelRequest);
+                CreateEndpointConfigRequest createEndpointConfigRequest = new CreateEndpointConfigRequest
+                {
+                    EndpointConfigName = _context.LogInputs.Find(1).Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    ProductionVariants = new List<ProductionVariant>
                 {
                     new ProductionVariant
                     {
-                        VariantName = data.variantName,
-                        ModelName = data.modelName,
+                        VariantName = _context.LogInputs.Find(1).Name + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                        ModelName = createModelRequest.ModelName,
                         InitialInstanceCount = 1,
                         InstanceType = ProductionVariantInstanceType.MlM5Xlarge,
                         InitialVariantWeight = 1
                     }
                 },
-                Tags = new List<Tag>
+                    Tags = new List<Tag>
                 {
                     new Tag
                     {
@@ -135,12 +177,13 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 }
-            });
-            CreateEndpointResponse createEndpointResponse = await _Sclient.CreateEndpointAsync(new CreateEndpointRequest
-            {
-                EndpointConfigName = data.configName,
-                EndpointName = data.endpointName,
-                Tags = new List<Tag>
+                };
+                CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(createEndpointConfigRequest);
+                CreateEndpointRequest createEndpointRequest = new CreateEndpointRequest
+                {
+                    EndpointConfigName = _context.LogInputs.Find(1).Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    EndpointName = _context.LogInputs.Find(1).Name + "EndpointName" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    Tags = new List<Tag>
                 {
                     new Tag
                     {
@@ -148,35 +191,54 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 }
-            });
-            if (createEndpointConfigResponse.HttpStatusCode.Equals(HttpStatusCode.OK) && createEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
-            {
-                TempData["Alert"] = "Success";
-                TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Created with ARNs: " + createEndpointConfigResponse.EndpointConfigArn + " and " + createEndpointResponse.EndpointArn;
-                return RedirectToAction("Index");
+                };
+                CreateEndpointResponse createEndpointResponse = await _Sclient.CreateEndpointAsync(createEndpointRequest);
+                if (createModelResponse.HttpStatusCode.Equals(HttpStatusCode.OK) && createEndpointConfigResponse.HttpStatusCode.Equals(HttpStatusCode.OK) && createEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    SagemakerConsolidatedEntity entity = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0);
+                    entity.SagemakerStatus = SagemakerStatus.Deploying;
+                    entity.EndpointConfigurationARN = createEndpointConfigResponse.EndpointConfigArn;
+                    entity.EndpointConfigurationName = createEndpointConfigRequest.EndpointConfigName;
+                    entity.EndpointJobARN = createEndpointResponse.EndpointArn;
+                    entity.EndpointName = createEndpointRequest.EndpointName;
+                    entity.ModelName = createModelRequest.ModelName;
+                    _context.SagemakerConsolidatedEntities.Update(entity);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Created with ARNs: " + createEndpointConfigResponse.EndpointConfigArn + " and " + createEndpointResponse.EndpointArn;
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Failed to create";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
-                TempData["Alert"] = "Warning";
-                TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Failed to create";
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
                 return RedirectToAction("Index");
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Tuning([Bind("jobName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Tuning([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
         {
-            CreateHyperParameterTuningJobResponse createHyperParameterTuningJobResponse = await _Sclient.CreateHyperParameterTuningJobAsync(new CreateHyperParameterTuningJobRequest
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Trained) || _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
             {
-                HyperParameterTuningJobConfig = new HyperParameterTuningJobConfig
+                CreateHyperParameterTuningJobRequest createHyperParameterTuningJobRequest = new CreateHyperParameterTuningJobRequest
                 {
-                    HyperParameterTuningJobObjective = new HyperParameterTuningJobObjective
+                    HyperParameterTuningJobConfig = new HyperParameterTuningJobConfig
                     {
-                        MetricName = "validation:discriminator_auc",
-                        Type = HyperParameterTuningJobObjectiveType.Maximize
-                    },
-                    ParameterRanges = new ParameterRanges
-                    {
-                        IntegerParameterRanges = new List<IntegerParameterRange>
+                        HyperParameterTuningJobObjective = new HyperParameterTuningJobObjective
+                        {
+                            MetricName = "validation:discriminator_auc",
+                            Type = HyperParameterTuningJobObjectiveType.Maximize
+                        },
+                        ParameterRanges = new ParameterRanges
+                        {
+                            IntegerParameterRanges = new List<IntegerParameterRange>
                         {
                             new IntegerParameterRange
                             {
@@ -186,17 +248,17 @@ namespace OpsSecProject.Areas.Development.Controllers
                                 ScalingType = HyperParameterScalingType.Auto
                             }
                         }
+                        },
+                        ResourceLimits = new ResourceLimits
+                        {
+                            MaxNumberOfTrainingJobs = 4,
+                            MaxParallelTrainingJobs = 2
+                        },
+                        Strategy = HyperParameterTuningJobStrategyType.Bayesian,
+                        TrainingJobEarlyStoppingType = TrainingJobEarlyStoppingType.Off
                     },
-                    ResourceLimits = new ResourceLimits
-                    {
-                        MaxNumberOfTrainingJobs = 4,
-                        MaxParallelTrainingJobs = 2
-                    },
-                    Strategy = HyperParameterTuningJobStrategyType.Bayesian,
-                    TrainingJobEarlyStoppingType = TrainingJobEarlyStoppingType.Off
-                },
-                HyperParameterTuningJobName = data.jobName,
-                Tags = new List<Tag>
+                    HyperParameterTuningJobName = _context.LogInputs.Find(1).Name + "HyperParameterTuning" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    Tags = new List<Tag>
                 {
                     new Tag
                     {
@@ -204,17 +266,17 @@ namespace OpsSecProject.Areas.Development.Controllers
                         Value = "OSPJ"
                     }
                 },
-                TrainingJobDefinition = new HyperParameterTrainingJobDefinition
-                {
-                    AlgorithmSpecification = new HyperParameterAlgorithmSpecification
+                    TrainingJobDefinition = new HyperParameterTrainingJobDefinition
                     {
-                        TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com:1",
-                        TrainingInputMode = TrainingInputMode.File
-                    },
-                    EnableManagedSpotTraining = true,
-                    EnableInterContainerTrafficEncryption = false,
-                    EnableNetworkIsolation = false,
-                    InputDataConfig = new List<Channel>
+                        AlgorithmSpecification = new HyperParameterAlgorithmSpecification
+                        {
+                            TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
+                            TrainingInputMode = TrainingInputMode.File
+                        },
+                        EnableManagedSpotTraining = true,
+                        EnableInterContainerTrafficEncryption = false,
+                        EnableNetworkIsolation = false,
+                        InputDataConfig = new List<Channel>
                     {
                         new Channel
                         {
@@ -225,7 +287,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                                 {
                                     S3DataDistributionType = S3DataDistribution.FullyReplicated,
                                     S3DataType = S3DataType.S3Prefix,
-                                    S3Uri = data.s3InputUri
+                                    S3Uri = "s3://" + _context.S3Buckets.Find(3).Name + "/" + data.s3InputPath
                                 }
                             },
                             ContentType = "text/csv",
@@ -233,84 +295,145 @@ namespace OpsSecProject.Areas.Development.Controllers
                             RecordWrapperType = RecordWrapper.None
                         }
                     },
-                    OutputDataConfig = new OutputDataConfig
-                    {
-                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
-                    },
-                    ResourceConfig = new ResourceConfig
-                    {
-                        InstanceCount = 1,
-                        InstanceType = TrainingInstanceType.MlP32xlarge,
-                        VolumeSizeInGB = 30
-                    },
-                    RoleArn = "arn:aws:iam::188363912800:role/service-role/AmazonSageMaker-ExecutionRole-20191023T101168",
-                    StoppingCondition = new StoppingCondition
-                    {
-                        MaxRuntimeInSeconds = 14400,
-                        MaxWaitTimeInSeconds = 86400
-                    },
-                    CheckpointConfig = new CheckpointConfig
-                    {
-                        S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + data.jobName
+                        OutputDataConfig = new OutputDataConfig
+                        {
+                            S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/tuning"
+                        },
+                        ResourceConfig = new ResourceConfig
+                        {
+                            InstanceCount = 1,
+                            InstanceType = TrainingInstanceType.MlP32xlarge,
+                            VolumeSizeInGB = 30
+                        },
+                        RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                        StoppingCondition = new StoppingCondition
+                        {
+                            MaxRuntimeInSeconds = 14400,
+                            MaxWaitTimeInSeconds = 86400
+                        },
+                        CheckpointConfig = new CheckpointConfig
+                        {
+                            S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + _context.LogInputs.Find(1).Name + "HyperParameterTuning" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")
+                        }
                     }
+                };
+                CreateHyperParameterTuningJobResponse createHyperParameterTuningJobResponse = await _Sclient.CreateHyperParameterTuningJobAsync(createHyperParameterTuningJobRequest);
+                if (createHyperParameterTuningJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    SagemakerConsolidatedEntity entity = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0);
+                    entity.SagemakerStatus = SagemakerStatus.Tuning;
+                    entity.HyperParameterTurningJobARN = createHyperParameterTuningJobResponse.HyperParameterTuningJobArn;
+                    entity.HyperParameterTurningJobName = createHyperParameterTuningJobRequest.HyperParameterTuningJobName;
+                    _context.SagemakerConsolidatedEntities.Update(entity);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Hyper Parameter Tuning Job Created with ARN: " + createHyperParameterTuningJobResponse.HyperParameterTuningJobArn;
+                    return RedirectToAction("Index");
                 }
-            });
-            if (createHyperParameterTuningJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
-            {
-                TempData["Alert"] = "Success";
-                TempData["Message"] = "Hyper Parameter Tuning Job Created with ARN: " + createHyperParameterTuningJobResponse.HyperParameterTuningJobArn;
-                return RedirectToAction("Index");
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Hyper Parameter Tuning Job Failed to create";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
-                TempData["Alert"] = "Warning";
-                TempData["Message"] = "Hyper Parameter Tuning Job Failed to create";
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
                 return RedirectToAction("Index");
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Transforming([Bind("jobName", "modelName", "s3InputUri", "s3OutputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Transforming([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
         {
-            CreateTransformJobResponse createTransformJobResponse = await _Sclient.CreateTransformJobAsync(new CreateTransformJobRequest
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
             {
-                TransformJobName = data.jobName,
-                ModelName = data.modelName,
-                TransformInput = new TransformInput
+                CreateTransformJobRequest createTransformJobRequest = new CreateTransformJobRequest
                 {
-                    CompressionType = CompressionType.None,
-                    ContentType = "text/csv",
-                    SplitType = SplitType.Line,
-                    DataSource = new TransformDataSource
+                    TransformJobName = _context.LogInputs.Find(1).Name + "BatchTransform" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    ModelName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName,
+                    TransformInput = new TransformInput
                     {
-                        S3DataSource = new TransformS3DataSource
+                        CompressionType = CompressionType.None,
+                        ContentType = "text/csv",
+                        SplitType = SplitType.Line,
+                        DataSource = new TransformDataSource
                         {
-                            S3DataType = S3DataType.S3Prefix,
-                            S3Uri = data.s3InputUri
+                            S3DataSource = new TransformS3DataSource
+                            {
+                                S3DataType = S3DataType.S3Prefix,
+                                S3Uri = "s3://" + _context.S3Buckets.Find(3).Name + "/" + data.s3InputPath
+                            }
                         }
+                    },
+                    TransformOutput = new TransformOutput
+                    {
+                        AssembleWith = AssemblyType.Line,
+                        Accept = "text/csv",
+                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/transform"
+                    },
+                    TransformResources = new TransformResources
+                    {
+                        InstanceCount = 1,
+                        InstanceType = TransformInstanceType.MlM4Xlarge
                     }
-                },
-                TransformOutput = new TransformOutput
+                };
+                CreateTransformJobResponse createTransformJobResponse = await _Sclient.CreateTransformJobAsync(createTransformJobRequest);
+                if (createTransformJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
                 {
-                    AssembleWith = AssemblyType.Line,
-                    Accept = "text/csv",
-                    S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + data.s3OutputPath
-                },
-                TransformResources = new TransformResources
-                {
-                    InstanceCount = 1,
-                    InstanceType = TransformInstanceType.MlM4Xlarge
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Transform Job Created with ARN: " + createTransformJobResponse.TransformJobArn;
+                    return RedirectToAction("Index");
                 }
-            });
-            if (createTransformJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
-            {
-                TempData["Alert"] = "Success";
-                TempData["Message"] = "Transform Job Created with ARN: " + createTransformJobResponse.TransformJobArn;
-                return RedirectToAction("Index");
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Transform Job Failed to create";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
-                TempData["Alert"] = "Warning";
-                TempData["Message"] = "Transform Job Failed to create";
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
+                return RedirectToAction("Index");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> Inferencing([Bind("predictionInputContent")]MachineLearningOverrallFormModel data)
+        {
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
+            {
+                InvokeEndpointRequest invokeEndpointRequest = new InvokeEndpointRequest
+                {
+                    EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).EndpointName,
+                    TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName,
+                    ContentType = "text/csv",
+                    Accept = "text/csv",
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(data.predictionInputContent))
+                };
+                InvokeEndpointResponse invokeEndpointResponse = await _SRClient.InvokeEndpointAsync(invokeEndpointRequest);
+                if (invokeEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    using (StreamReader reader = new StreamReader(invokeEndpointResponse.Body))
+                    {
+                        TempData["Alert"] = "Success";
+                        TempData["Message"] = "Endpoint returned result : " + reader.ReadToEnd();
+                        return RedirectToAction("Index");
+                    }
+                }
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Endpoint failed to invoke";
+                    return RedirectToAction("Index");
+                }
+            }
+            else
+            {
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
                 return RedirectToAction("Index");
             }
         }

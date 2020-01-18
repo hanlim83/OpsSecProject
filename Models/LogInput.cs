@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace OpsSecProject.Models
 {
@@ -21,6 +22,6 @@ namespace OpsSecProject.Models
         public virtual S3Bucket LinkedS3Bucket { get; set; }
         public virtual GlueConsolidatedEntity LinkedGlueEntity { get; set; }
         public virtual KinesisConsolidatedEntity LinkedKinesisConsolidatedEntity { get; set; }
-        public virtual SagemakerConsolidatedEntity LinkedSagemakerEntity { get; set; }
+        public virtual ICollection<SagemakerConsolidatedEntity> LinkedSagemakerEntities { get; set; }
     }
 }

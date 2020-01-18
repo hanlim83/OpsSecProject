@@ -5,18 +5,8 @@ namespace OpsSecProject.Areas.Development.Models
     public class MachineLearningOverrallFormModel
     {
         [Required]
-        public string jobName { get; set; }
+        public string s3InputPath { get; set; }
         [Required]
-        public string s3InputUri { get; set; }
-        [Required]
-        public string s3OutputPath { get; set; }
-        [Required]
-        public string configName { get; set; }
-        [Required]
-        public string endpointName { get; set; }
-        [Required]
-        public string modelName { get; set; }
-        [Required]
-        public string variantName { get; set; }
+        public string predictionInputContent { get; set; }
     }
 }
