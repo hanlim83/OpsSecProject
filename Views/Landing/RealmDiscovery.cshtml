@@ -75,7 +75,7 @@
         </div>
     </div>
     <div id="recap"></div>
-    <button class="btn btn-lg btn-primary btn-block g-recaptcha" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaCallback' type="submit" id="formBtnSubmit">Continue</button>
+    <button class="btn btn-lg btn-primary btn-block g-recaptcha formBtnSubmit" data-sitekey="@System.Environment.GetEnvironmentVariable("RECAPTCHAV2_SITE_KEY")" data-callback='reCaptchaCallback' type="submit">Continue</button>
     <div class="text-center mb-4">
         <hr>
         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ReturnURL"])))
