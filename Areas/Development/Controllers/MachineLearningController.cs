@@ -30,10 +30,13 @@ namespace OpsSecProject.Areas.Development.Controllers
         }
         public IActionResult Index()
         {
-            return View();
+            return View(new MachineLearningViewModel
+            {
+                LogInput = _context.LogInputs.Find(1)
+            });
         }
         [HttpPost]
-        public async Task<IActionResult> Training([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> TrainingIPInsights([Bind("s3InputPath")]MachineLearningViewModel data)
         {
             if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Untrained))
             {
@@ -76,7 +79,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 },
                     OutputDataConfig = new OutputDataConfig
                     {
-                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/model/model.tar.gz"
+                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/ipinsights/model/model.tar.gz"
                     },
                     ResourceConfig = new ResourceConfig
                     {
@@ -131,7 +134,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 return RedirectToAction("Index");
             }
         }
-        public async Task<IActionResult> Deploying()
+        public async Task<IActionResult> DeployingIPInsights()
         {
             if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Trained))
             {
@@ -151,7 +154,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                     PrimaryContainer = new ContainerDefinition
                     {
                         Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
-                        ModelDataUrl = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/model/model.tar.gz"
+                        ModelDataUrl = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/ipinsights/model/model.tar.gz"
                     }
                 };
                 CreateModelResponse createModelResponse = await _Sclient.CreateModelAsync(createModelRequest);
@@ -165,7 +168,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                         VariantName = _context.LogInputs.Find(1).Name + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
                         ModelName = createModelRequest.ModelName,
                         InitialInstanceCount = 1,
-                        InstanceType = ProductionVariantInstanceType.MlM5Xlarge,
+                        InstanceType = ProductionVariantInstanceType.MlM4Xlarge,
                         InitialVariantWeight = 1
                     }
                 },
@@ -223,7 +226,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Tuning([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> TuningIPInsights([Bind("s3InputPath")]MachineLearningViewModel data)
         {
             if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Trained) || _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
             {
@@ -345,7 +348,7 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Transforming([Bind("s3InputPath")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> TransformingIPInsights([Bind("s3InputPath")]MachineLearningViewModel data)
         {
             if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
             {
@@ -401,18 +404,26 @@ namespace OpsSecProject.Areas.Development.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Inferencing([Bind("predictionInputContent")]MachineLearningOverrallFormModel data)
+        public async Task<IActionResult> Inferencing([Bind("predictionInputContent", "algoritithmChoice")]MachineLearningViewModel data)
         {
             if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Ready))
             {
                 InvokeEndpointRequest invokeEndpointRequest = new InvokeEndpointRequest
                 {
-                    EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).EndpointName,
-                    TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName,
                     ContentType = "text/csv",
                     Accept = "text/csv",
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(data.predictionInputContent))
                 };
+                if (data.algoritithmChoice.Equals(AlgoritithmChoice.IPInsights))
+                {
+                    invokeEndpointRequest.EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).EndpointName;
+                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName;
+                }
+                else if (data.algoritithmChoice.Equals(AlgoritithmChoice.RandomCutForest))
+                {
+                    invokeEndpointRequest.EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).EndpointName;
+                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).ModelName;
+                }
                 InvokeEndpointResponse invokeEndpointResponse = await _SRClient.InvokeEndpointAsync(invokeEndpointRequest);
                 if (invokeEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
                 {
@@ -427,6 +438,197 @@ namespace OpsSecProject.Areas.Development.Controllers
                 {
                     TempData["Alert"] = "Warning";
                     TempData["Message"] = "Endpoint failed to invoke";
+                    return RedirectToAction("Index");
+                }
+            }
+            else
+            {
+                TempData["Alert"] = "Danger";
+                if (data.algoritithmChoice.Equals(AlgoritithmChoice.IPInsights))
+                    TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
+                else if (data.algoritithmChoice.Equals(AlgoritithmChoice.RandomCutForest))
+                    TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).SagemakerStatus.ToString();
+                return RedirectToAction("Index");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> TrainingRandomCutForest([Bind("s3InputPath")]MachineLearningViewModel data)
+        {
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Untrained))
+            {
+                CreateTrainingJobRequest createTrainingJobRequest = new CreateTrainingJobRequest
+                {
+                    AlgorithmSpecification = new AlgorithmSpecification
+                    {
+                        TrainingImage = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/randomcutforest:1",
+                        TrainingInputMode = TrainingInputMode.File,
+                        EnableSageMakerMetricsTimeSeries = false
+                    },
+                    EnableManagedSpotTraining = true,
+                    EnableInterContainerTrafficEncryption = false,
+                    EnableNetworkIsolation = false,
+                    HyperParameters = new Dictionary<string, string>
+                {
+                    { "num_trees", "50" },
+                    { "num_samples_per_tree", "512" },
+                    { "feature_dim", "1" },
+                    { "mini_batch_size", "1000" }
+                },
+                    InputDataConfig = new List<Channel>
+                {
+                    new Channel
+                    {
+                        ChannelName = "Training",
+                        DataSource = new DataSource
+                        {
+                            S3DataSource = new S3DataSource
+                            {
+                                S3DataDistributionType = S3DataDistribution.ShardedByS3Key,
+                                S3DataType = S3DataType.ManifestFile,
+                                S3Uri = "s3://" + _context.S3Buckets.Find(3).Name + "/" + data.s3InputPath
+                            }
+                        },
+                        ContentType = "text/csv"
+                    }
+                },
+                    OutputDataConfig = new OutputDataConfig
+                    {
+                        S3OutputPath = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/randomcutforest/model/model.tar.gz"
+                    },
+                    ResourceConfig = new ResourceConfig
+                    {
+                        InstanceCount = 1,
+                        InstanceType = TrainingInstanceType.MlP32xlarge,
+                        VolumeSizeInGB = 30
+                    },
+                    RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                    StoppingCondition = new StoppingCondition
+                    {
+                        MaxRuntimeInSeconds = 14400,
+                        MaxWaitTimeInSeconds = 86400
+                    },
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                },
+                    TrainingJobName = _context.LogInputs.Find(1).Name + "Training" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    CheckpointConfig = new CheckpointConfig
+                    {
+                        S3Uri = "s3://" + _context.S3Buckets.Find(2).Name + "/checkpoint/" + _context.LogInputs.Find(1).Name + "Training" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")
+                    }
+                };
+                CreateTrainingJobResponse createTrainingJobResponse = await _Sclient.CreateTrainingJobAsync(createTrainingJobRequest);
+                if (createTrainingJobResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    SagemakerConsolidatedEntity entity = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1);
+                    entity.SagemakerStatus = SagemakerStatus.Training;
+                    entity.TrainingJobName = createTrainingJobRequest.TrainingJobName;
+                    entity.TrainingJobARN = createTrainingJobResponse.TrainingJobArn;
+                    _context.SagemakerConsolidatedEntities.Update(entity);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Training Job Created with ARN: " + createTrainingJobResponse.TrainingJobArn;
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Training Job Failed to create";
+                    return RedirectToAction("Index");
+                }
+            }
+            else
+            {
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Invaild State | Current State is " + _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString();
+                return RedirectToAction("Index");
+            }
+        }
+        public async Task<IActionResult> DeployingRandomCutForest()
+        {
+            if (_context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.Equals(SagemakerStatus.Trained))
+            {
+                CreateModelRequest createModelRequest = new CreateModelRequest
+                {
+                    EnableNetworkIsolation = false,
+                    ModelName = _context.LogInputs.Find(1).Name + "Model" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    ExecutionRoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                },
+                    PrimaryContainer = new ContainerDefinition
+                    {
+                        Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
+                        ModelDataUrl = "s3://" + _context.S3Buckets.Find(2).Name + "/" + _context.LogInputs.Find(1).Name + "/randomcutforest/model/model.tar.gz"
+                    }
+                };
+                CreateModelResponse createModelResponse = await _Sclient.CreateModelAsync(createModelRequest);
+                CreateEndpointConfigRequest createEndpointConfigRequest = new CreateEndpointConfigRequest
+                {
+                    EndpointConfigName = _context.LogInputs.Find(1).Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    ProductionVariants = new List<ProductionVariant>
+                {
+                    new ProductionVariant
+                    {
+                        VariantName = _context.LogInputs.Find(1).Name + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                        ModelName = createModelRequest.ModelName,
+                        InitialInstanceCount = 1,
+                        InstanceType = ProductionVariantInstanceType.MlM4Xlarge,
+                        InitialVariantWeight = 1
+                    }
+                },
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                }
+                };
+                CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(createEndpointConfigRequest);
+                CreateEndpointRequest createEndpointRequest = new CreateEndpointRequest
+                {
+                    EndpointConfigName = _context.LogInputs.Find(1).Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    EndpointName = _context.LogInputs.Find(1).Name + "EndpointName" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                }
+                };
+                CreateEndpointResponse createEndpointResponse = await _Sclient.CreateEndpointAsync(createEndpointRequest);
+                if (createModelResponse.HttpStatusCode.Equals(HttpStatusCode.OK) && createEndpointConfigResponse.HttpStatusCode.Equals(HttpStatusCode.OK) && createEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    SagemakerConsolidatedEntity entity = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1);
+                    entity.SagemakerStatus = SagemakerStatus.Deploying;
+                    entity.EndpointConfigurationARN = createEndpointConfigResponse.EndpointConfigArn;
+                    entity.EndpointConfigurationName = createEndpointConfigRequest.EndpointConfigName;
+                    entity.EndpointJobARN = createEndpointResponse.EndpointArn;
+                    entity.EndpointName = createEndpointRequest.EndpointName;
+                    entity.ModelName = createModelRequest.ModelName;
+                    _context.SagemakerConsolidatedEntities.Update(entity);
+                    await _context.SaveChangesAsync();
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Created with ARNs: " + createEndpointConfigResponse.EndpointConfigArn + " and " + createEndpointResponse.EndpointArn;
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["Alert"] = "Warning";
+                    TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Failed to create";
                     return RedirectToAction("Index");
                 }
             }
