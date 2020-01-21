@@ -5,6 +5,7 @@ using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpsSecProject.Data;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace OpsSecProject.Services
             _context.Database.OpenConnection();
             _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets ON");
             ListBucketsResponse listBucketResponse = await _S3Client.ListBucketsAsync(new ListBucketsRequest());
-            bool aggergateBucketFound = false, sageMakerBucketFound = false;
+            bool aggergateBucketFound = false, sageMakerBucketFound = false, apacheWebLogBucketFound = false;
             foreach (var bucket in listBucketResponse.Buckets)
             {
                 if (bucket.BucketName.Equals("master-aggergated-ingest-data"))
@@ -53,7 +54,17 @@ namespace OpsSecProject.Services
                             Name = "master-sagemaker-data"
                         });
                 }
-                if (aggergateBucketFound && sageMakerBucketFound)
+                if (bucket.BucketName.Equals("smartinsights-apache-web-logs"))
+                {
+                    apacheWebLogBucketFound = true;
+                    if (_context.S3Buckets.Find(3) == null)
+                        _context.S3Buckets.Add(new Models.S3Bucket
+                        {
+                            ID = 3,
+                            Name = "smartinsights-apache-web-logs"
+                        });
+                }
+                if (aggergateBucketFound && sageMakerBucketFound && apacheWebLogBucketFound)
                     break;
             }
             if (!aggergateBucketFound && _context.S3Buckets.Find(1) == null)
@@ -76,7 +87,18 @@ namespace OpsSecProject.Services
                         }
                     }
                 });
-                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "master-aggergated-ingest-data",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 1,
@@ -103,11 +125,60 @@ namespace OpsSecProject.Services
                         }
                     }
                 });
-                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putBucketTaggingResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse2 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "master-sagemaker-data",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
                         ID = 2,
                         Name = "master-sagemaker-data"
+                    });
+            }
+            if (!apacheWebLogBucketFound && _context.S3Buckets.Find(3) == null)
+            {
+                PutBucketResponse putBucketResponse3 = await _S3Client.PutBucketAsync(new PutBucketRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    UseClientRegion = true,
+                    CannedACL = S3CannedACL.Private
+                });
+                PutBucketTaggingResponse putBucketTaggingResponse3 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    TagSet = new List<Tag>
+                    {
+                        new Tag
+                        {
+                            Key = "Project",
+                            Value = "OSPJ"
+                        }
+                    }
+                });
+                PutPublicAccessBlockResponse putPublicAccessBlockResponse3 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+                {
+                    BucketName = "smartinsights-apache-web-logs",
+                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                    {
+                        BlockPublicAcls = true,
+                        BlockPublicPolicy = true,
+                        IgnorePublicAcls = true,
+                        RestrictPublicBuckets = true
+                    }
+                });
+                if (putBucketResponse3.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse3.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    _context.S3Buckets.Add(new Models.S3Bucket
+                    {
+                        ID = 3,
+                        Name = "smartinsights-apache-web-logs"
                     });
             }
             await _context.SaveChangesAsync();
@@ -146,8 +217,126 @@ namespace OpsSecProject.Services
             {
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.GlueDatabases OFF");
-                _context.Database.CloseConnection();
             }
+            GetConnectionsResponse getConnectionsResponse = await _GlueClient.GetConnectionsAsync(new GetConnectionsRequest
+            {
+                HidePassword = false
+            });
+            bool GlueDBConnectionNameMatch = false, GlueDBConnectionParamtetersMatch = false;
+            foreach (Connection c in getConnectionsResponse.ConnectionList)
+            {
+                if (c.Name.Equals(Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME")))
+                    GlueDBConnectionNameMatch = true;
+                c.ConnectionProperties.TryGetValue("JDBC_CONNECTION_URL", out string DBHost);
+                c.ConnectionProperties.TryGetValue("USERNAME", out string DBUserName);
+                c.ConnectionProperties.TryGetValue("PASSWORD", out string DBPassword);
+                if (DBHost.Contains(Environment.GetEnvironmentVariable("RDS_HOSTNAME")) && DBUserName.Equals(Environment.GetEnvironmentVariable("RDS_USERNAME")) && DBPassword.Equals(Environment.GetEnvironmentVariable("RDS_PASSWORD")))
+                    GlueDBConnectionParamtetersMatch = true;
+                if (GlueDBConnectionNameMatch && GlueDBConnectionParamtetersMatch)
+                    break;
+            }
+            if (!GlueDBConnectionParamtetersMatch)
+            {
+                if (GlueDBConnectionNameMatch)
+                {
+                    DeleteConnectionResponse deleteConnectionResponse = await _GlueClient.DeleteConnectionAsync(new DeleteConnectionRequest
+                    {
+                        ConnectionName = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME")
+                    });
+                    if (deleteConnectionResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    {
+                        await _GlueClient.CreateConnectionAsync(new CreateConnectionRequest
+                        {
+                            ConnectionInput = new ConnectionInput
+                            {
+                                ConnectionProperties = new Dictionary<string, string>()
+                        {
+                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_ENFORCE_SSL", "false" },
+                            { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
+                            { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
+                        },
+                                ConnectionType = ConnectionType.JDBC,
+                                Name = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME"),
+                                PhysicalConnectionRequirements = new PhysicalConnectionRequirements
+                                {
+                                    AvailabilityZone = "ap-southeast-1c",
+                                    SubnetId = "subnet-0dec37fd36704f38d ",
+                                    SecurityGroupIdList = new List<string>
+                            {
+                                "sg-0e1e79f6d49b3ed11"
+                            }
+                                }
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    await _GlueClient.CreateConnectionAsync(new CreateConnectionRequest
+                    {
+                        ConnectionInput = new ConnectionInput
+                        {
+                            ConnectionProperties = new Dictionary<string, string>()
+                        {
+                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_ENFORCE_SSL", "false" },
+                            { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
+                            { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
+                        },
+                            ConnectionType = ConnectionType.JDBC,
+                            Name = Environment.GetEnvironmentVariable("GLUE_DB-CONNECTION_NAME"),
+                            PhysicalConnectionRequirements = new PhysicalConnectionRequirements
+                            {
+                                AvailabilityZone = "ap-southeast-1c",
+                                SubnetId = "subnet-0dec37fd36704f38d ",
+                                SecurityGroupIdList = new List<string>
+                            {
+                                "sg-0e1e79f6d49b3ed11"
+                            }
+                            }
+                        }
+                    });
+                }
+            }
+            if (_context.LogInputs.Find(1) == null)
+            {
+                _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs ON");
+                _context.LogInputs.Add(new Models.LogInput
+                {
+                    ID = 1,
+                    Name = "Apache Web Logs",
+                    ConfigurationJSON = "",
+                    FilePath = "",
+                    LinkedUserID = 1,
+                    LinkedS3BucketID = _context.S3Buckets.Find(3).ID,
+                    LinkedS3Bucket = _context.S3Buckets.Find(3)
+                });
+                await _context.SaveChangesAsync();
+                _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
+                {
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    SagemakerAlgorithm = Models.SagemakerAlgorithm.IP_Insights
+                });
+                _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
+                {
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    SagemakerAlgorithm = Models.SagemakerAlgorithm.Random_Cut_Forest
+                });
+                await _context.SaveChangesAsync();
+            }
+            _context.Database.CloseConnection();
         }
     }
 }

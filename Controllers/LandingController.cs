@@ -117,6 +117,14 @@ namespace OpsSecProject.Controllers
             return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
         }
 
+        public IActionResult InitiateIDPRequest()
+        {
+            var authenticationProperties = new AuthenticationProperties();
+            authenticationProperties.Items["prompt"] = "none";
+            authenticationProperties.RedirectUri = "/Landing/";
+            return Challenge(authenticationProperties, AzureADDefaults.AuthenticationScheme);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(string code)
         {

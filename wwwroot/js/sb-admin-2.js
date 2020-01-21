@@ -28,7 +28,8 @@ function SB2Handler(event) {
     $(window).resize(function () {
         if ($(window).width() < 768) {
             $('.sidebar .collapse').collapse('hide');
-            collapse = true;
+            if ($(".sidebar").hasClass("toggled"))
+                collapse = true;
         };
     });
 

@@ -31,7 +31,10 @@ function reCaptchaCallback(token) {
         tokenInput.setAttribute("value", token);
     document.getElementsByClassName("form-signin")[0].checkValidity();
     if (document.getElementsByClassName("form-signin")[0].checkValidity() === true) {
-        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+        var formSubmitBtns = document.getElementsByClassName("formBtnSubmit");
+        for (var i = 0; i < formSubmitBtns.length; i++) {
+            formSubmitBtns.item(i).setAttribute("disabled", "disabled");
+        }
         document.getElementsByClassName("form-signin")[0].submit();
     } else {
         if (document.getElementsByClassName("form-signin")[0].classList.contains("was-validated") === false)
@@ -67,7 +70,10 @@ function reCaptchaCallback(token) {
                     }
                     else if (form.checkValidity() === true) {
                         document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
-                        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+                        var formSubmitBtns = document.getElementsByClassName("formBtnSubmit");
+                        for (var i = 0; i < formSubmitBtns.length; i++) {
+                            formSubmitBtns.item(i).setAttribute("disabled", "disabled");
+                        }
                     }
                 }, false);
             });
@@ -130,7 +136,10 @@ function reCaptchaCallback(token) {
                     }
                     else if (form.checkValidity() === true) {
                         document.getElementById('searchBtnSubmit').setAttribute("disabled", "disabled");
-                        document.getElementById('formBtnSubmit').setAttribute("disabled", "disabled");
+                        var formSubmitBtns = document.getElementsByClassName("formBtnSubmit");
+                        for (var i = 0; i < formSubmitBtns.length; i++) {
+                            formSubmitBtns.item(i).setAttribute("disabled", "disabled");
+                        }
                     }
                 }, false);
             });
