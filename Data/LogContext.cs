@@ -27,6 +27,7 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<KinesisConsolidatedEntity>().Property(k => k.AnalyticsEnabled).HasDefaultValue(true);
             modelBuilder.Entity<SagemakerConsolidatedEntity>().ToTable("SagemakerConsolidatedEntities");
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.Untrained);
+            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
         }
     }
 }

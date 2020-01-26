@@ -12,11 +12,6 @@ namespace OpsSecProject.Controllers
         {
             return View();
         }
-        [HttpPost]
-        public async Task<IActionResult> Search(string query)
-        {
-            return View();
-        }
 
         //Imported methods 
 

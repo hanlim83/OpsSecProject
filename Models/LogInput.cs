@@ -3,14 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OpsSecProject.Models
 {
+    public enum LogInputCategory
+    {
+        SSH, ApacheWebServer, ActiveDirectoy, SquidProxy
+    }
     public class LogInput
     {
         public int ID { get; set; }
         [Required]
         public string Name { get; set; }
-        public string FilePath { get; set; }
-        // public string Pattern {get; set;}
-        // public string {get; set;}
+        public LogInputCategory LogInputCategory { get; set; }
         public string ConfigurationJSON { get; set; }
         [Required]
         public bool InitialIngest { get; set; }
