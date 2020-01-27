@@ -5,7 +5,7 @@ namespace OpsSecProject.Models
 {
     public enum LogInputCategory
     {
-        SSH, ApacheWebServer, ActiveDirectoy, SquidProxy
+        SSH, ApacheWebServer, SquidProxy, WindowsEventLogs
     }
     public class LogInput
     {
