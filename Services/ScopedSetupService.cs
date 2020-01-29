@@ -423,7 +423,7 @@ namespace OpsSecProject.Services
                         {
                             ConnectionProperties = new Dictionary<string, string>()
                         {
-                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_CONNECTION_URL", "jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
                             { "JDBC_ENFORCE_SSL", "false" },
                             { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
                             { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
@@ -433,7 +433,7 @@ namespace OpsSecProject.Services
                             PhysicalConnectionRequirements = new PhysicalConnectionRequirements
                             {
                                 AvailabilityZone = "ap-southeast-1c",
-                                SubnetId = "subnet-0dec37fd36704f38d ",
+                                SubnetId = "subnet-0daa6ec8e25a13077",
                                 SecurityGroupIdList = new List<string>
                             {
                                 "sg-0e1e79f6d49b3ed11"
