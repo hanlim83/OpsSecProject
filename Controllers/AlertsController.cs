@@ -23,7 +23,9 @@ namespace OpsSecProject.Controllers
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
             User user = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
-            return View(new AlertsViewModel
+            return View(new 
+
+
             {
                 allAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).ToList(),
                 successAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess)).ToList().Count(),
