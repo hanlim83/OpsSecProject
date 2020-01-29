@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Models;
 using System.Configuration;
 using System.Data.SqlClient;
-//using System.Net.Sockets;
-//using System.IO;
-//using System.Text;
+using System.Net.Sockets;
+using System.IO;
+using System.Text;
 
 
 namespace OpsSecProject.Controllers
@@ -39,24 +39,28 @@ namespace OpsSecProject.Controllers
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.test_ingested_log_data", connection))
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_apache_web_logs", connection))
                 {
-                    cmd.CommandTimeout = 60;
+                    cmd.CommandTimeout = 0;
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
                         while (dr.Read())
                         {
                             ApacheWebLog newItem = new ApacheWebLog();
-
-                            newItem.host = dr.GetString(0);
-                            //newItem.ident = dr.GetString(1);
-                            //newItem.authuser = dr.GetString(2);
-                            //newItem.datetime = dr.GetDateTime(3);
-                            newItem.request = dr.GetString(4);
-                            newItem.response = dr.GetString(5);
-                            newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                            newItem.referer = Convert.ToInt32(dr.GetString(7));
-                            newItem.agent = dr.GetString(8);
+                            if (!dr.IsDBNull(0))
+                                newItem.host = dr.GetString(0);
+                            if (!dr.IsDBNull(1))
+                                newItem.ident = dr.GetString(1);
+                            if (!dr.IsDBNull(2))
+                                newItem.authuser = dr.GetString(2);
+                            if (!dr.IsDBNull(3))
+                                newItem.datetime = dr.GetString(3);
+                            if (!dr.IsDBNull(4))
+                                newItem.request = dr.GetString(4);
+                            if (!dr.IsDBNull(5))
+                                newItem.response = dr.GetString(5);
+                            if (!dr.IsDBNull(6))
+                                newItem.bytes = Convert.ToInt32(dr.GetString(6));
                             results.Add(newItem);
                         }
                     }
