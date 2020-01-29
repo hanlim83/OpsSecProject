@@ -4,9 +4,12 @@ namespace OpsSecProject.Models
 {
     public enum SagemakerStatus
     {
-        Untrained, Training, Trained, Tuning, Deploying, Reversing,Ready
+        Untrained, Training, Trained, Tuning, Deploying, Reversing, Transforming, Ready, Error
     }
-
+    public enum SagemakerErrorStage
+    {
+        Training, Tuning, Transforming, Deployment, None
+    }
     public enum SagemakerAlgorithm
     {
         IP_Insights,Random_Cut_Forest
@@ -17,6 +20,7 @@ namespace OpsSecProject.Models
         [Required]
         public SagemakerAlgorithm SagemakerAlgorithm { get; set; }
         public SagemakerStatus SagemakerStatus { get; set; }
+        public SagemakerErrorStage SagemakerErrorStage { get; set; }
         public string ModelName { get; set; }
         public string TrainingJobName { get; set; }
         public string TrainingJobARN { get; set; }
