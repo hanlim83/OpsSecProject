@@ -1,0 +1,66 @@
+﻿@model IEnumerable<OpsSecProject.Models.ApacheWebLog>
+@{
+    ViewData["Title"] = "Apache Web Logs";
+}
+<h1 class="h3 mb-2 text-gray-800">Apache Web Logs</h1>
+<p class="mb-4"></p>
+
+<div class="
+     
+     
+     shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Apache Logs Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Host</th>
+                        @*<th scope="col">Ident</th>
+                        <th scope="col">AuthUser</th>*@
+                        @*<th scope="col">DateTime</th>*@
+                        <th scope="col">Request</th>
+                        <th scope="col">Response</th>
+                        <th scope="col">Bytes</th>
+                        <th scope="col">Referer</th>
+                        <th scope="col">Agent</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                    <tr>
+                        <th scope="row">@log.host</th>
+                        @*<td>@log.ident</td>
+                        <td>@log.authuser</td>*@
+                        @*<td>@log.datetime</td>*@
+                        <td>@log.request</td>
+                        <td>@log.response</td>
+                        <td>@log.bytes</td>
+                        <td>@log.referer</td>
+                        <td>@log.agent</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        function Handler(event) {
+            $('#apacheTable').DataTable();
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}
