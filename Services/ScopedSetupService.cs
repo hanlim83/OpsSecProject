@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpsSecProject.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -443,7 +444,7 @@ namespace OpsSecProject.Services
                     });
                 }
             }
-            if (_context.LogInputs.Find(1) == null)
+            if (!_context.LogInputs.Any())
             {
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs ON");
                 _context.LogInputs.Add(new Models.LogInput
@@ -488,19 +489,57 @@ namespace OpsSecProject.Services
                 });
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "Apache Web Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    JobName = "Apache Web Logs",
+                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Apache Web Logs"
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "SmartInsights-Apache-Web-Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                });
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "SSH Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(2).ID,
+                    JobName = "SSH Logs",
+                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/SSH Logs"
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "SmartInsights-Apache-Web-Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(2).ID,
+                });
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "Windows Security Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(3).ID,
+                    JobName = "Windows Security Logs",
+                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Windows Security Logs"
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "SmartInsights-Windows-Security-Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(3).ID,
+                });
+                _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
+                {
+                    CrawlerName = "Squid Proxy Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(4).ID,
+                    JobName = "Squid Proxy Logs",
+                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Squid Proxy Logs"
+                });
+                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
+                {
+                    PrimaryFirehoseStreamName = "SmartInsights-Windows-Security-Logs",
+                    LinkedLogInputID = _context.LogInputs.Find(4).ID,
+                });
                 int logInputCounter = 1;
                 while (logInputCounter < 5)
                 {
-                    _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
-                    {
-                        CrawlerName = "",
-                        LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID
-                    });
-                    _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
-                    {
-                        PrimaryFirehoseStreamName = "",
-                        LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID
-                    });
                     _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
                     {
                         LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID,
@@ -511,6 +550,7 @@ namespace OpsSecProject.Services
                         LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID,
                         SagemakerAlgorithm = Models.SagemakerAlgorithm.Random_Cut_Forest
                     });
+                    ++logInputCounter;
                 }
                 await _context.SaveChangesAsync();
             }
