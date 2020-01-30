@@ -1,9 +1,9 @@
-﻿@*@model IEnumerable<OpsSecProject.Models.SSHServerLogs>
+﻿@model IEnumerable<OpsSecProject.Models.SSHServerLogs>
 @{
-    ViewData["title"] = "ssh server logs";
+    ViewData["Title"] = "SSH Logs";
 }
 
-<h1 class="h3 mb-2 text-gray-800">Apache Web Logs</h1>
+<h1 class="h3 mb-2 text-gray-800">SSH logs</h1>
 <p class="mb-4"></p>
 
 <div class="
@@ -15,7 +15,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table id="sshTable" class="table">
+            <table id="sshtable" class="table">
                 <thead>
                     <tr>
                         <th scope="col">Weekday</th>
@@ -25,24 +25,24 @@
                         <th scope="col">Time</th>
                         <th scope="col">Host</th>
                         <th scope="col">Process</th>
-                        <th scope="col">Identifier</th>   
+                        <th scope="col">Identifier</th>
                         <th scope="col">Message</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var log in Model)
                     {
-                    <tr>
-                        <th scope="row">@log.weekday</th>
-                        <td>@log.month</td>
-                        <td>@log.day</td>
-                        <td>@log.year</td>
-                        <td>@log.time</td>
-                        <td>@log.host</td>
-                        <td>@log.process</td>
-                        <td>@log.identifier</td>
-                        <td>@log.message</td>
-                    </tr>
+                        <tr>
+                            <th scope="row">@log.weekday</th>
+                            <td>@log.month</td>
+                            <td>@log.day</td>
+                            <td>@log.year</td>
+                            <td>@log.time</td>
+                            <td>@log.host</td>
+                            <td>@log.process</td>
+                            <td>@log.identifier</td>
+                            <td>@log.message</td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -51,17 +51,17 @@
 </div>
 @section scripts {
     <script>
-        function Handler(event) {
-            $('#sshTable').DataTable();
+        function handler(event) {
+            $('#sshtable').datatable();
         }
         (function () {
             'use strict';
-            if (Turbolinks.supported) {
-                document.addEventListener('turbolinks:load', Handler, false);
+            if (turbolinks.supported) {
+                document.addeventlistener('turbolinks:load', handler, false);
             } else {
-                $(document).ready(Handler);
+                $(document).ready(handler);
             }
         })();
     </script>
-}*@
+}
 
