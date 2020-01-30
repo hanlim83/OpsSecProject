@@ -27,11 +27,8 @@ namespace OpsSecProject.Controllers
         private readonly AccountContext _accountContext;
         private readonly IAmazonSageMaker _Sclient;
         private readonly IAmazonSageMakerRuntime _SRClient;
-
         private IBackgroundTaskQueue _queue { get; }
-
         private readonly ILogger _logger;
-
         public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient)
         {
             _logContext = logContext;
