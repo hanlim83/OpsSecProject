@@ -31,6 +31,52 @@ namespace OpsSecProject.Controllers
             return $"Data Source={hostname},{port};Initial Catalog=IngestedData;User ID={username};Password={password};";
         }
 
+        public async Task<IActionResult> SSHLogs()
+        {
+            List<SSHServerLogs> results = new List<SSHServerLogs>();
+
+            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_ssh_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            SSHServerLogs newItem = new SSHServerLogs();
+                            if (!dr.IsDBNull(0))
+                                newItem.weekday = dr.GetString(0);
+                            if (!dr.IsDBNull(1))
+                                newItem.month = dr.GetString(1);
+                            if (!dr.IsDBNull(2))
+                                newItem.day = dr.GetString(2);
+                            if (!dr.IsDBNull(3))
+                                newItem.year = dr.GetString(3);
+                            if (!dr.IsDBNull(4))
+                                newItem.time = dr.GetString(4);
+                            if (!dr.IsDBNull(5))
+                                newItem.host = dr.GetString(5);
+                            if (!dr.IsDBNull(6))
+                                newItem.process = dr.GetString(6);
+                            if (!dr.IsDBNull(7))
+                                newItem.identifier = dr.GetString(7);
+                            if (!dr.IsDBNull(8))
+                                newItem.message = dr.GetString(8);
+                            results.Add(newItem);
+                        }
+                    }
+                
+
+
+                }
+            }
+
+            return View(results);
+
+        }
+
 
         public async Task<IActionResult> ApacheLogs()
         {
