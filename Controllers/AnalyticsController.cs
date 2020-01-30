@@ -31,48 +31,6 @@ namespace OpsSecProject.Controllers
             return $"Data Source={hostname},{port};Initial Catalog=IngestedData;User ID={username};Password={password};";
         }
 
-
-        public async Task<IActionResult> ApacheLogs()
-        {
-            List<ApacheWebLog> results = new List<ApacheWebLog>();
-
-            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
-            {
-                connection.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_apache_web_logs", connection))
-                {
-                    cmd.CommandTimeout = 0;
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            ApacheWebLog newItem = new ApacheWebLog();
-                            if (!dr.IsDBNull(0))
-                                newItem.host = dr.GetString(0);
-                            if (!dr.IsDBNull(1))
-                                newItem.ident = dr.GetString(1);
-                            if (!dr.IsDBNull(2))
-                                newItem.authuser = dr.GetString(2);
-                            if (!dr.IsDBNull(3))
-                                newItem.datetime = dr.GetString(3);
-                            if (!dr.IsDBNull(4))
-                                newItem.request = dr.GetString(4);
-                            if (!dr.IsDBNull(5))
-                                newItem.response = dr.GetString(5);
-                            if (!dr.IsDBNull(6))
-                                newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                            results.Add(newItem);
-                        }
-                    }
-
-                }
-            }
-
-            return View(results);
-
-        }
-
-
         public async Task<IActionResult> SSHLogs()
         {
             List<SSHServerLogs> results = new List<SSHServerLogs>();
@@ -120,8 +78,46 @@ namespace OpsSecProject.Controllers
         }
 
 
+        public async Task<IActionResult> ApacheLogs()
+        {
+            List<ApacheWebLog> results = new List<ApacheWebLog>();
 
+            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_apache_web_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            ApacheWebLog newItem = new ApacheWebLog();
+                            if (!dr.IsDBNull(0))
+                                newItem.host = dr.GetString(0);
+                            if (!dr.IsDBNull(1))
+                                newItem.ident = dr.GetString(1);
+                            if (!dr.IsDBNull(2))
+                                newItem.authuser = dr.GetString(2);
+                            if (!dr.IsDBNull(3))
+                                newItem.datetime = dr.GetString(3);
+                            if (!dr.IsDBNull(4))
+                                newItem.request = dr.GetString(4);
+                            if (!dr.IsDBNull(5))
+                                newItem.response = dr.GetString(5);
+                            if (!dr.IsDBNull(6))
+                                newItem.bytes = Convert.ToInt32(dr.GetString(6));
+                            results.Add(newItem);
+                        }
+                    }
 
+                }
+
+            }
+
+            return View(results);
+
+        }
 
         public async Task<IActionResult> Web()
         {

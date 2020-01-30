@@ -24,7 +24,7 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<GlueDatabaseTable>().ToTable("GlueDatabaseTables");
             modelBuilder.Entity<GlueConsolidatedEntity>().ToTable("GlueConsolidatedEntities");
             modelBuilder.Entity<KinesisConsolidatedEntity>().ToTable("KinesisConsolidatedEntities");
-            modelBuilder.Entity<KinesisConsolidatedEntity>().Property(k => k.AnalyticsEnabled).HasDefaultValue(true);
+            modelBuilder.Entity<KinesisConsolidatedEntity>().Property(k => k.AnalyticsEnabled).HasDefaultValue(false);
             modelBuilder.Entity<SagemakerConsolidatedEntity>().ToTable("SagemakerConsolidatedEntities");
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.Untrained);
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
