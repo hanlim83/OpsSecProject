@@ -9,8 +9,8 @@ namespace OpsSecProject.Models
         [Required]
         public string Name { get; set; }
         public string FilePath { get; set; }
-        // public string Pattern {get; set;}
-        // public string {get; set;}
+        public string Filter {get; set;}
+        public string InputName {get; set;}
         public string ConfigurationJSON { get; set; }
         [Required]
         public bool InitialIngest { get; set; }
