@@ -1,0 +1,67 @@
+﻿@model IEnumerable<OpsSecProject.Models.SSHServerLogs>
+@{
+    ViewData["Title"] = "SSH Logs";
+}
+
+<h1 class="h3 mb-2 text-gray-800">SSH logs</h1>
+<p class="mb-4"></p>
+
+<div class="
+
+
+     shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">SSH Logs Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="sshtable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Weekday</th>
+                        <th scope="col">Month</th>
+                        <th scope="col">Day</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Host</th>
+                        <th scope="col">Process</th>
+                        <th scope="col">Identifier</th>
+                        <th scope="col">Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <th scope="row">@log.weekday</th>
+                            <td>@log.month</td>
+                            <td>@log.day</td>
+                            <td>@log.year</td>
+                            <td>@log.time</td>
+                            <td>@log.host</td>
+                            <td>@log.process</td>
+                            <td>@log.identifier</td>
+                            <td>@log.message</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        function handler(event) {
+            $('#sshtable').datatable();
+        }
+        (function () {
+            'use strict';
+            if (turbolinks.supported) {
+                document.addeventlistener('turbolinks:load', handler, false);
+            } else {
+                $(document).ready(handler);
+            }
+        })();
+    </script>
+}
+

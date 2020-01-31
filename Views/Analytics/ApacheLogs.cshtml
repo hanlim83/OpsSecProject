@@ -1,0 +1,150 @@
+﻿@model IEnumerable<OpsSecProject.Models.ApacheWebLog>
+@{
+    ViewData["Title"] = "Apache Web Logs";
+}
+<h1 class="h3 mb-2 text-gray-800">Apache Web Logs</h1>
+<p class="mb-4"></p>
+
+<div class="
+     
+     
+     shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Apache Logs Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Host</th>
+                        @*<th scope="col">Ident</th>
+                        <th scope="col">AuthUser</th>*@
+                        @*<th scope="col">DateTime</th>*@
+                        <th scope="col">Request</th>
+                        <th scope="col">Response</th>
+                        <th scope="col">Bytes</th>
+                        <th scope="col">Referer</th>
+                        <th scope="col">Agent</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                    <tr>
+                        <th scope="row">@log.host</th>
+                        @*<td>@log.ident</td>
+                        <td>@log.authuser</td>*@
+                        @*<td>@log.datetime</td>*@
+                        <td>@log.request</td>
+                        <td>@log.response</td>
+                        <td>@log.bytes</td>
+                        <td>@log.referer</td>
+                        <td>@log.agent</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@*<div class="
+     shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Request</th>
+                   
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@log.response</td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>*@
+
+<div class="row">
+
+
+    <!-- Donut/Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">HTTP Status</h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-pie pt-4">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+                <hr>
+                Details of the various HTTP status codes as recorded based on log inputted.
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        function Handler(event) {
+            $('#apacheTable').DataTable();
+             // Set new default font family and font color to mimic Bootstrap's default styling
+            Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+            Chart.defaults.global.defaultFontColor = '#858796';
+
+            // Pie Chart Example
+            var ctx = document.getElementById("myPieChart");
+            var myPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ["Successful", "Redirect", "Client Error", "Server Error"],
+                    datasets: [{
+                        data: [100, 10, 40, 12],
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    },
+                    legend: {
+                        display: false
+                    },
+                    cutoutPercentage: 80,
+                },
+            });
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}

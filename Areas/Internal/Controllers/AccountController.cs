@@ -439,6 +439,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     currentUser.Existence = Existence.Hybrid;
                 currentUser.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(currentUser);
+                _context.Alerts.Add(new Alert
+                {
+                    Message = "You have set a password for your account recently",
+                    AlertType = AlertType.MajorInformationChange,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.NONE,
+                    LinkedUserID = currentUser.ID
+                });
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -503,6 +511,17 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             }
                             identity.Status = UserStatus.Active;
                             _context.Settings.Update(userSettings);
+                        }
+                        else if (Rtoken.Type == OpsSecProject.Models.Type.Reset)
+                        {
+                            _context.Alerts.Add(new Alert
+                            {
+                                Message = "Your password has been changed recently",
+                                AlertType = AlertType.MajorInformationChange,
+                                TimeStamp = DateTime.Now,
+                                ExternalNotificationType = ExternalNotificationType.NONE,
+                                LinkedUserID = identity.ID
+                            });
                         }
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
@@ -573,6 +592,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                 identity.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(identity);
+                _context.Alerts.Add(new Alert
+                {
+                    Message = "Your password has been changed recently",
+                    AlertType = AlertType.MajorInformationChange,
+                    TimeStamp = DateTime.Now,
+                    ExternalNotificationType = ExternalNotificationType.NONE,
+                    LinkedUserID = identity.ID
+                });
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -696,6 +723,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
                         _context.NotificationTokens.Update(Rtoken);
+                        _context.Alerts.Add(new Alert
+                        {
+                            Message = "Your email address has been changed recently",
+                            AlertType = AlertType.MajorInformationChange,
+                            TimeStamp = DateTime.Now,
+                            ExternalNotificationType = ExternalNotificationType.NONE,
+                            LinkedUserID = identity.ID
+                        });
                         await _context.SaveChangesAsync();
                         TempData["Field"] = "Email Address";
                         return RedirectToAction("SetSuccessful");
@@ -795,6 +830,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
                         _context.NotificationTokens.Update(Rtoken);
+                        _context.Alerts.Add(new Alert
+                        {
+                            Message = "Your phone number has been changed recently",
+                            AlertType = AlertType.MajorInformationChange,
+                            TimeStamp = DateTime.Now,
+                            ExternalNotificationType = ExternalNotificationType.NONE,
+                            LinkedUserID = identity.ID
+                        });
                         await _context.SaveChangesAsync();
                         TempData["Field"] = "Phone Number";
                         return RedirectToAction("SetSuccessful");

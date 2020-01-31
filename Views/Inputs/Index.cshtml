@@ -1,34 +1,123 @@
-﻿@{
+﻿@model OpsSecProject.ViewModels.InputsOverrallViewModel
+@{
     ViewData["Title"] = "Manage Log Inputs";
 
 }
+<h1 align="center">Manage Log Inputs</h1>
+<p class="mb-4"></p>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Existing Data Inputs</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Log Inputs</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table" align="center" style="margin-top:25px">
+            <table id="logInputsTable" class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Log Input Name</th>
-                        <th scope="col">Log Input Type</th>
-                        <th scope="col">Log File Path</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <th scope="row">111221092327</th>
-                        <td>.log</td>
-                        <td>C:\Users\Tom\AppData\Local\SDL\InfoShare Client\1.23\Log\111221092327.log</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">090520192328</th>
-                        <td>.txt</td>
-                        <td>C:\Users\Tom\AppData\Local\SDL\InfoShare Client\1.23\Log\111221092328.log</td>
-                    </tr>
+                    @foreach (var input in Model.inputs)
+                    {
+                        @if (Model.currentUser.LinkedRole.RoleName.Equals("Administrator"))
+                        {
+                            <tr>
+                                <th scope="row">@input.Name</th>
+                                <td>@input.LogInputCategory.ToString()</td>
+                                @if (input.LinkedUserID.Equals(Model.currentUser.ID))
+                                {
+                                    <td>You</td>
+                                }
+                                @foreach (var user in Model.allUsers)
+                                {
+                                    @if (input.LinkedUserID.Equals(user.ID) && !input.LinkedUserID.Equals(Model.currentUser.ID))
+                                    {
+                                        <td>@user.Name</td>
+                                    }
+                                }
+                                @if (input.InitialIngest == false)
+                                {
+                                    <td>Pending Log Data Input</td>
+                                }
+                                @if (input.InitialIngest == true)
+                                {
+                                    <td>Ready</td>
+                                }
+                                <td>
+                                    <div class="btn-group" role="group" aria-label="Input Actions">
+                                        <a class="btn btn-secondary" asp-controller="Home" asp-action="Streaming" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">View Events</a>
+                                        <a class="btn btn-secondary" asp-action="Manage" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Edit Input</a>
+                                        <a class="btn btn-secondary" asp-action="Remove" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Remove Input</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.currentUser.LinkedRole.RoleName.Equals("Administrator"))
+                        {
+                            <tr>
+                                <th scope="row">@input.Name</th>
+                                <td>@input.LogInputCategory.ToString()</td>
+                                @if (input.LinkedUserID.Equals(Model.currentUser.ID))
+                                {
+                                    <td>You</td>
+                                }
+                                @foreach (var user in Model.allUsers)
+                                {
+                                    @if (input.LinkedUserID.Equals(user.ID) && !input.LinkedUserID.Equals(Model.currentUser.ID))
+                                    {
+                                        <td>@user.Name</td>
+                                    }
+                                }
+                                @if (input.InitialIngest == false)
+                                {
+                                    <td>Pending Log Data Input</td>
+                                }
+                                @if (input.InitialIngest == true)
+                                {
+                                    <td>Ready</td>
+                                }
+                                @if (input.LinkedUserID.Equals(Model.currentUser.ID))
+                                {
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Input Actions">
+                                            <a class="btn btn-secondary" asp-controller="Home" asp-action="Streaming" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">View Events</a>
+                                            <a class="btn btn-secondary" asp-action="Manage" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Edit Input</a>
+                                            <a class="btn btn-secondary" asp-action="Remove" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Remove Input</a>
+                                        </div>
+                                    </td>
+                                }
+                                @if (!input.LinkedUserID.Equals(Model.currentUser.ID))
+                                {
+                                    <td>
+                                        <a class="btn btn-secondary" asp-controller="Home" asp-action="Streaming" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">View Events</a>
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+@section scripts {
+    <script>
+        function Handler(event) {
+            $('#logInputsTable').DataTable();
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}
