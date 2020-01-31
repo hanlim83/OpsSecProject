@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,7 +29,6 @@ namespace OpsSecProject.Controllers
         private readonly IAmazonSageMakerRuntime _SRClient;
         private IBackgroundTaskQueue _queue { get; }
         private readonly ILogger _logger;
-
         public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient)
         {
             _logContext = logContext;
@@ -52,11 +51,39 @@ namespace OpsSecProject.Controllers
             });
         }
 
+        public IActionResult Json()
+        {
+            return View();
+        }
+
         public IActionResult Create()
         {
             return View();
         }
 
+        [HttpPost]
+        public IActionResult Create(string FilePath, string InputName, string Filter, string LogType)
+         {
+             ViewBag.LogPath = FilePath;
+            ViewBag.LogName = InputName;
+            ViewBag.Filter = Filter;
+            ViewBag.LogType = LogType;
+
+            using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
+            {
+                writer.WriteLine(
+                    "{ \n" + 
+                    "\"Sources\" : [ \n " + 
+                    "{ \n" +
+                    "\"Id\" : \"WindowsEventLog\","
+
+
+
+                    );
+            }
+            return RedirectToAction("Json");
+            }
+            
         public async Task<IActionResult> Manage(int InputID)
         {
             return View(new InputMachineLearningViewModel
