@@ -396,7 +396,7 @@ namespace OpsSecProject.Services
                             {
                                 ConnectionProperties = new Dictionary<string, string>()
                         {
-                            { "JDBC_CONNECTION_URL", " jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
+                            { "JDBC_CONNECTION_URL", "jdbc:sqlserver://"+ Environment.GetEnvironmentVariable("RDS_HOSTNAME") + ":" + Environment.GetEnvironmentVariable("RDS_PORT") + ";databaseName=" + Environment.GetEnvironmentVariable("GLUE_INGESTION-DB_NAME")},
                             { "JDBC_ENFORCE_SSL", "false" },
                             { "USERNAME", Environment.GetEnvironmentVariable("RDS_USERNAME") },
                             { "PASSWORD", Environment.GetEnvironmentVariable("RDS_PASSWORD") },
