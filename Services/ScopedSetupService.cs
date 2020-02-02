@@ -455,7 +455,8 @@ namespace OpsSecProject.Services
                     LogInputCategory = Models.LogInputCategory.ApacheWebServer,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(3).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(3)
+                    LinkedS3Bucket = _context.S3Buckets.Find(3),
+                    InitialIngest = true
                 });
                 _context.LogInputs.Add(new Models.LogInput
                 {
@@ -465,7 +466,8 @@ namespace OpsSecProject.Services
                     LogInputCategory = Models.LogInputCategory.SSH,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(4).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(4)
+                    LinkedS3Bucket = _context.S3Buckets.Find(4),
+                    InitialIngest = true
                 });
                 _context.LogInputs.Add(new Models.LogInput
                 {
@@ -475,7 +477,8 @@ namespace OpsSecProject.Services
                     LogInputCategory = Models.LogInputCategory.WindowsEventLogs,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(5).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(5)
+                    LinkedS3Bucket = _context.S3Buckets.Find(5),
+                    InitialIngest = true
                 });
                 _context.LogInputs.Add(new Models.LogInput
                 {
@@ -485,7 +488,8 @@ namespace OpsSecProject.Services
                     LogInputCategory = Models.LogInputCategory.SquidProxy,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(6).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(6)
+                    LinkedS3Bucket = _context.S3Buckets.Find(6),
+                    InitialIngest = true
                 });
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
@@ -537,21 +541,6 @@ namespace OpsSecProject.Services
                     PrimaryFirehoseStreamName = "SmartInsights-Windows-Security-Logs",
                     LinkedLogInputID = _context.LogInputs.Find(4).ID,
                 });
-                int logInputCounter = 1;
-                while (logInputCounter < 5)
-                {
-                    _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
-                    {
-                        LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID,
-                        SagemakerAlgorithm = Models.SagemakerAlgorithm.IP_Insights
-                    });
-                    _context.SagemakerConsolidatedEntities.Add(new Models.SagemakerConsolidatedEntity
-                    {
-                        LinkedLogInputID = _context.LogInputs.Find(logInputCounter).ID,
-                        SagemakerAlgorithm = Models.SagemakerAlgorithm.Random_Cut_Forest
-                    });
-                    ++logInputCounter;
-                }
                 await _context.SaveChangesAsync();
             }
             _context.Database.CloseConnection();

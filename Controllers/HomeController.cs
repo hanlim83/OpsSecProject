@@ -39,9 +39,10 @@ namespace OpsSecProject.Controllers
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo." + dbTableName, connection))
+                using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM dbo.@TableName;", connection))
                 {
                     cmd.CommandTimeout = 0;
+                    cmd.Parameters.AddWithValue("@TableName", dbTableName);
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
                         while (dr.Read())

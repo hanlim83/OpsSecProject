@@ -1,4 +1,4 @@
-﻿@model OpsSecProject.ViewModels.InputMachineLearningViewModel
+﻿@model OpsSecProject.Models.LogInput
 @{
     ViewData["Title"] = "Machine Learning";
 }
@@ -29,43 +29,51 @@
 
     </div>
 }
-<h1 class="h3 mb-2 text-gray-800">Machine Learning</h1>
+<h1 class="h3 mb-2 text-gray-800">Manage Log Input</h1>
 <p class="mb-4"></p>
 <div class="container-fluid">
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Log Input Details</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
         </div>
         <div class="card-body">
             <form>
                 <div class="form-group row">
-                    <label asp-for="LogInput.ID" class="col-sm-4 col-form-label">Log Input ID</label>
+                    <label asp-for="Name" class="col-sm-4 col-form-label">Log Input Name</label>
                     <div class="col-sm-8">
-                        <input asp-for="LogInput.ID" readonly class="form-control-plaintext" value="@Model.LogInput.ID">
+                        <input asp-for="Name" readonly class="form-control-plaintext" value="@Model.Name">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label asp-for="LogInput.Name" class="col-sm-4 col-form-label">Log Input Name</label>
+                    <label asp-for="LinkedS3Bucket.Name" class="col-sm-4 col-form-label">S3 Bucket</label>
                     <div class="col-sm-8">
-                        <input asp-for="LogInput.Name" readonly class="form-control-plaintext" value="@Model.LogInput.Name">
+                        <input asp-for="LinkedS3Bucket.Name" readonly class="form-control-plaintext" value="@Model.LinkedS3Bucket.Name">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label asp-for="LogInput.LinkedS3Bucket.Name" class="col-sm-4 col-form-label">S3 Log Input Specific Bucket Name</label>
+                    <label asp-for="InitialIngest" class="col-sm-4 col-form-label">Status</label>
                     <div class="col-sm-8">
-                        <input asp-for="LogInput.LinkedS3Bucket.Name" readonly class="form-control-plaintext" value="@Model.LogInput.LinkedS3Bucket.Name">
+                        @if (Model.InitialIngest == false)
+                        {
+                            <input asp-for="InitialIngest" type="text" readonly class="form-control-plaintext" value="Waiting for events">
+                        }
+                        @if (Model.InitialIngest == true)
+                        {
+                            <input asp-for="InitialIngest" type="text" readonly class="form-control-plaintext" value="Receiving and Processing Events">
+                        }
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label asp-for="LogInput.LinkedSagemakerEntities.ElementAt(0).SagemakerStatus" class="col-sm-4 col-form-label">Log Input Sagemaker Status (IP Insights)</label>
+                    <label class="col-sm-4 col-form-label">Total Event Count</label>
                     <div class="col-sm-8">
-                        <input asp-for="LogInput.LinkedSagemakerEntities.ElementAt(0).SagemakerStatus" readonly class="form-control-plaintext" value="@Model.LogInput.LinkedSagemakerEntities.ElementAt(0).SagemakerStatus.ToString()">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label asp-for="LogInput.LinkedSagemakerEntities.ElementAt(1).SagemakerStatus" class="col-sm-4 col-form-label">Log Input Sagemaker Status (Random Cut Forest)</label>
-                    <div class="col-sm-8">
-                        <input asp-for="LogInput.LinkedSagemakerEntities.ElementAt(1).SagemakerStatus" readonly class="form-control-plaintext" value="@Model.LogInput.LinkedSagemakerEntities.ElementAt(1).SagemakerStatus.ToString()">
+                        @if (Model.InitialIngest == false)
+                        {
+                            <input readonly class="form-control-plaintext" value="0">
+                        }
+                        @if (Model.InitialIngest == true)
+                        {
+                            <input readonly class="form-control-plaintext" value="@ViewData["LogInputEventCount"]">
+                        }
                     </div>
                 </div>
             </form>
@@ -76,41 +84,107 @@
     <div class="col-lg-6">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Create Training Job (IP Insights)</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Machine Learning (IP Insights Algorithm)</h6>
             </div>
             <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="TrainingIPInsights">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Training Dataset</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
+                <form class="needs-validation" novalidate asp-action="StartTrainingIPS">
+                    <div class="form-group text-center">
+                        <h6 class="mb-3">Training Type:</h6>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="TrainingType" value="Auto" id="IPSTrainingTypeAuto" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+                            <label class="custom-control-label" for="IPSTrainingTypeAuto">Automatic Training</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="TrainingType" value="Manual" id="IPSTrainingTypeManual" class="custom-control-input" required onclick="$('.ips-field-selection').show();">
+                            <label class="custom-control-label" for="IPSTrainingTypeManual">Manual Training</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
+                    <div class="form-group ips-field-selection" style="display:none;">
+                        <label for="IdentitySourceFieldSelect">Select field that contains the Identity</label>
+                        <select name="identitySourceField" id="IdentitySourceFieldSelect" class="custom-select" required>
+                            @foreach (var field in ViewBag.fields)
+                            {
+                                @if (string.Equals(field, ViewData["DefaultUserFieldIPS"]))
+                                {
+                                    <option selected value="@field">@field</option>
+                                }
+                                <option value="@field">@field</option>
+                            }
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Create Training Job</button>
-                </form>
-            </div>
-        </div>
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Create Inference Endpoint (IP Insights)</h6>
-            </div>
-            <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="DeployingIPInsights">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Training Dataset</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
+                    <div class="form-group ips-field-selection" style="display:none;">
+                        <label for="IPAddressSourceFieldSelect">Select field that contains the ip address</label>
+                        <select name="ipAddressSourceField" id="IPAddressSourceFieldSelect" class="custom-select" required>
+                            @foreach (var field in ViewBag.fields)
+                            {
+                                @if (string.Equals(field, ViewData["DefaultIPAddressFieldIPS"]))
+                                {
+                                    <option selected value="@field">@field</option>
+                                }
+                                <option value="@field">@field</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group ips-field-selection" style="display:none;">
+                        <label for="CondtionSourceFieldSelect">Select field that used to determine what events should be used for training</label>
+                        <select name="condtionSourceField" id="CondtionSourceFieldSelect" class="custom-select" required>
+                            @foreach (var field in ViewBag.fields)
+                            {
+                                @if (string.Equals(field, ViewData["DefaultConditionFieldIPS"]))
+                                {
+                                    <option selected value="@field">@field</option>
+                                }
+                                <option value="@field">@field</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group text-center ips-field-selection" style="display:none;">
+                        <h6 class="mb-3">Condition Type:</h6>
+                        @if (Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Equals" id="ConditionTypeEquals" class="custom-control-input" checked required>
+                                <label class="custom-control-label" for="ConditionTypeEquals">Matches</label>
+                            </div>
+                        }
+                        @if (!Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Equals" id="ConditionTypeEquals" class="custom-control-input" required>
+                                <label class="custom-control-label" for="ConditionTypeEquals">Matches</label>
+                            </div>
+                        }
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="ConditionType" value="NotEquals" id="ConditionTypeNotEquals" class="custom-control-input" required>
+                            <label class="custom-control-label" for="ConditionTypeNotEquals">Does not match</label>
+                        </div>
+                        @if (Model.LogInputCategory.Equals(LogInputCategory.SSH))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" checked required>
+                                <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                            </div>
+                        }
+                        @if (!Model.LogInputCategory.Equals(LogInputCategory.SSH))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" required>
+                                <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                            </div>
+                        }
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="ConditionType" value="NotSimilar" id="ConditionTypeNotSimilar" class="custom-control-input" required>
+                            <label class="custom-control-label" for="ConditionTypeNotSimilar">Not similar to</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
+                    <div class="form-group ips-field-selection" style="display:none;">
+                        <label for="CondtionInput">Specify the condtion used to determine what events should be used for training</label>
+                        <input type="text" class="form-control" name="Condtion" id="CondtionInput" value="@ViewData["DefaultConditionIPS"]" required />
                     </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Deploy Model</button>
+                    <div class="form-group">
+                        <input type="hidden" asp-for="ID" value="@Model.ID" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary formBtnSubmit">Start Machine Learning</button>
                 </form>
             </div>
         </div>
@@ -118,87 +192,71 @@
     <div class="col-lg-6">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Create HyperParameter Tuning Job (IP Insights)</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Machine Learning (Random Cut Forest Algorithm)</h6>
             </div>
             <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="TuningIPInsights">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Training Dataset</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
+                <form class="needs-validation" novalidate asp-action="StartTrainingRCF">
+                    <div class="form-group text-center">
+                        <h6 class="mb-3">Training Type:</h6>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="TrainingType" value="Auto" id="RCFTrainingTypeAuto" class="custom-control-input" required onclick="$('.rcf-field-selection').hide();">
+                            <label class="custom-control-label" for="RCFTrainingTypeAuto">Automatic Training</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="TrainingType" value="Manual" id="RCFTrainingTypeManual" class="custom-control-input" required onclick="$('.rcf-field-selection').show();">
+                            <label class="custom-control-label" for="RCFTrainingTypeManual">Manual Training</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
+                    <div class="form-group rcf-field-selection" style="display:none;">
+                        <label for="CondtionSourceFieldSelect">Select field that used to determine what events should be used for training</label>
+                        <select name="condtionSourceField" id="CondtionSourceFieldSelect" class="custom-select" required>
+                            @foreach (var field in ViewBag.fields)
+                            {
+                                @if (string.Equals(field, ViewData["DefaultConditionFieldRCF"]))
+                                {
+                                    <option selected value="@field">@field</option>
+                                }
+                                <option value="@field">@field</option>
+                            }
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Create HyperParameter Tuning Job</button>
-                </form>
-            </div>
-        </div>
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Perform Batch Transform (IP Insights)</h6>
-            </div>
-            <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="TransformingIPInsights">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Data</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
+                    <div class="form-group text-center rcf-field-selection" style="display:none;">
+                        <h6 class="mb-3">Condition Type:</h6>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="ConditionType" value="Equals" id="ConditionTypeEquals" class="custom-control-input" required>
+                            <label class="custom-control-label" for="ConditionTypeEquals">Matches</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="ConditionType" value="NotEquals" id="ConditionTypeNotEquals" class="custom-control-input" required>
+                            <label class="custom-control-label" for="ConditionTypeNotEquals">Does not match</label>
+                        </div>
+                        @if (Model.LogInputCategory.Equals(LogInputCategory.SSH) || Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" checked required>
+                                <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                            </div>
+                        }
+                        @if (!Model.LogInputCategory.Equals(LogInputCategory.SSH) && !Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        {
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" required>
+                                <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                            </div>
+                        }
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" name="ConditionType" value="NotSimilar" id="ConditionTypeNotSimilar" class="custom-control-input" required>
+                            <label class="custom-control-label" for="ConditionTypeNotSimilar">Not similar to</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
-                    </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Transform Data</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg-6">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Create Training Job (Random Cut Forst)</h6>
-            </div>
-            <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="TrainingRandomCutForest">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Training Dataset</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
-                        </div>
+                    <div class="form-group rcf-field-selection" style="display:none;">
+                        <label for="CondtionInput">Specify the condtion used to determine what events should be used for training</label>
+                        <input type="text" class="form-control" name="Condtion" id="CondtionInput" value="@ViewData["DefaultConditionRCF"]" required />
                     </div>
                     <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
+                        <input type="hidden" asp-for="ID" value="@Model.ID" required />
                     </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Create Training Job</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Create Inference Endpoint (Random Cut Forest)</h6>
-            </div>
-            <div class="card-body">
-                <form class="needs-validation" novalidate asp-action="DeployingRandomCutForest">
-                    <div class="form-group">
-                        <label asp-for="s3InputPath">Relative Path to Training Dataset</label>
-                        <input asp-for="s3InputPath" class="form-control" required>
-                        <div class="invalid-feedback">
-                            Please enter a relative path
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
-                    </div>
-                    <button type="submit" class="btn btn-primary formBtnSubmit">Deploy Model</button>
+                    <button type="submit" class="btn btn-primary formBtnSubmit">Start Machine Learning</button>
                 </form>
             </div>
         </div>
@@ -207,32 +265,85 @@
 <div class="container-fluid">
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Get Inference</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Get Inference From Machine Learning Model</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="machineLearningTable" class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Algorithm</th>
+                            <th scope="col">Condition Field</th>
+                            <th scope="col">Condition</th>
+                            <th scope="col">Field with IP Address</th>
+                            <th scope="col">Field with Identity</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sagemaker in Model.LinkedSagemakerEntities)
+                        {
+                            <tr>
+                                <th scope="row">@sagemaker.SagemakerAlgorithm.ToString()</th>
+                                <td>@sagemaker.CondtionalField</td>
+                                <td>@sagemaker.Condtion</td>
+                                @if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.IP_Insights))
+                                {
+                                    <td>@sagemaker.IPAddressField</td>
+                                    <td>@sagemaker.UserField</td>
+                                }
+                                @if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.Random_Cut_Forest))
+                                {
+                                    <td colspan="2">N.A.</td>
+                                }
+                                <td>@sagemaker.SagemakerStatus.ToString()</td>
+                                <td></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Get Inference From Machine Learning Model</h6>
         </div>
         <div class="card-body">
             <form class="needs-validation" novalidate asp-action="Inferencing">
                 <div class="form-group">
-                    <label asp-for="algoritithmChoice">Choose Algoritithm</label>
-                    <select class="custom-select" asp-for="algoritithmChoice" required>
-                        <option value="0">IP Insights</option>
-                        <option value="1">Random Cut Forest</option>
-                    </select>
-                    <div class="invalid-feedback">
-                        Please select the algoritithm
-                    </div>
+                    <input type="hidden" name="SageMakerID" id="SageMakerID" required />
                 </div>
                 <div class="form-group">
-                    <label asp-for="predictionInputContent">Data to predict</label>
-                    <textarea asp-for="predictionInputContent" class="form-control" required></textarea>
+                    <label for="predictionInputContent">Data to predict</label>
+                    <textarea name="predictionInputContent" id="predictionInputContent" class="form-control" required disabled></textarea>
                     <div class="invalid-feedback">
                         Please enter the data to infer from
                     </div>
                 </div>
                 <div class="form-group">
-                    <input type="hidden" asp-for="LogInputID" value="@Model.LogInput.ID" />
+                    <input type="hidden" asp-for="ID" value="@Model.ID" required />
                 </div>
-                <button type="submit" class="btn btn-primary formBtnSubmit">Transform Data</button>
+                <button type="submit" class="btn btn-primary formBtnSubmit">Get Inference</button>
             </form>
         </div>
     </div>
 </div>
+@section scripts {
+    <script>
+        function Handler(event) {
+            $('#machineLearningTable').DataTable();
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}
