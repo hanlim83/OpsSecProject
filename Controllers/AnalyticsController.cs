@@ -15,12 +15,13 @@ using System.IO;
 using System.Text;
 
 
+
 namespace OpsSecProject.Controllers
 {
     public class AnalyticsController : Controller
     {
 
-
+        
         private static string GetRdsConnectionString()
         {
             string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
@@ -80,11 +81,22 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> ApacheLogs()
         {
-            List<ApacheWebLog> results = new List<ApacheWebLog>();
+
+            var vm = new ListViewModel
+            {
+                
+                results = new List<ApacheWebLog>(),
+                charts = new List<ApacheWebLog>(),
+                count = new List<ApacheWebLog>(),
+                groupBy = new List<ApacheWebLog>()
+               
+            };
 
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
+
+                // Get values to populate table
                 using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_apache_web_logs", connection))
                 {
                     cmd.CommandTimeout = 0;
@@ -107,15 +119,94 @@ namespace OpsSecProject.Controllers
                                 newItem.response = dr.GetString(5);
                             if (!dr.IsDBNull(6))
                                 newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                            results.Add(newItem);
+                            vm.results.Add(newItem);
                         }
+
+                    }
+
+                }
+
+                // Get value for response table 
+                using (SqlCommand cmd = new SqlCommand("SELECT DISTINCT response FROM dbo.smartinsights_apache_web_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            ApacheWebLog newItem = new ApacheWebLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.response = dr.GetString(0);
+
+                            Console.WriteLine(newItem);
+                            vm.charts.Add(newItem);
+                            
+                        }
+
+                    }
+
+                }
+
+                //Get count for response table
+              
+                using (SqlCommand cmd = new SqlCommand("SELECT COUNT(DISTINCT response) FROM dbo.smartinsights_apache_web_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            ApacheWebLog newItem = new ApacheWebLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.response = Convert.ToString(dr.GetInt32(0));
+                                
+                            Console.WriteLine(newItem);
+                            vm.count.Add(newItem);
+
+                        }
+
+                    }
+
+                }
+
+                //Get count group by for response table
+
+                using (SqlCommand cmd = new SqlCommand("SELECT response, COUNT(*) FROM dbo.smartinsights_apache_web_logs GROUP BY response", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        List<String> countXaxis = new List<string>();
+                        List<String> responsecodeYaxis = new List<string>();
+
+                        while (dr.Read())
+                        {
+                            ApacheWebLog newItem = new ApacheWebLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.response = dr.GetString(0);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+
+
+                            //responsecodeYaxis.Add(newItem.response)
+                            //countXaxis.Add(newItem.COUNT);
+                            ViewBag.countxasis = countXaxis;
+                            ViewBag.responsecodeyaxis = responsecodeYaxis;
+                            
+                            vm.groupBy.Add(newItem);
+
+
+                        }
+
                     }
 
                 }
 
             }
 
-            return View(results);
+            return View(vm);
 
         }
 
