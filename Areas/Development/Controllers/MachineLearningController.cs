@@ -204,7 +204,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                     entity.EndpointConfigurationName = createEndpointConfigRequest.EndpointConfigName;
                     entity.EndpointJobARN = createEndpointResponse.EndpointArn;
                     entity.EndpointName = createEndpointRequest.EndpointName;
-                    entity.ModelName = createModelRequest.ModelName;
+                    entity.CurrentModelName = createModelRequest.ModelName;
                     _context.SagemakerConsolidatedEntities.Update(entity);
                     await _context.SaveChangesAsync();
                     TempData["Alert"] = "Success";
@@ -355,7 +355,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                 CreateTransformJobRequest createTransformJobRequest = new CreateTransformJobRequest
                 {
                     TransformJobName = _context.LogInputs.Find(1).Name + "BatchTransform" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
-                    ModelName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName,
+                    ModelName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).CurrentModelName,
                     TransformInput = new TransformInput
                     {
                         CompressionType = CompressionType.None,
@@ -417,12 +417,12 @@ namespace OpsSecProject.Areas.Development.Controllers
                 if (data.algoritithmChoice.Equals(AlgoritithmChoice.IPInsights))
                 {
                     invokeEndpointRequest.EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).EndpointName;
-                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).ModelName;
+                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(0).CurrentModelName;
                 }
                 else if (data.algoritithmChoice.Equals(AlgoritithmChoice.RandomCutForest))
                 {
                     invokeEndpointRequest.EndpointName = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).EndpointName;
-                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).ModelName;
+                    invokeEndpointRequest.TargetModel = _context.LogInputs.Find(1).LinkedSagemakerEntities.ElementAt(1).CurrentModelName;
                 }
                 InvokeEndpointResponse invokeEndpointResponse = await _SRClient.InvokeEndpointAsync(invokeEndpointRequest);
                 if (invokeEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
@@ -618,7 +618,7 @@ namespace OpsSecProject.Areas.Development.Controllers
                     entity.EndpointConfigurationName = createEndpointConfigRequest.EndpointConfigName;
                     entity.EndpointJobARN = createEndpointResponse.EndpointArn;
                     entity.EndpointName = createEndpointRequest.EndpointName;
-                    entity.ModelName = createModelRequest.ModelName;
+                    entity.CurrentModelName = createModelRequest.ModelName;
                     _context.SagemakerConsolidatedEntities.Update(entity);
                     await _context.SaveChangesAsync();
                     TempData["Alert"] = "Success";
