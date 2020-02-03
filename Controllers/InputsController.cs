@@ -37,7 +37,7 @@ namespace OpsSecProject.Controllers
         private readonly IAmazonS3 _S3Client;
         private IBackgroundTaskQueue _queue { get; }
         private readonly ILogger _logger;
-        
+
         public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient, IAmazonS3 S3Client)
         {
             _logContext = logContext;
@@ -73,8 +73,8 @@ namespace OpsSecProject.Controllers
 
         [HttpPost]
         public IActionResult Create(string FilePath, string InputName, string Filter, string LogType)
-         {
-             ViewBag.LogPath = FilePath;
+        {
+            ViewBag.LogPath = FilePath;
             ViewBag.LogName = InputName;
             ViewBag.Filter = Filter;
             ViewBag.LogType = LogType;
@@ -82,8 +82,8 @@ namespace OpsSecProject.Controllers
             using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
             {
                 writer.WriteLine(
-                    "{ \n" + 
-                    "\"Sources\" : [ \n " + 
+                    "{ \n" +
+                    "\"Sources\" : [ \n " +
                     "{ \n" +
                     "\"Id\" : \"WindowsEventLog\","
 
@@ -92,8 +92,9 @@ namespace OpsSecProject.Controllers
                     );
             }
             return RedirectToAction("Json");
-            }
-            
+        }
+
+        /*
         public async Task<IActionResult> Manage(int InputID)
         {
             ViewBag.LogPath = FilePath;
@@ -115,6 +116,7 @@ namespace OpsSecProject.Controllers
             }
             return RedirectToAction("Json");
         }
+        */
 
         public async Task<IActionResult> Manage(int InputID)
         {
@@ -158,7 +160,8 @@ namespace OpsSecProject.Controllers
                 ViewData["DefaultConditionIPS"] = "GET /login_success HTTP/1.0";
                 ViewData["DefaultConditionFieldRCF"] = "response";
                 ViewData["DefaultConditionRCF"] = "5";
-            } else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
+            }
+            else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
             {
                 ViewData["DefaultUserFieldIPS"] = "message";
                 ViewData["DefaultIPAddressFieldIPS"] = "message";
