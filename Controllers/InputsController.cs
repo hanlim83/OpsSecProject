@@ -63,12 +63,12 @@ namespace OpsSecProject.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("FilePath", "InputName", "Filter", "LogType")]LogInput inputs)
-        {
-            ViewBag.LogPath = inputs.FilePath;
-            ViewBag.LogName = inputs.InputName;
-            ViewBag.Filter = inputs.Filter;
-            ViewBag.LogType = inputs.LogType;
+        public IActionResult Create(string FilePath, string InputName, string Filter, string LogType)
+         {
+             ViewBag.LogPath = FilePath;
+            ViewBag.LogName = InputName;
+            ViewBag.Filter = Filter;
+            ViewBag.LogType = LogType;
 
             using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
             {
@@ -84,7 +84,7 @@ namespace OpsSecProject.Controllers
             }
             return RedirectToAction("Json");
             }
-
+            
         public async Task<IActionResult> Manage(int InputID)
         {
             return View(new InputMachineLearningViewModel
