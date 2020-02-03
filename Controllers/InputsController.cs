@@ -37,6 +37,7 @@ namespace OpsSecProject.Controllers
         private readonly IAmazonS3 _S3Client;
         private IBackgroundTaskQueue _queue { get; }
         private readonly ILogger _logger;
+        
         public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient, IAmazonS3 S3Client)
         {
             _logContext = logContext;
@@ -72,6 +73,28 @@ namespace OpsSecProject.Controllers
 
         [HttpPost]
         public IActionResult Create(string FilePath, string InputName, string Filter, string LogType)
+         {
+             ViewBag.LogPath = FilePath;
+            ViewBag.LogName = InputName;
+            ViewBag.Filter = Filter;
+            ViewBag.LogType = LogType;
+
+            using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
+            {
+                writer.WriteLine(
+                    "{ \n" + 
+                    "\"Sources\" : [ \n " + 
+                    "{ \n" +
+                    "\"Id\" : \"WindowsEventLog\","
+
+
+
+                    );
+            }
+            return RedirectToAction("Json");
+            }
+            
+        public async Task<IActionResult> Manage(int InputID)
         {
             ViewBag.LogPath = FilePath;
             ViewBag.LogName = InputName;
