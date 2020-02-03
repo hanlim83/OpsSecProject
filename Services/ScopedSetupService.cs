@@ -451,6 +451,7 @@ namespace OpsSecProject.Services
                 {
                     ID = 1,
                     Name = "Apache Web Logs",
+                    FirehoseStreamName = "SmartInsights-Apache-Web-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.ApacheWebServer,
                     LinkedUserID = 1,
@@ -462,6 +463,7 @@ namespace OpsSecProject.Services
                 {
                     ID = 2,
                     Name = "SSH Session Logs",
+                    FirehoseStreamName = "SmartInsights-SSH-Login-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.SSH,
                     LinkedUserID = 1,
@@ -473,6 +475,7 @@ namespace OpsSecProject.Services
                 {
                     ID = 3,
                     Name = "Windows Security Logs",
+                    FirehoseStreamName = "SmartInsights-Windows-Security-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.WindowsEventLogs,
                     LinkedUserID = 1,
@@ -484,6 +487,7 @@ namespace OpsSecProject.Services
                 {
                     ID = 4,
                     Name = "Squid Proxy Server Logs",
+                    FirehoseStreamName = "SmartInsights-Cisco-Squid-Proxy-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.SquidProxy,
                     LinkedUserID = 1,
@@ -497,49 +501,25 @@ namespace OpsSecProject.Services
                 {
                     CrawlerName = "Apache Web Logs",
                     LinkedLogInputID = _context.LogInputs.Find(1).ID,
-                    JobName = "Apache Web Logs",
-                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Apache Web Logs"
-                });
-                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
-                {
-                    PrimaryFirehoseStreamName = "SmartInsights-Apache-Web-Logs",
-                    LinkedLogInputID = _context.LogInputs.Find(1).ID,
+                    JobName = "Apache Web Logs"
                 });
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
                     CrawlerName = "SSH Logs",
                     LinkedLogInputID = _context.LogInputs.Find(2).ID,
-                    JobName = "SSH Logs",
-                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/SSH Logs"
-                });
-                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
-                {
-                    PrimaryFirehoseStreamName = "SmartInsights-Apache-Web-Logs",
-                    LinkedLogInputID = _context.LogInputs.Find(2).ID,
+                    JobName = "SSH Logs"
                 });
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
                     CrawlerName = "Windows Security Logs",
                     LinkedLogInputID = _context.LogInputs.Find(3).ID,
-                    JobName = "Windows Security Logs",
-                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Windows Security Logs"
-                });
-                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
-                {
-                    PrimaryFirehoseStreamName = "SmartInsights-Windows-Security-Logs",
-                    LinkedLogInputID = _context.LogInputs.Find(3).ID,
+                    JobName = "Windows Security Logs"
                 });
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
                     CrawlerName = "Squid Proxy Logs",
                     LinkedLogInputID = _context.LogInputs.Find(4).ID,
-                    JobName = "Squid Proxy Logs",
-                    JobScriptLocation = "s3://aws-glue-scripts-188363912800-ap-southeast-1/root/Squid Proxy Logs"
-                });
-                _context.KinesisConsolidatedEntities.Add(new Models.KinesisConsolidatedEntity
-                {
-                    PrimaryFirehoseStreamName = "SmartInsights-Windows-Security-Logs",
-                    LinkedLogInputID = _context.LogInputs.Find(4).ID,
+                    JobName = "Squid Proxy Logs"
                 });
                 await _context.SaveChangesAsync();
             }
