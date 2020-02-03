@@ -56,7 +56,8 @@ namespace OpsSecProject.Data
                 {
                     LinkedUserID = 1,
                     LinkedUser = context.Users.Find(1),
-                    CommmuicationOptions = CommmuicationOptions.SMS
+                    CommmuicationOptions = CommmuicationOptions.SMS,
+                    AutoTrain = true
                 });
                 context.Alerts.Add(new Alert
                 {

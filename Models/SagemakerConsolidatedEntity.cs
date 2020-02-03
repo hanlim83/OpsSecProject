@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace OpsSecProject.Models
 {
@@ -12,16 +13,35 @@ namespace OpsSecProject.Models
     }
     public enum SagemakerAlgorithm
     {
-        IP_Insights,Random_Cut_Forest
+        IP_Insights, Random_Cut_Forest
+    }
+    public enum TrainingType
+    {
+        Automatic, Manual
     }
     public class SagemakerConsolidatedEntity
     {
         public int ID { get; set; }
         [Required]
         public SagemakerAlgorithm SagemakerAlgorithm { get; set; }
+        [Required]
+        public TrainingType TrainingType { get; set; }
+        [Required]
+        public string CondtionalField { get; set; }
+        [Required]
+        public string Condtion { get; set; }
+        public string IPAddressField { get; set; }
+        public string UserField { get; set; }
+        [Required]
+        public string CurrentInputDataKey { get; set; }
+        public string[] DeprecatedInputDataKeys { get; set; }
+        public string CurrentModelFileKey { get; set; }
+        public string CheckpointKey { get; set; }
+        public double Threshold { get; set; }
         public SagemakerStatus SagemakerStatus { get; set; }
         public SagemakerErrorStage SagemakerErrorStage { get; set; }
-        public string ModelName { get; set; }
+        public string CurrentModelName { get; set; }
+        public string[] DeprecatedModelNames { get; set; }
         public string TrainingJobName { get; set; }
         public string TrainingJobARN { get; set; }
         public string EndpointConfigurationName { get; set; }
