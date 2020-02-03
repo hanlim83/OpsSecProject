@@ -14,12 +14,7 @@ namespace OpsSecProject.Models
         public string Name { get; set; }
         public string FilePath { get; set; }
         public string Filter {get; set;}
-
-        public string InputName {get; set;}
-
-
         [Required]
-
         public LogInputCategory LogInputCategory { get; set; }
         [Required]
         public string ConfigurationJSON { get; set; }
