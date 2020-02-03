@@ -12,8 +12,8 @@ namespace OpsSecProject.Controllers
     public class AlertsController : Controller
     {
         private readonly AccountContext _context;
-        
-        public AlertsController (AccountContext context)
+
+        public AlertsController(AccountContext context)
         {
             _context = context;
         }
@@ -23,9 +23,7 @@ namespace OpsSecProject.Controllers
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
             User user = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
-            return View(new 
-
-
+            return View(new AlertsViewModel
             {
                 allAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).ToList(),
                 successAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess)).ToList().Count(),

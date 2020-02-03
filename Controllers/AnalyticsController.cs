@@ -9,7 +9,6 @@ using OpsSecProject.Data;
 using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Models;
 using System.Configuration;
-using System.Data.SqlClient;
 using System.Net.Sockets;
 using System.IO;
 using System.Text;
