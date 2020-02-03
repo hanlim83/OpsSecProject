@@ -26,6 +26,7 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<Settings>().ToTable("Activities");
             modelBuilder.Entity<Settings>().ToTable("Settings");
             modelBuilder.Entity<Settings>().Property(s => s.Always2FA).HasDefaultValue(false);
+            modelBuilder.Entity<Settings>().Property(s => s.AutoTrain).HasDefaultValue(true);
             modelBuilder.Entity<Alert>().ToTable("Alerts");
             modelBuilder.Entity<Alert>().Property(a => a.Read).HasDefaultValue(false);
         }
