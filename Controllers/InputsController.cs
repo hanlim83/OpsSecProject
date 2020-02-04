@@ -72,12 +72,14 @@ namespace OpsSecProject.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(string FilePath, string InputName, string Filter, string LogType)
+        public async Task<IActionResult> Create([Bind("FilePath", "Name", "Filter", "LogType", "LogInputCategory")]LogInput input)
         {
-            ViewBag.LogPath = FilePath;
-            ViewBag.LogName = InputName;
-            ViewBag.Filter = Filter;
-            ViewBag.LogType = LogType;
+            
+            ViewBag.LogPath = input.FilePath;
+            ViewBag.LogName = input.Name;
+            ViewBag.Filter = input.Filter;
+            ViewBag.LogType = input.LogType;
+            ViewBag.LogInput = input.LogInputCategory;
 
             using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
             {
@@ -546,4 +548,5 @@ namespace OpsSecProject.Controllers
         public string field1 { get; set; }
         public string field2 { get; set; }
     }
+   
 }

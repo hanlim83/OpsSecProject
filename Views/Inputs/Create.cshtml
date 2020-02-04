@@ -38,7 +38,7 @@
 
             <tr>
                 <td>Log Input:</td>
-                <td>@Html.DropDownList("Log Input", listItems, new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("LogInputCategory", listItems, "LogInputCategory" ,new { @class = "form-control" })</td>
             </tr>
 
             <tr>
@@ -62,12 +62,12 @@
                     });
                 }
                 <td>Types of Log:</td>
-                <td>@Html.DropDownList("LogTypes", listItems2, new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("LogType", listItems2,"LogType" ,new { @class = "form-control" })</td>
             </tr>
 
             <tr>
                 <td>Name of Log Input:</td>
-                <td><input id="InputName" name="InputName" type="text" class="form-control bg-light small" /></td>
+                <td><input id="Name" name="Name" type="text" class="form-control bg-light small" /></td>
             </tr>
 
             <tr>
@@ -76,7 +76,7 @@
             </tr>
 
             <tr>
-                <td><input type="submit" value="Submit" placeholder="*.log" class="btn btn-primary"/></td>
+                <td><input type="submit" value="Submit" placeholder="*.log" class="btn btn-primary" /></td>
             </tr>
         </table>
     </div>
