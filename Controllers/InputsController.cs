@@ -294,8 +294,8 @@ namespace OpsSecProject.Controllers
                 RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
                 StoppingCondition = new StoppingCondition
                 {
-                    MaxRuntimeInSeconds = 14400,
-                    MaxWaitTimeInSeconds = 86400
+                    MaxRuntimeInSeconds = 3600,
+                    MaxWaitTimeInSeconds = 3600
                 },
                 Tags = new List<Tag>
                 {
@@ -447,7 +447,7 @@ namespace OpsSecProject.Controllers
                             {
                                 S3DataDistributionType = S3DataDistribution.ShardedByS3Key,
                                 S3DataType = S3DataType.S3Prefix,
-                                S3Uri = "s3://" + _logContext.S3Buckets.Find(2).Name + inputDataKey.Substring(0,inputDataKey.Length - 28)
+                                S3Uri = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + inputDataKey.Substring(0,inputDataKey.Length - 28)
                             }
                         },
                         ContentType = "text/csv"
@@ -466,8 +466,8 @@ namespace OpsSecProject.Controllers
                 RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
                 StoppingCondition = new StoppingCondition
                 {
-                    MaxRuntimeInSeconds = 14400,
-                    MaxWaitTimeInSeconds = 86400
+                    MaxRuntimeInSeconds = 3600,
+                    MaxWaitTimeInSeconds = 3600
                 },
                 Tags = new List<Tag>
                 {
@@ -517,6 +517,114 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Manage", new { InputID = retrieved.ID });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> DeployModel(int ID)
+        {
+            SagemakerConsolidatedEntity operatedEntity = await _logContext.SagemakerConsolidatedEntities.FindAsync(ID);
+            string currentModel = operatedEntity.CurrentModelName;
+            string endpointConfig = operatedEntity.EndpointConfigurationName;
+            string endpointName = operatedEntity.LinkedLogInput.Name + "EndpointName" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            if (currentModel == null && operatedEntity.DeprecatedModelNames.Length == 0)
+            {
+                currentModel = operatedEntity.LinkedLogInput.Name.Replace(" ", "-") + "Model" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+                CreateModelRequest createModelRequest = new CreateModelRequest
+                {
+                    EnableNetworkIsolation = false,
+                    ModelName = currentModel,
+                    ExecutionRoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                }
+                };
+                if (operatedEntity.SagemakerAlgorithm.Equals(SagemakerAlgorithm.IP_Insights))
+                    createModelRequest.PrimaryContainer = new ContainerDefinition
+                    {
+                        Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
+                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey
+                    };
+                else if (operatedEntity.SagemakerAlgorithm.Equals(SagemakerAlgorithm.Random_Cut_Forest))
+                    createModelRequest.PrimaryContainer = new ContainerDefinition
+                    {
+                        Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/randomcutforest:1",
+                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey
+                    };
+                CreateModelResponse createModelResponse = await _Sclient.CreateModelAsync(createModelRequest);
+                if (createModelResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    operatedEntity.CurrentModelName = currentModel;
+            }
+            if (endpointConfig == null)
+            {
+                endpointConfig = operatedEntity.LinkedLogInput.Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+                CreateEndpointConfigRequest createEndpointConfigRequest = new CreateEndpointConfigRequest
+                {
+                    EndpointConfigName = endpointConfig,
+                    ProductionVariants = new List<ProductionVariant>
+                {
+                    new ProductionVariant
+                    {
+                        VariantName = operatedEntity.LinkedLogInput.Name + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                        ModelName = currentModel,
+                        InitialInstanceCount = 1,
+                        InstanceType = ProductionVariantInstanceType.MlM4Xlarge,
+                        InitialVariantWeight = 1
+                    }
+                },
+                    Tags = new List<Tag>
+                {
+                    new Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
+                }
+                };
+                CreateEndpointConfigResponse createEndpointConfigResponse = await _Sclient.CreateEndpointConfigAsync(createEndpointConfigRequest);
+                if (createEndpointConfigResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    operatedEntity.EndpointConfigurationARN = createEndpointConfigResponse.EndpointConfigArn;
+                    operatedEntity.EndpointConfigurationName = endpointConfig;
+                }
+            }
+            CreateEndpointRequest createEndpointRequest = new CreateEndpointRequest
+            {
+                EndpointConfigName = endpointConfig,
+                EndpointName = endpointName,
+                Tags = new List<Tag>
+                    {
+                        new Tag
+                        {
+                            Key = "Project",
+                            Value = "OSPJ"
+                        }
+                    }
+            };
+            CreateEndpointResponse createEndpointResponse = await _Sclient.CreateEndpointAsync(createEndpointRequest);
+            if (createEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+            {
+                operatedEntity.EndpointJobARN = createEndpointResponse.EndpointArn;
+                operatedEntity.EndpointName = createEndpointRequest.EndpointName;
+                operatedEntity.SagemakerStatus = SagemakerStatus.Deploying;
+                operatedEntity.SagemakerErrorStage = SagemakerErrorStage.None;
+                _logContext.SagemakerConsolidatedEntities.Update(operatedEntity);
+                await _logContext.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                TempData["Message"] = "Inference Endpoint Deployment Jobs Created with ARN: " + createEndpointResponse.EndpointArn;
+                return RedirectToAction("Manage", new { InputID = operatedEntity.LinkedLogInputID });
+            }
+            else
+            {
+                TempData["Alert"] = "Warning";
+                TempData["Message"] = "Inference Endpoint Configuration and Inference Endpoint Deployment Jobs Failed to create";
+                return RedirectToAction("Manage", new { InputID = operatedEntity.LinkedLogInputID });
+            }
+        }
+
         private static string GetRdsConnectionString()
         {
             string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
