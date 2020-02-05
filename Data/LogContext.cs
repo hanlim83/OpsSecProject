@@ -15,6 +15,7 @@ namespace OpsSecProject.Data
         public DbSet<GlueDatabaseTable> GlueDatabaseTables { get; set; }
         public DbSet<GlueConsolidatedEntity> GlueConsolidatedEntities { get; set; }
         public DbSet<SagemakerConsolidatedEntity> SagemakerConsolidatedEntities { get; set; }
+        public DbSet<Trigger> AlertTriggers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LogInput>().ToTable("LogInputs");
@@ -30,6 +31,8 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.DeprecatedInputDataKeys).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.DeprecatedModelNames).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.InferenceBookmark).HasDefaultValue(0);
+            modelBuilder.Entity<Trigger>().ToTable("AlertTriggers");
         }
     }
 }

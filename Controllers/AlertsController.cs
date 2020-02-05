@@ -11,44 +11,77 @@ namespace OpsSecProject.Controllers
 {
     public class AlertsController : Controller
     {
-        private readonly AccountContext _context;
+        private readonly AccountContext _accountContext;
+        private readonly LogContext _logContext;
 
-        public AlertsController(AccountContext context)
+        public AlertsController(AccountContext accountContext, LogContext logContext)
         {
-            _context = context;
+            _accountContext = accountContext;
+            _logContext = logContext;
         }
-
         public async Task<IActionResult> Index()
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User user = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
+            User user = await _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             return View(new AlertsViewModel
             {
-                allAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).ToList(),
-                successAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess)).ToList().Count(),
-                informationalAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.ReportReady) || a.AlertType.Equals(AlertType.InputIngestPending) || a.AlertType.Equals(AlertType.MajorInformationChange)).ToList().Count(),
-                warningAlerts = _context.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.MetricExceeded) || a.AlertType.Equals(AlertType.InputError)).ToList().Count()
+                allAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).ToList(),
+                successAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess)).ToList().Count(),
+                informationalAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.ReportReady) || a.AlertType.Equals(AlertType.InputIngestPending) || a.AlertType.Equals(AlertType.MajorInformationChange)).ToList().Count(),
+                warningAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.MetricExceeded) || a.AlertType.Equals(AlertType.InputError)).ToList().Count()
             });
         }
-
-        public async Task<IActionResult> View(int ID)
+        public async Task<IActionResult> Manage(int ID)
         {
-            Alert a = _context.Alerts.Find(ID);
+            return View(await _logContext.AlertTriggers.Where(A => A.LinkedLogInputID.Equals(ID)).ToListAsync());
+        }
+        public async Task<IActionResult> Create(int ID)
+        {
+            return View(await _logContext.LogInputs.FindAsync(ID));
+        }
+        [HttpPost]
+        public async Task<IActionResult> Create([Bind("Condition","CondtionalField","ConditionType","AlertTriggerType","LinkedLogInputID")]Trigger AlertTrigger)
+        {
+            _logContext.AlertTriggers.Add(AlertTrigger);
+            await _logContext.SaveChangesAsync();
+            return RedirectToAction("Manage", new { ID = AlertTrigger.LinkedLogInputID });
+        }
+        public async Task<IActionResult> Edit(int ID)
+        {
+            return View(await _logContext.AlertTriggers.FindAsync(ID));
+        }
+        [HttpPost]
+        public async Task<IActionResult> Edit([Bind("Condition", "CondtionalField", "ConditionType", "AlertTriggerType", "LinkedLogInputID")]Trigger AlertTrigger)
+        {
+            _logContext.AlertTriggers.Update(AlertTrigger);
+            await _logContext.SaveChangesAsync();
+            return RedirectToAction("Manage", new { ID = AlertTrigger.LinkedLogInputID });
+        }
+        public async Task<IActionResult> Remove(int ID)
+        {
+            Trigger deleted = _logContext.AlertTriggers.Find(ID);
+            _logContext.AlertTriggers.Remove(deleted);
+            await _logContext.SaveChangesAsync();
+            return RedirectToAction("Manage", new { ID = deleted.LinkedLogInputID });
+        }
+        public async Task<IActionResult> Read(int ID)
+        {
+            Alert a = _accountContext.Alerts.Find(ID);
             if (a == null)
                 return StatusCode(404);
             else
             {
                 a.Read = true;
-                _context.Alerts.Update(a);
+                _accountContext.Alerts.Update(a);
                 try
                 {
-                    await _context.SaveChangesAsync();
-                    return View(a);
+                    await _accountContext.SaveChangesAsync();
+                    return RedirectToAction("Index");
                 }
                 catch (DbUpdateException)
                 {
-                    return View(a);
+                    return RedirectToAction("Index");
                 }
             }
         }

@@ -307,6 +307,7 @@ namespace OpsSecProject
             //Background Processing
             services.AddHostedService<ConsumeScopedServicesHostedService>();
             services.AddScoped<IScopedSetupService, ScopedSetupService>();
+            services.AddScoped<IScopedUpdateService, ScopedUpdateService>();
             services.AddHostedService<QueuedHostedService>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         }

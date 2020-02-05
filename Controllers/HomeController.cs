@@ -34,15 +34,14 @@ namespace OpsSecProject.Controllers
             LogInput retrieved = await _context.LogInputs.FindAsync(InputID);
             if (retrieved == null)
                 return StatusCode(404);
-            string dbTableName = retrieved.LinkedS3Bucket.Name.Replace("-", "_");
+            string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
             List<ApacheWebLog> webLogs = new List<ApacheWebLog>();
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
-                using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM dbo.@TableName;", connection))
+                using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM "+dbTableName+";", connection))
                 {
                     cmd.CommandTimeout = 0;
-                    cmd.Parameters.AddWithValue("@TableName", dbTableName);
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
                         while (dr.Read())
@@ -64,7 +63,7 @@ namespace OpsSecProject.Controllers
                                     newItem.response = dr.GetString(5);
                                 if (!dr.IsDBNull(6))
                                     newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                                if(dr.FieldCount == 9)
+                                if (dr.FieldCount == 9)
                                 {
                                     if (!dr.IsDBNull(7))
                                         newItem.referer = dr.GetString(7);

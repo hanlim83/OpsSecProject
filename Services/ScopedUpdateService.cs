@@ -19,14 +19,12 @@ namespace OpsSecProject.Services
     {
         private readonly ILogger _logger;
         private LogContext _context;
-        private IAmazonGlue _GlueClient;
         private IAmazonSageMaker _SagemakerClient;
 
-        public ScopedUpdateService(ILogger<ScopedSetupService> logger, LogContext context, IAmazonGlue GlueClient, IAmazonSageMaker SagemakerClient)
+        public ScopedUpdateService(ILogger<ScopedSetupService> logger, LogContext context, IAmazonSageMaker SagemakerClient)
         {
             _logger = logger;
             _context = context;
-            _GlueClient = GlueClient;
             _SagemakerClient = SagemakerClient;
         }
 

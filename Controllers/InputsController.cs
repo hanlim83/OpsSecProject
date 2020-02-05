@@ -74,7 +74,7 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("FilePath", "Name", "Filter", "LogType", "LogInputCategory")]LogInput input)
         {
-            
+
             ViewBag.LogPath = input.FilePath;
             ViewBag.LogName = input.Name;
             ViewBag.Filter = input.Filter;
@@ -125,52 +125,55 @@ namespace OpsSecProject.Controllers
             LogInput retrieved = await _logContext.LogInputs.FindAsync(InputID);
             if (retrieved == null)
                 return StatusCode(404);
-            string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
-            ViewBag.fields = new List<string>();
-            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            if (retrieved.InitialIngest == true)
             {
-                connection.Open();
-                using (SqlCommand cmd = new SqlCommand(@"SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(@TableName);", connection))
+                string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
+                ViewBag.fields = new List<string>();
+                using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
                 {
-                    cmd.CommandTimeout = 0;
-                    cmd.Parameters.AddWithValue("@TableName", dbTableName);
-                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    connection.Open();
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(@TableName);", connection))
                     {
-                        while (dr.Read())
+                        cmd.CommandTimeout = 0;
+                        cmd.Parameters.AddWithValue("@TableName", dbTableName);
+                        using (SqlDataReader dr = cmd.ExecuteReader())
                         {
-                            ViewBag.fields.Add(dr.GetString(0));
+                            while (dr.Read())
+                            {
+                                ViewBag.fields.Add(dr.GetString(0));
+                            }
+                        }
+                    }
+                    using (SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM " + dbTableName + ";", connection))
+                    {
+                        cmd.CommandTimeout = 0;
+                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                ViewData["LogInputEventCount"] = dr.GetValue(0);
+                            }
                         }
                     }
                 }
-                using (SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM " + dbTableName + ";", connection))
+                if (retrieved.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
                 {
-                    cmd.CommandTimeout = 0;
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            ViewData["LogInputEventCount"] = dr.GetValue(0);
-                        }
-                    }
+                    ViewData["DefaultUserFieldIPS"] = "authuser";
+                    ViewData["DefaultIPAddressFieldIPS"] = "host";
+                    ViewData["DefaultConditionFieldIPS"] = "request";
+                    ViewData["DefaultConditionIPS"] = "GET /login_success HTTP/1.0";
+                    ViewData["DefaultConditionFieldRCF"] = "response";
+                    ViewData["DefaultConditionRCF"] = "5";
                 }
-            }
-            if (retrieved.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
-            {
-                ViewData["DefaultUserFieldIPS"] = "authuser";
-                ViewData["DefaultIPAddressFieldIPS"] = "host";
-                ViewData["DefaultConditionFieldIPS"] = "request";
-                ViewData["DefaultConditionIPS"] = "GET /login_success HTTP/1.0";
-                ViewData["DefaultConditionFieldRCF"] = "response";
-                ViewData["DefaultConditionRCF"] = "5";
-            }
-            else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
-            {
-                ViewData["DefaultUserFieldIPS"] = "message";
-                ViewData["DefaultIPAddressFieldIPS"] = "message";
-                ViewData["DefaultConditionFieldIPS"] = "message";
-                ViewData["DefaultConditionIPS"] = "Accepted password for";
-                ViewData["DefaultConditionFieldRCF"] = "message";
-                ViewData["DefaultConditionRCF"] = "Failed password for";
+                else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
+                {
+                    ViewData["DefaultUserFieldIPS"] = "message";
+                    ViewData["DefaultIPAddressFieldIPS"] = "message";
+                    ViewData["DefaultConditionFieldIPS"] = "message";
+                    ViewData["DefaultConditionIPS"] = "Accepted password for";
+                    ViewData["DefaultConditionFieldRCF"] = "message";
+                    ViewData["DefaultConditionRCF"] = "Failed password for";
+                }
             }
             return View(retrieved);
         }
@@ -207,7 +210,7 @@ namespace OpsSecProject.Controllers
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
-                using (SqlCommand cmd = new SqlCommand(@"SELECT " + identitySourceField + ", " + ipAddressSourceField + " FROM " + dbTableName + " WHERE " + condtionSourceField + " " + condtionalOperator + " " + Condtion + " ;", connection))
+                using (SqlCommand cmd = new SqlCommand(@"SELECT " + identitySourceField + ", " + ipAddressSourceField + " FROM " + dbTableName + " WHERE " + condtionSourceField + " " + condtionalOperator + " " + Condtion + " AND response = 200;", connection))
                 {
                     cmd.CommandTimeout = 0;
                     using (SqlDataReader dr = cmd.ExecuteReader())
@@ -237,8 +240,8 @@ namespace OpsSecProject.Controllers
             }
             TransferUtility tu = new TransferUtility(_S3Client);
             string inputDataKey = retrieved.Name + "/Input/ipinsights/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
-            string modelFileKey = retrieved.Name + "/Model/ipinsights/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".tar.gz";
-            string checkpointKey = retrieved.Name + "/Checkpoint/ipinsights/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "/";
+            string modelFileKey = retrieved.Name + "/Model/ipinsights/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
+            string checkpointKey = retrieved.Name + "/Checkpoint/ipinsights/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
             string jobName = retrieved.Name.Replace(" ", "-") + "-IPInsights-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
             await tu.UploadAsync(new TransferUtilityUploadRequest
             {
@@ -254,7 +257,7 @@ namespace OpsSecProject.Controllers
                     TrainingInputMode = TrainingInputMode.File,
                     EnableSageMakerMetricsTimeSeries = false
                 },
-                EnableManagedSpotTraining = true,
+                EnableManagedSpotTraining = false,
                 EnableInterContainerTrafficEncryption = false,
                 EnableNetworkIsolation = false,
                 HyperParameters = new Dictionary<string, string>
@@ -270,7 +273,7 @@ namespace OpsSecProject.Controllers
                 {
                     new Channel
                     {
-                        ChannelName = "Training",
+                        ChannelName = "train",
                         DataSource = new DataSource
                         {
                             S3DataSource = new S3DataSource
@@ -296,8 +299,7 @@ namespace OpsSecProject.Controllers
                 RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
                 StoppingCondition = new StoppingCondition
                 {
-                    MaxRuntimeInSeconds = 3600,
-                    MaxWaitTimeInSeconds = 3600
+                    MaxRuntimeInSeconds = 3600
                 },
                 Tags = new List<Tag>
                 {
@@ -320,7 +322,7 @@ namespace OpsSecProject.Controllers
                 {
                     SagemakerAlgorithm = SagemakerAlgorithm.IP_Insights,
                     CondtionalField = condtionSourceField,
-                    Condtion = Condtion,
+                    Condtion = Condtion.Replace("'", ""),
                     CurrentInputDataKey = inputDataKey,
                     CurrentModelFileKey = modelFileKey,
                     CheckpointKey = checkpointKey,
@@ -328,7 +330,9 @@ namespace OpsSecProject.Controllers
                     TrainingJobARN = createTrainingJobResponse.TrainingJobArn,
                     TrainingJobName = jobName,
                     SagemakerStatus = SagemakerStatus.Training,
-                    SagemakerErrorStage = SagemakerErrorStage.None
+                    SagemakerErrorStage = SagemakerErrorStage.None,
+                    IPAddressField = ipAddressSourceField,
+                    UserField = identitySourceField
                 };
                 if (TrainingType.Equals("Auto"))
                     newEntity.TrainingType = Models.TrainingType.Automatic;
@@ -411,8 +415,8 @@ namespace OpsSecProject.Controllers
             }
             TransferUtility tu = new TransferUtility(_S3Client);
             string inputDataKey = retrieved.Name + "/Input/randomcutforest/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
-            string modelFileKey = retrieved.Name + "/Model/randomcutforest/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".tar.gz";
-            string checkpointKey = retrieved.Name + "/Checkpoint/randomcutforest/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "/";
+            string modelFileKey = retrieved.Name + "/Model/randomcutforest/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
+            string checkpointKey = retrieved.Name + "/Checkpoint/randomcutforest/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
             string jobName = retrieved.Name.Replace(" ", "-") + "-RandomCutForest-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
             await tu.UploadAsync(new TransferUtilityUploadRequest
             {
@@ -442,7 +446,7 @@ namespace OpsSecProject.Controllers
                 {
                     new Channel
                     {
-                        ChannelName = "Training",
+                        ChannelName = "train",
                         DataSource = new DataSource
                         {
                             S3DataSource = new S3DataSource
@@ -492,7 +496,7 @@ namespace OpsSecProject.Controllers
                 {
                     SagemakerAlgorithm = SagemakerAlgorithm.Random_Cut_Forest,
                     CondtionalField = condtionSourceField,
-                    Condtion = Condtion,
+                    Condtion = Condtion.Replace("'", ""),
                     CurrentInputDataKey = inputDataKey,
                     CurrentModelFileKey = modelFileKey,
                     CheckpointKey = checkpointKey,
@@ -656,5 +660,5 @@ namespace OpsSecProject.Controllers
         public string field1 { get; set; }
         public string field2 { get; set; }
     }
-   
+
 }
