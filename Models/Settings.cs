@@ -14,7 +14,7 @@ namespace OpsSecProject.Models
         [Required]
         public CommmuicationOptions CommmuicationOptions{ get; set; }
         [Required]
-        public bool AutoTrain { get; set; }
+        public bool AutoDeploy { get; set; }
         [Required]
         public int LinkedUserID { get; set; }
         [Required]

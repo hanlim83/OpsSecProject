@@ -29,19 +29,19 @@
 
     </div>
 }
-<h1 class="h3 mb-2 text-gray-800">Manage Alerts</h1>
+<h1 class="h3 mb-2 text-gray-800">Manage Metric Alerts</h1>
 <p class="mb-4"></p>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">All Alerts Set Up</h6>
+        <h6 class="m-0 font-weight-bold text-primary">All Metric Alerts Set Up</h6>
     </div>
     <div class="card-body">
-        <a class="btn btn-primary float-right" asp-action="Create">Create a new Alert Trigger</a>
+        <a class="btn btn-primary float-right" asp-action="Create" asp-route-LogInputID="@HttpUtility.HtmlEncode(ViewData["LogInputID"])">Create a new Alert Trigger</a>
         <br />
         <br />
         <div class="table-responsive">
-            <table id="usersTable" class="table">
+            <table id="alertsTable" class="table">
                 <thead>
                     <tr>
                         <th scope="col">Name</th>
@@ -63,8 +63,8 @@
                             <td>@Html.ValueForModel(alert.Condtion)</td>
                             <td>
                                 <div class="btn-group" role="group" aria-label="Account Actions">
-                                    <a class="btn btn-secondary" asp-action="Edit" asp-route-ID="@HttpUtility.HtmlEncode(alert.ID)">Edit</a>
-                                    <a class="btn btn-secondary" asp-action="Remove" asp-route-ID="@HttpUtility.HtmlEncode(alert.ID)">Delete</a>
+                                    <a class="btn btn-secondary" asp-action="Edit" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Edit</a>
+                                    <a class="btn btn-secondary" asp-action="Remove" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Delete</a>
                                 </div>
                             </td>
                         </tr>
@@ -88,14 +88,4 @@
             }
         })();
     </script>
-}
-}
-@if (Model.allAlerts.Count() == 0)
-{
-    <div class="container">
-        <div class="text-center">
-            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/code_thinking_1jeh.svg" style="max-width: 50%; max-height: 50%;">
-            <h3>You got nothing at the moment...</h3>
-        </div>
-    </div>
 }

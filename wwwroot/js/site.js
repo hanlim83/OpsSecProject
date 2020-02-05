@@ -180,6 +180,7 @@ function reCaptchaCallback(token) {
     document.addEventListener("touchMove", reset, false);
     document.addEventListener("touchEnd", reset, false);
 })();
+/*
 var refresh_rate = 60 * 5
 var last_user_action = 0;
 var has_focus = false;
@@ -228,6 +229,7 @@ function refreshCheck() {
         reset();
     }
 }
+*/
 function number_format(number, decimals, dec_point, thousands_sep) {
     // *     example: number_format(1234.56, 2, ',', ' ');
     // *     return: '1 234,56'

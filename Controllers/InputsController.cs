@@ -9,6 +9,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Amazon.KinesisFirehose;
+using Amazon.KinesisFirehose.Model;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon.SageMaker;
@@ -24,6 +26,7 @@ using OpsSecProject.Data;
 using OpsSecProject.Models;
 using OpsSecProject.Services;
 using OpsSecProject.ViewModels;
+using Tag = Amazon.SageMaker.Model.Tag;
 
 namespace OpsSecProject.Controllers
 {
@@ -37,8 +40,9 @@ namespace OpsSecProject.Controllers
         private readonly IAmazonS3 _S3Client;
         private IBackgroundTaskQueue _queue { get; }
         private readonly ILogger _logger;
+        private readonly IAmazonKinesisFirehose _FirehoseClient;
 
-        public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient, IAmazonS3 S3Client)
+        public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient, IAmazonS3 S3Client, IAmazonKinesisFirehose FirehoseClient)
         {
             _logContext = logContext;
             _queue = queue;
@@ -47,6 +51,7 @@ namespace OpsSecProject.Controllers
             _Sclient = Sclient;
             _SRClient = SRClient;
             _S3Client = S3Client;
+            _FirehoseClient = FirehoseClient;
         }
 
         public IActionResult Index()
@@ -74,7 +79,6 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("FilePath", "Name", "Filter", "LogType", "LogInputCategory")]LogInput input)
         {
-
             ViewBag.LogPath = input.FilePath;
             ViewBag.LogName = input.Name;
             ViewBag.Filter = input.Filter;
@@ -174,6 +178,14 @@ namespace OpsSecProject.Controllers
                     ViewData["DefaultConditionFieldRCF"] = "message";
                     ViewData["DefaultConditionRCF"] = "Failed password for";
                 }
+                foreach (var sagemaker in retrieved.LinkedSagemakerEntities)
+                {
+                    if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.IP_Insights))
+                    {
+                        ViewData["IPSExist"] = "YES";
+                        break;
+                    }
+                }
             }
             return View(retrieved);
         }
@@ -239,9 +251,9 @@ namespace OpsSecProject.Controllers
                 }
             }
             TransferUtility tu = new TransferUtility(_S3Client);
-            string inputDataKey = retrieved.Name + "/Input/ipinsights/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
-            string modelFileKey = retrieved.Name + "/Model/ipinsights/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
-            string checkpointKey = retrieved.Name + "/Checkpoint/ipinsights/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
+            string inputDataKey = retrieved.Name.Replace(" ", "-") + "/Input/ipinsights/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
+            string modelFileKey = retrieved.Name.Replace(" ", "-") + "/Model";
+            string checkpointKey = retrieved.Name.Replace(" ", "-") + "/Checkpoint";
             string jobName = retrieved.Name.Replace(" ", "-") + "-IPInsights-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
             await tu.UploadAsync(new TransferUtilityUploadRequest
             {
@@ -257,7 +269,7 @@ namespace OpsSecProject.Controllers
                     TrainingInputMode = TrainingInputMode.File,
                     EnableSageMakerMetricsTimeSeries = false
                 },
-                EnableManagedSpotTraining = false,
+                EnableManagedSpotTraining = true,
                 EnableInterContainerTrafficEncryption = false,
                 EnableNetworkIsolation = false,
                 HyperParameters = new Dictionary<string, string>
@@ -299,7 +311,8 @@ namespace OpsSecProject.Controllers
                 RoleArn = Environment.GetEnvironmentVariable("SAGEMAKER_EXECUTION_ROLE"),
                 StoppingCondition = new StoppingCondition
                 {
-                    MaxRuntimeInSeconds = 3600
+                    MaxRuntimeInSeconds = 3600,
+                    MaxWaitTimeInSeconds = 3600
                 },
                 Tags = new List<Tag>
                 {
@@ -414,9 +427,9 @@ namespace OpsSecProject.Controllers
                 }
             }
             TransferUtility tu = new TransferUtility(_S3Client);
-            string inputDataKey = retrieved.Name + "/Input/randomcutforest/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
-            string modelFileKey = retrieved.Name + "/Model/randomcutforest/model-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
-            string checkpointKey = retrieved.Name + "/Checkpoint/randomcutforest/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "";
+            string inputDataKey = retrieved.Name.Replace(" ", "-") + "/Input/randomcutforest/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
+            string modelFileKey = retrieved.Name.Replace(" ", "-") + "/Model";
+            string checkpointKey = retrieved.Name.Replace(" ", "-") + "/Checkpoint";
             string jobName = retrieved.Name.Replace(" ", "-") + "-RandomCutForest-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
             await tu.UploadAsync(new TransferUtilityUploadRequest
             {
@@ -524,14 +537,13 @@ namespace OpsSecProject.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DeployModel(int ID)
+        public async Task<IActionResult> Deploy(int SageMakerID)
         {
-            SagemakerConsolidatedEntity operatedEntity = await _logContext.SagemakerConsolidatedEntities.FindAsync(ID);
+            SagemakerConsolidatedEntity operatedEntity = await _logContext.SagemakerConsolidatedEntities.FindAsync(SageMakerID);
             string currentModel = operatedEntity.CurrentModelName;
             string endpointConfig = operatedEntity.EndpointConfigurationName;
-            string endpointName = operatedEntity.LinkedLogInput.Name + "EndpointName" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
-            if (currentModel == null && operatedEntity.DeprecatedModelNames.Length == 0)
+            string endpointName = operatedEntity.LinkedLogInput.Name.Replace(" ", "-") + "Endpoint" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            if (currentModel == null && operatedEntity.DeprecatedModelNames == null)
             {
                 currentModel = operatedEntity.LinkedLogInput.Name.Replace(" ", "-") + "Model" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 CreateModelRequest createModelRequest = new CreateModelRequest
@@ -552,13 +564,13 @@ namespace OpsSecProject.Controllers
                     createModelRequest.PrimaryContainer = new ContainerDefinition
                     {
                         Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
-                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey
+                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey + "/" + operatedEntity.TrainingJobName + "/output/model.tar.gz"
                     };
                 else if (operatedEntity.SagemakerAlgorithm.Equals(SagemakerAlgorithm.Random_Cut_Forest))
                     createModelRequest.PrimaryContainer = new ContainerDefinition
                     {
                         Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/randomcutforest:1",
-                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey
+                        ModelDataUrl = "s3://" + _logContext.S3Buckets.Find(2).Name + "/" + operatedEntity.CurrentModelFileKey + "/" + operatedEntity.TrainingJobName + "/output/model.tar.gz"
                     };
                 CreateModelResponse createModelResponse = await _Sclient.CreateModelAsync(createModelRequest);
                 if (createModelResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
@@ -566,7 +578,7 @@ namespace OpsSecProject.Controllers
             }
             if (endpointConfig == null)
             {
-                endpointConfig = operatedEntity.LinkedLogInput.Name + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+                endpointConfig = operatedEntity.LinkedLogInput.Name.Replace(" ", "-") + "EndpointConfig" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 CreateEndpointConfigRequest createEndpointConfigRequest = new CreateEndpointConfigRequest
                 {
                     EndpointConfigName = endpointConfig,
@@ -574,7 +586,7 @@ namespace OpsSecProject.Controllers
                 {
                     new ProductionVariant
                     {
-                        VariantName = operatedEntity.LinkedLogInput.Name + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
+                        VariantName = operatedEntity.LinkedLogInput.Name.Replace(" ", "-") + "ProductionVariant" + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss"),
                         ModelName = currentModel,
                         InitialInstanceCount = 1,
                         InstanceType = ProductionVariantInstanceType.MlM4Xlarge,
@@ -630,6 +642,38 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Manage", new { InputID = operatedEntity.LinkedLogInputID });
             }
         }
+        public async Task<IActionResult> Remove(int SageMakerID)
+        {
+            SagemakerConsolidatedEntity operatedEntity = await _logContext.SagemakerConsolidatedEntities.FindAsync(SageMakerID);
+            if (operatedEntity.SagemakerStatus.Equals(SagemakerStatus.Ready))
+            {
+                DeleteEndpointResponse deleteEndpointResponse = await _Sclient.DeleteEndpointAsync(new DeleteEndpointRequest
+                {
+                    EndpointName = operatedEntity.EndpointName
+                });
+                _queue.QueueBackgroundWorkItem(async token =>
+                {
+                    _logger.LogInformation("Deletion of SageMaker remnant resources scheduled");
+                    await Task.Delay(TimeSpan.FromMinutes(5), token);
+                    DeleteEndpointConfigResponse deleteEndpointConfigResponse = await _Sclient.DeleteEndpointConfigAsync(new DeleteEndpointConfigRequest
+                    {
+                        EndpointConfigName = operatedEntity.EndpointConfigurationName
+                    });
+                    if (deleteEndpointConfigResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                    {
+                        await _Sclient.DeleteModelAsync(new DeleteModelRequest
+                        {
+                            ModelName = operatedEntity.CurrentModelName
+                        });
+                    }
+                });
+            }
+            _logContext.SagemakerConsolidatedEntities.Remove(operatedEntity);
+            await _logContext.SaveChangesAsync();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Machine Learning Model deleted successfully!";
+            return RedirectToAction("Manage", new { InputID = operatedEntity.LinkedLogInputID });
+        }
 
         private static string GetRdsConnectionString()
         {
@@ -660,5 +704,4 @@ namespace OpsSecProject.Controllers
         public string field1 { get; set; }
         public string field2 { get; set; }
     }
-
 }

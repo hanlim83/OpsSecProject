@@ -30,7 +30,7 @@ namespace OpsSecProject.Services
             _logger.LogInformation("Update Background Service has been scheduled to start.");
 
             _timer2 = new Timer(DoWorkAsyncUpdate, null, TimeSpan.FromSeconds(60),
-                TimeSpan.FromSeconds(30));
+                TimeSpan.FromSeconds(60));
 
             return Task.CompletedTask;
         }

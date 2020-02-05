@@ -1,5 +1,4 @@
 ﻿using Amazon.Glue;
-using Amazon.KinesisAnalyticsV2;
 using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
@@ -272,7 +271,6 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonSageMaker>();
             services.AddAWSService<IAmazonSageMakerRuntime>();
             //Kinesis Initialization
-            services.AddAWSService<IAmazonKinesisAnalyticsV2>();
             services.AddAWSService<IAmazonKinesisFirehose>();
             //Simple Notification / Email Services Initialization
             services.AddAWSService<IAmazonSimpleNotificationService>();

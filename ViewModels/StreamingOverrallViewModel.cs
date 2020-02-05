@@ -10,5 +10,6 @@ namespace OpsSecProject.ViewModels
     {
         public LogInput input { get; set; }
         public List<ApacheWebLog> webLogs { get; set; }
+        public SagemakerConsolidatedEntity sagemakerConsolidatedEntity { get; set; }
     }
 }
