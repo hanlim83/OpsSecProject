@@ -1,5 +1,4 @@
-﻿using Amazon.CloudWatchEvents;
-using Amazon.Glue;
+﻿using Amazon.Glue;
 using Amazon.KinesisFirehose;
 using Amazon.Runtime;
 using Amazon.S3;
@@ -273,8 +272,6 @@ namespace OpsSecProject
             services.AddAWSService<IAmazonSageMakerRuntime>();
             //Kinesis Initialization
             services.AddAWSService<IAmazonKinesisFirehose>();
-            //CloudWatch Initialization
-            services.AddAWSService<IAmazonCloudWatchEvents>();
             //Simple Notification / Email Services Initialization
             services.AddAWSService<IAmazonSimpleNotificationService>();
             var SESAWSOptions = Configuration.GetAWSOptions();
