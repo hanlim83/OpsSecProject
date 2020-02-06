@@ -61,30 +61,6 @@ namespace OpsSecProject.Data
                 });
                 context.Alerts.Add(new Alert
                 {
-                    Message = "Test Message #1",
-                    AlertType = AlertType.ReportReady,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.SMS,
-                    LinkedUserID = 1
-                });
-                context.Alerts.Add(new Alert
-                {
-                    Message = "Test Message #2",
-                    AlertType = AlertType.MetricExceeded,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.SMS,
-                    LinkedUserID = 1
-                });
-                context.Alerts.Add(new Alert
-                {
-                    Message = "Test Message #3",
-                    AlertType = AlertType.InputIngestSuccess,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.NONE,
-                    LinkedUserID = 1
-                });
-                context.Alerts.Add(new Alert
-                {
                     Message = "Your Account information has been changed recently",
                     AlertType = AlertType.MajorInformationChange,
                     TimeStamp = DateTime.Now,

@@ -30,9 +30,9 @@ namespace OpsSecProject.Controllers
             return View(new AlertsViewModel
             {
                 allAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).ToList(),
-                successAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess)).ToList().Count(),
-                informationalAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.ReportReady) || a.AlertType.Equals(AlertType.InputIngestPending) || a.AlertType.Equals(AlertType.MajorInformationChange)).ToList().Count(),
-                warningAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.MetricExceeded) || a.AlertType.Equals(AlertType.InputError)).ToList().Count()
+                successAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.InputIngestSuccess) || a.AlertType.Equals(AlertType.SageMakerTrained) || a.AlertType.Equals(AlertType.SageMakerDeployed)).ToList().Count(),
+                informationalAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.SageMakerBatchTransformCompleted) || a.AlertType.Equals(AlertType.InputIngestPending) || a.AlertType.Equals(AlertType.MajorInformationChange)).ToList().Count(),
+                warningAlerts = _accountContext.Alerts.Where(a => a.LinkedUserID == user.ID).Where(a => a.AlertType.Equals(AlertType.MetricExceeded) || a.AlertType.Equals(AlertType.SageMakerPredictionTriggered)).ToList().Count()
             });
         }
         public async Task<IActionResult> Manage(int LogInputID)

@@ -82,7 +82,7 @@
 </div>
 @if (Model.InitialIngest == true)
 {
-    @if (String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])))
+    @if (String.IsNullOrEmpty(Convert.ToString(ViewData["IPSExist"])))
     {
         <div class="row">
             <div class="col-lg-6">
@@ -267,77 +267,79 @@
             </div>
         </div>
     }
-    @if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])))
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["IPSExist"])))
     {
         <div class="row">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Machine Learning (Random Cut Forest Algorithm)</h6>
-                </div>
-                <div class="card-body">
-                    <form class="needs-validation" novalidate asp-action="StartTrainingRCF">
-                        <div class="form-group text-center">
-                            <h6 class="mb-3">Training Type:</h6>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" name="TrainingType" value="Auto" id="RCFTrainingTypeAuto" class="custom-control-input" required onclick="$('.rcf-field-selection').hide();">
-                                <label class="custom-control-label" for="RCFTrainingTypeAuto">Automatic Training</label>
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Machine Learning (Random Cut Forest Algorithm)</h6>
+                    </div>
+                    <div class="card-body">
+                        <form class="needs-validation" novalidate asp-action="StartTrainingRCF">
+                            <div class="form-group text-center">
+                                <h6 class="mb-3">Training Type:</h6>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" name="TrainingType" value="Auto" id="RCFTrainingTypeAuto" class="custom-control-input" required onclick="$('.rcf-field-selection').hide();">
+                                    <label class="custom-control-label" for="RCFTrainingTypeAuto">Automatic Training</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" name="TrainingType" value="Manual" id="RCFTrainingTypeManual" class="custom-control-input" required onclick="$('.rcf-field-selection').show();">
+                                    <label class="custom-control-label" for="RCFTrainingTypeManual">Manual Training</label>
+                                </div>
                             </div>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" name="TrainingType" value="Manual" id="RCFTrainingTypeManual" class="custom-control-input" required onclick="$('.rcf-field-selection').show();">
-                                <label class="custom-control-label" for="RCFTrainingTypeManual">Manual Training</label>
-                            </div>
-                        </div>
-                        <div class="form-group rcf-field-selection" style="display:none;">
-                            <label for="CondtionSourceFieldSelect">Select field that used to determine what events should be used for training</label>
-                            <select name="condtionSourceField" id="CondtionSourceFieldSelect" class="custom-select" required>
-                                @foreach (var field in ViewBag.fields)
-                                {
-                                    @if (string.Equals(field, ViewData["DefaultConditionFieldRCF"]))
+                            <div class="form-group rcf-field-selection" style="display:none;">
+                                <label for="CondtionSourceFieldSelect">Select field that used to determine what events should be used for training</label>
+                                <select name="condtionSourceField" id="CondtionSourceFieldSelect" class="custom-select" required>
+                                    @foreach (var field in ViewBag.fields)
                                     {
-                                        <option selected value="@field">@field</option>
+                                        @if (string.Equals(field, ViewData["DefaultConditionFieldRCF"]))
+                                        {
+                                            <option selected value="@field">@field</option>
+                                        }
+                                        <option value="@field">@field</option>
                                     }
-                                    <option value="@field">@field</option>
+                                </select>
+                            </div>
+                            <div class="form-group text-center rcf-field-selection" style="display:none;">
+                                <h6 class="mb-3">Condition Type:</h6>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" name="ConditionType" value="Equals" id="ConditionTypeEquals" class="custom-control-input" required>
+                                    <label class="custom-control-label" for="ConditionTypeEquals">Matches</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" name="ConditionType" value="NotEquals" id="ConditionTypeNotEquals" class="custom-control-input" required>
+                                    <label class="custom-control-label" for="ConditionTypeNotEquals">Does not match</label>
+                                </div>
+                                @if (Model.LogInputCategory.Equals(LogInputCategory.SSH) || Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                                {
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" checked required>
+                                        <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                                    </div>
                                 }
-                            </select>
-                        </div>
-                        <div class="form-group text-center rcf-field-selection" style="display:none;">
-                            <h6 class="mb-3">Condition Type:</h6>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" name="ConditionType" value="Equals" id="ConditionTypeEquals" class="custom-control-input" required>
-                                <label class="custom-control-label" for="ConditionTypeEquals">Matches</label>
-                            </div>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" name="ConditionType" value="NotEquals" id="ConditionTypeNotEquals" class="custom-control-input" required>
-                                <label class="custom-control-label" for="ConditionTypeNotEquals">Does not match</label>
-                            </div>
-                            @if (Model.LogInputCategory.Equals(LogInputCategory.SSH) || Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
-                            {
+                                @if (!Model.LogInputCategory.Equals(LogInputCategory.SSH) && !Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                                {
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" required>
+                                        <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                                    </div>
+                                }
                                 <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" checked required>
-                                    <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
+                                    <input type="radio" name="ConditionType" value="NotSimilar" id="ConditionTypeNotSimilar" class="custom-control-input" required>
+                                    <label class="custom-control-label" for="ConditionTypeNotSimilar">Not similar to</label>
                                 </div>
-                            }
-                            @if (!Model.LogInputCategory.Equals(LogInputCategory.SSH) && !Model.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
-                            {
-                                <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" name="ConditionType" value="Similar" id="ConditionTypeSimilar" class="custom-control-input" required>
-                                    <label class="custom-control-label" for="ConditionTypeSimilar">Similar to</label>
-                                </div>
-                            }
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" name="ConditionType" value="NotSimilar" id="ConditionTypeNotSimilar" class="custom-control-input" required>
-                                <label class="custom-control-label" for="ConditionTypeNotSimilar">Not similar to</label>
                             </div>
-                        </div>
-                        <div class="form-group rcf-field-selection" style="display:none;">
-                            <label for="CondtionInput">Specify the condtion used to determine what events should be used for training</label>
-                            <input type="text" class="form-control" name="Condtion" id="CondtionInput" value="@ViewData["DefaultConditionRCF"]" required />
-                        </div>
-                        <div class="form-group">
-                            <input type="hidden" asp-for="ID" value="@Model.ID" required />
-                        </div>
-                        <button type="submit" class="btn btn-primary formBtnSubmit">Start Machine Learning</button>
-                    </form>
+                            <div class="form-group rcf-field-selection" style="display:none;">
+                                <label for="CondtionInput">Specify the condtion used to determine what events should be used for training</label>
+                                <input type="text" class="form-control" name="Condtion" id="CondtionInput" value="@ViewData["DefaultConditionRCF"]" required />
+                            </div>
+                            <div class="form-group">
+                                <input type="hidden" asp-for="ID" value="@Model.ID" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary formBtnSubmit">Start Machine Learning</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

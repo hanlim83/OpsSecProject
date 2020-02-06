@@ -136,6 +136,16 @@ namespace OpsSecProject.Services
                                             }
                                         }
                                     }
+                                } else
+                                {
+                                    _accountContext.Alerts.Add(new Alert
+                                    {
+                                        AlertType = AlertType.SageMakerTrained,
+                                        ExternalNotificationType = ExternalNotificationType.NONE,
+                                        LinkedUserID = sagemaker.LinkedLogInput.LinkedUserID,
+                                        TimeStamp = DateTime.Now,
+                                        Message = "A Machine Learning Model for "+sagemaker.LinkedLogInput.Name+" has been trained sucessfully!"
+                                    });
                                 }
                             }
                             else if (describeTrainingJobResponse.TrainingJobArn.Equals(sagemaker.TrainingJobARN) && describeTrainingJobResponse.TrainingJobStatus.Equals(TrainingJobStatus.InProgress))
@@ -157,6 +167,14 @@ namespace OpsSecProject.Services
                             {
                                 sagemaker.SagemakerStatus = SagemakerStatus.Ready;
                                 sagemaker.SagemakerErrorStage = SagemakerErrorStage.None;
+                                _accountContext.Alerts.Add(new Alert
+                                {
+                                    AlertType = AlertType.SageMakerDeployed,
+                                    ExternalNotificationType = ExternalNotificationType.NONE,
+                                    LinkedUserID = sagemaker.LinkedLogInput.LinkedUserID,
+                                    TimeStamp = DateTime.Now,
+                                    Message = "A Machine Learning Model for " + sagemaker.LinkedLogInput.Name + " has been deployed sucessfully!"
+                                });
                             }
                             else if (response.EndpointArn.Equals(sagemaker.EndpointJobARN) && (response.EndpointStatus.Equals(EndpointStatus.OutOfService) || response.EndpointStatus.Equals(EndpointStatus.Failed)))
                             {
@@ -223,8 +241,9 @@ namespace OpsSecProject.Services
                         }
                     }
                 }
-                await _logContext.SaveChangesAsync();
             }
+            await _logContext.SaveChangesAsync();
+            await _accountContext.SaveChangesAsync();
         }
     }
 }
