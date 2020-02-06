@@ -1,0 +1,271 @@
+﻿@model IEnumerable<OpsSecProject.Models.SquidProxyLog>
+@{
+    ViewData["Title"] = "Squid Logs";
+}
+
+<h1 class="h3 mb-2 text-gray-800">Squid Proxy Logs Overview</h1>
+<p class="mb-4"></p>
+
+
+<div class="row">
+
+
+    <!-- Donut/Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Requested URLs</h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-pie pt-4">
+                    <canvas id="UrlReq"></canvas>
+                </div>
+                <hr>
+                Top 5 URLs that has been requested.
+            </div>
+        </div>
+    </div>
+
+    <!-- Area/Line Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Actions Recorded by Squid Server</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="userAct"></canvas>
+                </div>
+                <hr>
+                Details of the recorded action by Squid Server.
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+    <div class="
+     shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Squid Proxy logs</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="squidtable" class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Timestamp</th>
+                            <th scope="col">Destination IP</th>
+                            <th scope="col">Action</th>
+                            <th scope="col">Http Status Code</th>
+                            <th scope="col">Bytes In</th>
+                            <th scope="col">Http Method</th>
+                            <th scope="col">Requested URL</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Requested URL Domain</th>
+                            <th scope="col">Content Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model)
+                        {
+                            <tr>
+                                <th scope="row">@log.timestamp</th>
+                                <td>@log.destination_ip_address</td>
+                                <td>@log.action</td>
+                                <td>@log.http_status_Code</td>
+                                <td>@log.bytes_in</td>
+                                <td>@log.http_method</td>
+                                <td>@log.requested_url</td>
+                                <td>@log.user</td>
+                                <td>@log.requested_url_domain</td>
+                                <td>@log.content_type</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    @section scripts {
+        <script>
+
+        //function getRandomColor() {
+
+        //    var letters = '0123456789ABCDEF'.split('');
+        //    var color = '#';
+        //    for (var i = 0; i < 6; i++ ) {
+        //        color += letters[Math.floor(Math.random() * 16)];
+        //    }
+        //    return color;
+        //}
+
+
+        function Handler(event) {
+            $('#squidtable').DataTable();
+
+
+             //Charts Below
+
+            // var data from db for chart
+            var xa = @Html.Raw(ViewBag.xAxisJ);
+            var ya = @Html.Raw(ViewBag.yAxisJ);
+
+            // Set new default font family and font color to mimic Bootstrap's default styling
+            Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+            Chart.defaults.global.defaultFontColor = '#858796';
+
+            // Pie Chart Example
+            var ctx = document.getElementById("UrlReq");
+            var UrlReq = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: xa,
+                    datasets: [{
+                        data: ya,
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#ffe680', '#ffcce6'],
+                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#ffdb4d', '#ff99cc'],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    },
+                    legend: {
+                        display: false
+                    },
+                    cutoutPercentage: 80,
+                },
+            });
+
+
+
+
+            // Line Chart
+
+            // var data from db for chart
+            var xau = @Html.Raw(ViewBag.xAxisUserJ);
+            var yaa = @Html.Raw(ViewBag.yAxisAmtJ);
+
+            var ctx = document.getElementById("userAct");
+            var userAct = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xau,
+                    datasets: [{
+                        label: "User Activity",
+                        lineTension: 0.3,
+                        backgroundColor: "rgba(78, 115, 223, 0.05)",
+                        borderColor: "rgba(78, 115, 223, 1)",
+                        pointRadius: 3,
+                        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                        pointBorderColor: "rgba(78, 115, 223, 1)",
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: yaa,
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            time: {
+                                unit: 'Amount'
+                            },
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 7
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                maxTicksLimit: 5,
+                                padding: 10,
+
+                                //callback: function (value, index, values) {
+                                //    return number_format(value);
+                                //}
+                            },
+                            gridLines: {
+                                color: "rgb(234, 236, 244)",
+                                zeroLineColor: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        }],
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleFontColor: '#6e707e',
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        //callbacks: {
+                        //    label: function (tooltipItem, chart) {
+                        //        var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                        //        return datasetLabel + ': ' + number_format(tooltipItem.yLabel) + "KB";
+                        //    }
+                        //}
+                    }
+                }
+            });
+
+
+
+        }
+
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+        </script>
+    }
+

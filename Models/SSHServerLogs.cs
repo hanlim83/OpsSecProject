@@ -15,8 +15,8 @@ namespace OpsSecProject.Models
         public string host { get; set; }
         public string process { get; set; }
         public string identifier { get; set; }
-
         public string message { get; set; }
+        public string COUNT { get; set; }
 
     }
 }
