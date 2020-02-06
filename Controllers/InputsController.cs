@@ -104,7 +104,15 @@ namespace OpsSecProject.Controllers
              });
              PutBucketTaggingResponse putBucketTaggingResponse1 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
              {
-                 BucketName = "smart-insight-" + nospace
+                 BucketName = "smart-insight-" + nospace,
+                 TagSet = new List<Amazon.S3.Model.Tag>
+                 {
+                     new Amazon.S3.Model.Tag
+                     {
+                         Key="Project",
+                         Value = "OSPJ"
+                     }
+                 }
              });
              PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
              {
@@ -118,9 +126,9 @@ namespace OpsSecProject.Controllers
                  }
              });
 
-            /*CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
+            CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
             {
-                DeliveryStreamName = "GardenHose",
+                DeliveryStreamName = "smart-insight-" + nospace,
                 DeliveryStreamType = DeliveryStreamType.DirectPut,
                 ExtendedS3DestinationConfiguration = new ExtendedS3DestinationConfiguration
                 {
@@ -131,8 +139,16 @@ namespace OpsSecProject.Controllers
                         SizeInMBs = 5
                     },
                     RoleARN = Environment.GetEnvironmentVariable("FIREHOSE_EXECUTION_ROLE")
+                },
+                Tags = new List<Amazon.KinesisFirehose.Model.Tag>
+                {
+                    new Amazon.KinesisFirehose.Model.Tag
+                    {
+                        Key = "Project",
+                        Value = "OSPJ"
+                    }
                 }
-            });*/
+            });
 
             using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
             {
@@ -170,7 +186,7 @@ namespace OpsSecProject.Controllers
         }
         */
 
-        /*public async Task<IActionResult> Manage(int InputID)
+        public async Task<IActionResult> Manage(int InputID)
         {
             LogInput retrieved = await _logContext.LogInputs.FindAsync(InputID);
             if (retrieved == null)
@@ -349,9 +365,9 @@ namespace OpsSecProject.Controllers
                     MaxRuntimeInSeconds = 14400,
                     MaxWaitTimeInSeconds = 86400
                 },
-                Tags = new List<Tag>
+                Tags = new List<Amazon.SageMaker.Model.Tag>
                 {
-                    new Tag
+                    new Amazon.SageMaker.Model.Tag
                     {
                         Key = "Project",
                         Value = "OSPJ"
@@ -396,9 +412,9 @@ namespace OpsSecProject.Controllers
                 TempData["Message"] = "Training Job Failed to create";
                 return RedirectToAction("Manage", new { InputID = retrieved.ID });
             }
-        }*/
+        }
 
-       /* [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> StartTrainingRCF(string TrainingType, string condtionSourceField, string ConditionType, string Condtion, int ID)
         {
             if (checkForSQLInjection(condtionSourceField) || checkForSQLInjection(Condtion))
@@ -521,9 +537,9 @@ namespace OpsSecProject.Controllers
                     MaxRuntimeInSeconds = 14400,
                     MaxWaitTimeInSeconds = 86400
                 },
-                Tags = new List<Tag>
+                Tags = new List<Amazon.SageMaker.Model.Tag>
                 {
-                    new Tag
+                    new Amazon.SageMaker.Model.Tag
                     {
                         Key = "Project",
                         Value = "OSPJ"
@@ -568,7 +584,7 @@ namespace OpsSecProject.Controllers
                 TempData["Message"] = "Training Job Failed to create";
                 return RedirectToAction("Manage", new { InputID = retrieved.ID });
             }
-        }*/
+        }
         private static string GetRdsConnectionString()
         {
             string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
