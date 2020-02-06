@@ -16,6 +16,7 @@ namespace OpsSecProject.Models
         public string Filter {get; set;}
         public string LogType { get; set; }
         [Required]
+
         public LogInputCategory LogInputCategory { get; set; }
         [Required]
         public string ConfigurationJSON { get; set; }
