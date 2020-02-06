@@ -80,7 +80,6 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("FilePath", "Name", "Filter", "LogType", "LogInputCategory")]LogInput input)
         {
-            
             ViewBag.LogPath = input.FilePath; //test asd
             ViewBag.LogName = input.Name; //  will this work
             ViewBag.Filter = input.Filter; //*.log asd

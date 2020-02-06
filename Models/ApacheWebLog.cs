@@ -16,5 +16,9 @@ namespace OpsSecProject.Models
         public int bytes { get; set; }
         public string referer { get; set; }
         public string agent { get; set; }
+        public string COUNT { get; set; }
+
     }
+
+
 }

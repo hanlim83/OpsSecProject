@@ -1,78 +1,11 @@
-﻿@model IEnumerable<OpsSecProject.Models.ApacheWebLog>
+﻿@model OpsSecProject.ViewModels.StreamingOverrallViewModel
+
 @{
     ViewData["Title"] = "Apache Web Logs";
 }
-<h1 class="h3 mb-2 text-gray-800">Apache Web Logs</h1>
+<h1 class="h3 mb-2 text-gray-800">Apache Web Logs Overview</h1>
 <p class="mb-4"></p>
 
-<div class="
-     
-     
-     shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Apache Logs Details</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="apacheTable" class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Host</th>
-                        @*<th scope="col">Ident</th>
-                        <th scope="col">AuthUser</th>*@
-                        @*<th scope="col">DateTime</th>*@
-                        <th scope="col">Request</th>
-                        <th scope="col">Response</th>
-                        <th scope="col">Bytes</th>
-                        <th scope="col">Referer</th>
-                        <th scope="col">Agent</th>
-
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var log in Model)
-                    {
-                    <tr>
-                        <th scope="row">@log.host</th>
-                        @*<td>@log.ident</td>
-                        <td>@log.authuser</td>*@
-                        @*<td>@log.datetime</td>*@
-                        <td>@log.request</td>
-                        <td>@log.response</td>
-                        <td>@log.bytes</td>
-                        <td>@log.referer</td>
-                        <td>@log.agent</td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-@*<div class="
-     shadow mb-4">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="apacheTable" class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Request</th>
-                   
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var log in Model)
-                    {
-                        <tr>
-                            <td>@log.response</td>
-
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>*@
 
 <div class="row">
 
@@ -87,34 +20,218 @@
             <!-- Card Body -->
             <div class="card-body">
                 <div class="chart-pie pt-4">
-                    <canvas id="myPieChart"></canvas>
+                    <canvas id="httpPieChart"></canvas>
                 </div>
                 <hr>
                 Details of the various HTTP status codes as recorded based on log inputted.
-                
             </div>
         </div>
     </div>
+
+    <!-- Bar Chart -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">HTTP Response Codes</h6>
+        </div>
+        <div class="card-body">
+            <div class="chart-bar">
+                <canvas id="httpBarChart"></canvas>
+            </div>
+            <hr>
+            Details of HTTP Response Codes recoreded.
+        </div>
+    </div>
+
+    <!-- Area/Line Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top requests recorded by Apache Web Server</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="request"></canvas>
+                </div>
+                <hr>
+                Details of requests recorded by the Apache Web Server.
+            </div>
+        </div>
+
+
+    </div>
+
+
 </div>
+
+
+<div class="
+     shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Apache Logs Details</h6>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apachetable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Host</th>
+                        @*<th scope="col">Ident</th>
+                            <th scope="col">AuthUser</th>*@
+                        @*<th scope="col">DateTime</th>*@
+                        <th scope="col">Request</th>
+                        <th scope="col">Response</th>
+                        <th scope="col">Bytes</th>
+                        <th scope="col">Referer</th>
+                        <th scope="col">Agent</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.results)
+                    {
+                        <tr>
+                            <th scope="row">@log.host</th>
+                            @*<td>@log.ident</td>
+                                <td>@log.authuser</td>*@
+                            @*<td>@log.datetime</td>*@
+                            <td>@log.request</td>
+                            <td>@log.response</td>
+                            <td>@log.bytes</td>
+                            <td>@log.referer</td>
+                            <td>@log.agent</td>
+                        </tr>
+                    }
+                </tbody>
+
+
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@*
+    charts table
+*@
+
+
+<div class="
+     shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheChartTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Total Types of Response</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+
+                    @foreach (var log in Model.charts)
+                    {
+                        <tr>
+                            <td>@log.response</td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@*
+    count table
+*@
+
+<div class="
+     shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheChartTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Number of Response Type</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+
+                    @foreach (var log in Model.count)
+                    {
+                        <tr>
+                            <td>@log.response</td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@*
+    group by count table
+*@
+
+@*<div class="
+     shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="apacheChartTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Response Types</th>
+                        <th scope="col">Total Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+
+                    @foreach (var log in Model.groupBy)
+                    {
+                        <tr>
+                            <td>@log.response</td>
+                            <td>@log.COUNT</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+    *@
    
 @section scripts {
     <script>
         function Handler(event) {
-            $('#apacheTable').DataTable();
-             // Set new default font family and font color to mimic Bootstrap's default styling
+            $('#apachetable').DataTable();
+
+            // var data from db for chart
+            
+            var xa = @Html.Raw(ViewBag.xAxisJ);
+            var ya = @Html.Raw(ViewBag.yAxisJ);
+            
+            // Set new default font family and font color to mimic Bootstrap's default styling
             Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
             Chart.defaults.global.defaultFontColor = '#858796';
 
             // Pie Chart Example
-            var ctx = document.getElementById("myPieChart");
-            var myPieChart = new Chart(ctx, {
+            var ctx = document.getElementById("httpPieChart");
+            var httpPieChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ["Successful", "Redirect", "Client Error", "Server Error"],
+                    labels: xa,
                     datasets: [{
-                        data: [100, 10, 40, 12],
-                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                        data: ya,
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#ffe680'],
+                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#ffdb4d'],
                         hoverBorderColor: "rgba(234, 236, 244, 1)",
                     }],
                 },
@@ -136,7 +253,194 @@
                     cutoutPercentage: 80,
                 },
             });
+
+            
+
+            // Bar Chart Example
+            var ctx = document.getElementById("httpBarChart");
+            var httpBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: xa,
+                    //labels: ["January", "February", "March"],
+                    //labels: responseCode,
+                    datasets: [{
+                        label: "Attempts",
+                        backgroundColor: "#4e73df",
+                        hoverBackgroundColor: "#2e59d9",
+                        borderColor: "#4e73df",
+                        //data: [10, 20, 30, 40]
+                        //data: count,
+                        data: ya,
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            time: {
+                                unit: 'Status Code'
+                            },
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6
+                            },
+                            maxBarThickness: 25,
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 10000,
+                                maxTicksLimit: 5,
+                                padding: 100,
+
+                                callback: function (value, index, values) {
+                                    return number_format(value);
+                                }
+                            },
+                            gridLines: {
+                                color: "rgb(234, 236, 244)",
+                                zeroLineColor: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        }],
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltips: {
+                        titleMarginBottom: 10,
+                        titleFontColor: '#6e707e',
+                        titleFontSize: 14,
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function (tooltipItem, chart) {
+                                var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                                return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
+                            }
+                        }
+                    },
+                }
+
+            });
+
+
+             // Line Chart
+
+            // var data from db for chart
+            var xar = @Html.Raw(ViewBag.xAxisRJ);
+            var yar = @Html.Raw(ViewBag.yAxisRJ);
+
+            var ctx = document.getElementById("request");
+            var request = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xar,
+                    datasets: [{
+                        label: "User Activity",
+                        lineTension: 0.3,
+                        backgroundColor: "rgba(78, 115, 223, 0.05)",
+                        borderColor: "rgba(78, 115, 223, 1)",
+                        pointRadius: 3,
+                        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                        pointBorderColor: "rgba(78, 115, 223, 1)",
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: yar,
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            time: {
+                                unit: 'Amount'
+                            },
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 7
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                maxTicksLimit: 5,
+                                padding: 10,
+
+                                //callback: function (value, index, values) {
+                                //    return number_format(value);
+                                //}
+                            },
+                            gridLines: {
+                                color: "rgb(234, 236, 244)",
+                                zeroLineColor: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        }],
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltips: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleFontColor: '#6e707e',
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        //callbacks: {
+                        //    label: function (tooltipItem, chart) {
+                        //        var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                        //        return datasetLabel + ': ' + number_format(tooltipItem.yLabel) + "KB";
+                        //    }
+                        //}
+                    }
+                }
+            });
         }
+
         (function () {
             'use strict';
             if (Turbolinks.supported) {
