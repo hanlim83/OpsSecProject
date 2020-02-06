@@ -15,11 +15,13 @@ using System.Text;
 
 
 
+
 namespace OpsSecProject.Controllers
 {
     public class AnalyticsController : Controller
     {
 
+        
         
         private static string GetRdsConnectionString()
         {
@@ -31,10 +33,18 @@ namespace OpsSecProject.Controllers
             return $"Data Source={hostname},{port};Initial Catalog=IngestedData;User ID={username};Password={password};";
         }
 
+
+        // SSH Server Logs
+
         public async Task<IActionResult> SSHLogs()
         {
-            List<SSHServerLogs> results = new List<SSHServerLogs>();
 
+            var sovm = new StreamingOverrallViewModel
+            {
+                SSHresults = new List<SSHServerLogs>()
+            };
+
+            // Get entire DB
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
             {
                 connection.Open();
@@ -64,16 +74,53 @@ namespace OpsSecProject.Controllers
                                 newItem.identifier = dr.GetString(7);
                             if (!dr.IsDBNull(8))
                                 newItem.message = dr.GetString(8);
-                            results.Add(newItem);
+                            sovm.SSHresults.Add(newItem);
                         }
                     }
-                
+                }
 
+                // Pie chart for number of login attempts
+                using (SqlCommand cmd = new SqlCommand("SELECT message, COUNT(*) FROM dbo.smartinsights_ssh_logs WHERE message LIKE ('Failed%') OR message LIKE ('Accepted%') OR message LIKE ('Server%') GROUP BY message ", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+
+                        IList<string> xAxis = new List<string>();
+                        IList<string> yAxis = new List<string>();
+
+
+
+                        while (dr.Read())
+                        {
+                            SSHServerLogs newItem = new SSHServerLogs();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.message = dr.GetString(0);
+                                xAxis.Add(newItem.message);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.COUNT);
+
+                        }
+
+
+                        string xAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxis);
+                        ViewBag.xAxisJ = xAxisJ;
+                        string yAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
+                        ViewBag.yAxisJ = yAxisJ;
+
+
+                    }
 
                 }
+
+
             }
 
-            return View(results);
+
+
+
+            return View(sovm);
 
         }
 
@@ -81,14 +128,17 @@ namespace OpsSecProject.Controllers
         public async Task<IActionResult> ApacheLogs()
         {
 
-            var vm = new ListViewModel
+           
+
+            var sovm = new StreamingOverrallViewModel
             {
                 
                 results = new List<ApacheWebLog>(),
                 charts = new List<ApacheWebLog>(),
                 count = new List<ApacheWebLog>(),
-                groupBy = new List<ApacheWebLog>()
-               
+                groupBy = new List<ApacheWebLog>(),
+
+ 
             };
 
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
@@ -118,7 +168,7 @@ namespace OpsSecProject.Controllers
                                 newItem.response = dr.GetString(5);
                             if (!dr.IsDBNull(6))
                                 newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                            vm.results.Add(newItem);
+                            sovm.results.Add(newItem);
                         }
 
                     }
@@ -139,7 +189,7 @@ namespace OpsSecProject.Controllers
                                 newItem.response = dr.GetString(0);
 
                             Console.WriteLine(newItem);
-                            vm.charts.Add(newItem);
+                            sovm.charts.Add(newItem);
                             
                         }
 
@@ -162,13 +212,15 @@ namespace OpsSecProject.Controllers
                                 newItem.response = Convert.ToString(dr.GetInt32(0));
                                 
                             Console.WriteLine(newItem);
-                            vm.count.Add(newItem);
+                            sovm.count.Add(newItem);
 
                         }
 
                     }
 
                 }
+
+
 
                 //Get count group by for response table
 
@@ -177,8 +229,11 @@ namespace OpsSecProject.Controllers
                     cmd.CommandTimeout = 0;
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
-                        List<String> countXaxis = new List<string>();
-                        List<String> responsecodeYaxis = new List<string>();
+
+                        IList<string> xAxis = new List<string>();
+                        IList<string> yAxis = new List<string>();
+
+
 
                         while (dr.Read())
                         {
@@ -186,18 +241,60 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.response = dr.GetString(0);
+                                xAxis.Add(newItem.response);
                                 newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.COUNT);
 
 
-                            //responsecodeYaxis.Add(newItem.response)
-                            //countXaxis.Add(newItem.COUNT);
-                            ViewBag.countxasis = countXaxis;
-                            ViewBag.responsecodeyaxis = responsecodeYaxis;
+                            sovm.groupBy.Add(newItem);
                             
-                            vm.groupBy.Add(newItem);
+                        }
 
+
+                        string xAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxis);
+                        ViewBag.xAxisJ = xAxisJ;
+                        string yAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
+                        ViewBag.yAxisJ = yAxisJ;
+
+
+                    }
+
+                }
+
+
+                // Line Chart
+
+                using (SqlCommand cmd = new SqlCommand("SELECT request, COUNT(*) FROM dbo.smartinsights_apache_web_logs GROUP BY request ORDER BY request DESC", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+
+                        IList<string> xAxisR = new List<string>();
+                        IList<string> yAxisR = new List<string>();
+
+
+
+                        while (dr.Read())
+                        {
+                            ApacheWebLog newItem = new ApacheWebLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.request = dr.GetString(0);
+                                xAxisR.Add(newItem.request);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxisR.Add(newItem.COUNT);
+
+                            sovm.groupBy.Add(newItem);
 
                         }
+
+
+                        string xAxisRJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxisR);
+                        ViewBag.xAxisRJ = xAxisRJ;
+                        string yAxisRJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxisR);
+                        ViewBag.yAxisRJ = yAxisRJ;
+
 
                     }
 
@@ -205,9 +302,209 @@ namespace OpsSecProject.Controllers
 
             }
 
-            return View(vm);
+            
+            //List to db
+
+            //IList<string> xAxis = new List<string>();
+            //xAxis.Add("Va1");
+            //xAxis.Add("Va2");
+            //xAxis.Add("Va13");
+            //string xAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxis);
+            //ViewBag.xAxisJ = xAxisJ;
+
+            //IList<string> yAxis = new List<string>();
+            //yAxis.Add("20");
+            //yAxis.Add("30");
+            //yAxis.Add("10");
+            //string yAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
+            //ViewBag.yAxisJ = yAxisJ;
+
+
+            return View(sovm);
 
         }
+
+        // Squid Proxy Logs
+
+        public async Task<IActionResult> SquidLogs()
+        {
+            List<SquidProxyLog> results = new List<SquidProxyLog>();
+
+            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_squid_proxy_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            SquidProxyLog newItem = new SquidProxyLog();
+                            if (!dr.IsDBNull(0))
+                                newItem.timestamp = dr.GetString(0);
+                            if (!dr.IsDBNull(1))
+                                newItem.destination_ip_address = dr.GetString(1);
+                            if (!dr.IsDBNull(2))
+                                newItem.action = dr.GetString(2);
+                            if (!dr.IsDBNull(3))
+                                newItem.http_status_Code = dr.GetString(3);
+                            if (!dr.IsDBNull(4))
+                                newItem.bytes_in = dr.GetString(4);
+                            if (!dr.IsDBNull(5))
+                                newItem.http_method = dr.GetString(5);
+                            if (!dr.IsDBNull(6))
+                                newItem.requested_url = dr.GetString(6);
+                            if (!dr.IsDBNull(7))
+                                newItem.user = dr.GetString(7);
+                            if (!dr.IsDBNull(8))
+                                newItem.requested_url_domain = dr.GetString(8);
+                            if (!dr.IsDBNull(9))
+                                newItem.content_type = dr.GetString(9);
+                            results.Add(newItem);
+                        }
+                    }
+
+                }
+
+
+                // Pie Chart
+                using (SqlCommand cmd = new SqlCommand("SELECT TOP 5 requested_url_domain, COUNT(*) FROM dbo.smartinsights_squid_proxy_logs GROUP BY requested_url_domain ORDER BY COUNT(*) DESC", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+
+                        IList<string> xAxis = new List<string>();
+                        IList<string> yAxis = new List<string>();
+
+
+
+                        while (dr.Read())
+                        {
+                            SquidProxyLog newItem = new SquidProxyLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.requested_url_domain = dr.GetString(0);
+                                xAxis.Add(newItem.requested_url_domain);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.COUNT);
+
+                        }
+
+
+                        string xAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxis);
+                        ViewBag.xAxisJ = xAxisJ;
+                        string yAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
+                        ViewBag.yAxisJ = yAxisJ;
+
+
+                    }
+
+                }
+
+                //Line Chart
+
+                using (SqlCommand cmd = new SqlCommand("SELECT action, COUNT(*) FROM dbo.smartinsights_squid_proxy_logs GROUP BY action;", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+
+                        IList<string> xAxisUser = new List<string>();
+                        IList<string> yAxisAmt = new List<string>();
+
+
+
+                        while (dr.Read())
+                        {
+                            SquidProxyLog newItem = new SquidProxyLog();
+
+                            if (!dr.IsDBNull(0))
+                                newItem.user = dr.GetString(0);
+                                xAxisUser.Add(newItem.user);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxisAmt.Add(newItem.COUNT);
+
+                        }
+
+
+                        string xAxisUserJ = Newtonsoft.Json.JsonConvert.SerializeObject(xAxisUser);
+                        ViewBag.xAxisUserJ = xAxisUserJ;
+                        string yAxisAmtJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxisAmt);
+                        ViewBag.yAxisAmtJ = yAxisAmtJ;
+
+
+                    }
+
+                }
+
+
+
+
+
+            }
+
+            return View(results);
+
+        }
+
+
+        // Windows Security Logs
+
+        public async Task<IActionResult> WindowsLogs()
+        {
+            List<WindowsSecurityLog> results = new List<WindowsSecurityLog>();
+
+            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.smartinsights_windows_security_logs", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            WindowsSecurityLog newItem = new WindowsSecurityLog();
+                            if (!dr.IsDBNull(0))
+                                newItem.eventid = dr.GetInt32(0);
+                                newItem.eventid.ToString();
+                            if (!dr.IsDBNull(1))
+                                newItem.description = dr.GetString(1);
+                            if (!dr.IsDBNull(2))
+                                newItem.leveldisplayname = dr.GetString(2);
+                            if (!dr.IsDBNull(3))
+                                newItem.logname = dr.GetString(3);
+                            if (!dr.IsDBNull(4))
+                                newItem.machinename = dr.GetString(4);
+                            if (!dr.IsDBNull(5))
+                                newItem.providername = dr.GetString(5);
+                            if (!dr.IsDBNull(6))
+                                newItem.timecreated = dr.GetString(6);
+                            if (!dr.IsDBNull(7))
+                                newItem.index = dr.GetInt32(7);
+                                newItem.index.ToString();
+                            if (!dr.IsDBNull(8))
+                                newItem.username = dr.GetString(8);
+                            if (!dr.IsDBNull(9))
+                                newItem.keywords = dr.GetString(9);
+                            if (!dr.IsDBNull(10))
+                                newItem.eventdata = dr.GetString(10);
+                            results.Add(newItem);
+                        }
+                    }
+
+
+
+                }
+            }
+
+            return View(results);
+
+        }
+
+
 
         public async Task<IActionResult> Web()
         {

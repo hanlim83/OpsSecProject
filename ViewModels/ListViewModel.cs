@@ -13,5 +13,6 @@ namespace OpsSecProject.ViewModels
         public List<ApacheWebLog> count { get; set; }
         public List<ApacheWebLog> groupBy { get; set; }
 
+
     }
 }
