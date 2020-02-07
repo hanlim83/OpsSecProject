@@ -2,7 +2,9 @@
 using Amazon.SageMakerRuntime.Model;
 using CsvHelper;
 using CsvHelper.Configuration;
+using IpStack;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
@@ -12,7 +14,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace OpsSecProject.Controllers
@@ -21,16 +25,69 @@ namespace OpsSecProject.Controllers
     {
         private readonly LogContext _context;
         private readonly IAmazonSageMakerRuntime _SageMakerClient;
-        public HomeController(LogContext context, IAmazonSageMakerRuntime SageMakerClient)
+        private readonly AccountContext _accountContext;
+        private readonly IpStackClient ipStackClient;
+        public HomeController(LogContext context, IAmazonSageMakerRuntime SageMakerClient, AccountContext accountContext)
         {
             _context = context;
             _SageMakerClient = SageMakerClient;
+            _accountContext = accountContext;
+            ipStackClient = new IpStackClient(Environment.GetEnvironmentVariable("IPSTACK_API_KEY"));
         }
         public IActionResult Index()
         {
-            return View();
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User user = _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefault();
+            return View(_context.QuestionableEvents.Where(q => q.ReviewUserID == user.ID && q.status == QuestionableEventStatus.PendingReview).ToList());
         }
-
+        public IActionResult Tasks()
+        {
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User user = _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefault();
+            return View(_context.QuestionableEvents.Where(q => q.ReviewUserID == user.ID).ToList());
+        }
+        public IActionResult Review(int EventID)
+        {
+            QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            return View(new QuestionableEventReviewViewModel
+            {
+                ReviewEvent = chosenEvent,
+                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
+            });
+        }
+        public IActionResult Accept(int EventID)
+        {
+            QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            chosenEvent.status = QuestionableEventStatus.UserAccepted;
+            chosenEvent.UpdatedTimestamp = DateTime.Now;
+            _context.QuestionableEvents.Update(chosenEvent);
+            _context.SaveChanges();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Your response has been recorded successfully";
+            return RedirectToAction("View", new { EventID = chosenEvent.ID });
+        }
+        public IActionResult Reject(int EventID)
+        {
+            QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            chosenEvent.status = QuestionableEventStatus.UserRejected;
+            chosenEvent.UpdatedTimestamp = DateTime.Now;
+            _context.QuestionableEvents.Update(chosenEvent);
+            _context.SaveChanges();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Your response has been recorded successfully";
+            return RedirectToAction("View", new { EventID = chosenEvent.ID });
+        }
+        public IActionResult View(int EventID)
+        {
+            QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            return View(new QuestionableEventReviewViewModel
+            {
+                ReviewEvent = chosenEvent,
+                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
+            });
+        }
         [HttpPost]
         public async Task<IActionResult> Search(string query)
         {

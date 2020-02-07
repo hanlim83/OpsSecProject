@@ -15,6 +15,7 @@ namespace OpsSecProject.Data
         public DbSet<GlueDatabaseTable> GlueDatabaseTables { get; set; }
         public DbSet<GlueConsolidatedEntity> GlueConsolidatedEntities { get; set; }
         public DbSet<Trigger> AlertTriggers { get; set; }
+        public DbSet<QuestionableEvent> QuestionableEvents { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LogInput>().ToTable("LogInputs");
@@ -32,6 +33,8 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<Trigger>().Property(s => s.IgnoredEvents).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<Trigger>().Property(s => s.InferenceBookmark).HasDefaultValue(0);
             modelBuilder.Entity<Trigger>().ToTable("AlertTriggers");
+            modelBuilder.Entity<QuestionableEvent>().ToTable("QuestionableEvents");
+            modelBuilder.Entity<QuestionableEvent>().Property(q => q.status).HasDefaultValue(QuestionableEventStatus.PendingReview);
         }
     }
 }

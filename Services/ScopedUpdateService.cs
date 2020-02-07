@@ -5,12 +5,20 @@ using Amazon.S3.Model;
 using Amazon.SageMaker;
 using Amazon.SageMaker.Model;
 using Amazon.SageMakerRuntime;
+using Amazon.SageMakerRuntime.Model;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using OpsSecProject.Controllers;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -136,7 +144,8 @@ namespace OpsSecProject.Services
                                             }
                                         }
                                     }
-                                } else
+                                }
+                                else
                                 {
                                     _accountContext.Alerts.Add(new Alert
                                     {
@@ -144,7 +153,7 @@ namespace OpsSecProject.Services
                                         ExternalNotificationType = ExternalNotificationType.NONE,
                                         LinkedUserID = sagemaker.LinkedLogInput.LinkedUserID,
                                         TimeStamp = DateTime.Now,
-                                        Message = "A Machine Learning Model for "+ sagemaker.LinkedLogInput.Name+" has been trained sucessfully!"
+                                        Message = "A Machine Learning Model for " + sagemaker.LinkedLogInput.Name + " has been trained sucessfully!"
                                     });
                                 }
                             }
@@ -239,11 +248,143 @@ namespace OpsSecProject.Services
                             }
                             _logContext.AlertTriggers.Update(sagemaker);
                         }
+                        else if (sagemaker.SagemakerStatus.Equals(SagemakerStatus.Ready) || sagemaker.SagemakerStatus.Equals(SagemakerStatus.None))
+                        {
+                            if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights) || sagemaker.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                            {
+                                List<GenericRecordHolder> records = new List<GenericRecordHolder>();
+                                using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+                                {
+                                    connection.Open();
+                                    string dbTableName = "dbo." + sagemaker.LinkedLogInput.LinkedS3Bucket.Name.Replace("-", "_");
+                                    string sqlQuery = string.Empty, condtionalOperator = string.Empty, Condtion = string.Empty, dateTimeField = string.Empty;
+                                    switch (sagemaker.CondtionType)
+                                    {
+                                        case "Equal":
+                                            condtionalOperator = "=";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                        case "NotEqual":
+                                            condtionalOperator = "!=";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                        case "Similar":
+                                            condtionalOperator = "LIKE";
+                                            Condtion = "'%" + sagemaker.Condtion + "%'";
+                                            break;
+                                        case "NotSimilar":
+                                            condtionalOperator = "NOT LIKE";
+                                            Condtion = "'%" + sagemaker.Condtion + "%'";
+                                            break;
+                                        case "LessThan":
+                                            condtionalOperator = "<";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                        case "LessOrEqualThan":
+                                            condtionalOperator = "<=";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                        case "MoreThan":
+                                            condtionalOperator = ">";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                        case "MoreOrEqualThan":
+                                            condtionalOperator = ">=";
+                                            Condtion = "'" + sagemaker.Condtion + "'";
+                                            break;
+                                    }
+                                    if (_logContext.LogInputs.Find(sagemaker.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer) && sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
+                                        sqlQuery = @"SELECT ROW_NUMBER() OVER(ORDER BY datetime ASC), " + sagemaker.UserField + ", " + sagemaker.IPAddressField + " FROM " + dbTableName + " WHERE " + sagemaker.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 200;";
+                                    using (SqlCommand cmd = new SqlCommand(sqlQuery, connection))
+                                    {
+                                        cmd.CommandTimeout = 0;
+                                        using (SqlDataReader dr = cmd.ExecuteReader())
+                                        {
+                                            while (dr.Read())
+                                            {
+                                                if (Convert.ToInt32(dr.GetValue(0)) > sagemaker.InferenceBookmark)
+                                                {
+                                                    sagemaker.InferenceBookmark = Convert.ToInt32(dr.GetValue(0));
+                                                    records.Add(new GenericRecordHolder
+                                                    {
+                                                        field1 = dr.GetValue(1).ToString(),
+                                                        field2 = dr.GetValue(2).ToString(),
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (records.Count != 0)
+                                {
+                                    MemoryStream memoryStream = new MemoryStream();
+                                    CsvConfiguration config = new CsvConfiguration(CultureInfo.CurrentCulture)
+                                    {
+                                        HasHeaderRecord = false
+                                    };
+                                    using (var streamWriter = new StreamWriter(memoryStream))
+                                    {
+                                        using (var csvWriter = new CsvWriter(streamWriter, config))
+                                        {
+                                            csvWriter.WriteRecords(records);
+                                        }
+                                    }
+                                    InvokeEndpointResponse invokeEndpointResponse = await _SageMakerRuntimeClient.InvokeEndpointAsync(new InvokeEndpointRequest
+                                    {
+                                        Accept = "application/json",
+                                        ContentType = "text/csv",
+                                        EndpointName = sagemaker.EndpointName,
+                                        Body = new MemoryStream(memoryStream.ToArray())
+                                    });
+                                    if (invokeEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                                    {
+                                        string json = string.Empty;
+                                        MemoryStream receivingMemoryStream = new MemoryStream(invokeEndpointResponse.Body.ToArray())
+                                        {
+                                            Position = 0
+                                        };
+                                        using (StreamReader reader = new StreamReader(receivingMemoryStream))
+                                        {
+                                            json = reader.ReadToEnd();
+                                        }
+                                        if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
+                                        {
+                                            IPInsightsPredictions predictions = JsonConvert.DeserializeObject<IPInsightsPredictions>(json);
+                                            foreach (IPInsightsPrediction prediction in predictions.Predictions)
+                                            {
+
+                                            }
+                                        } else if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                                        {
+                                            RandomCutForestPredictions predictions = JsonConvert.DeserializeObject<RandomCutForestPredictions>(json);
+                                            foreach(RandomCutForestPrediction prediction in predictions.predictions)
+                                            {
+
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                
+                            }
+                        }
                     }
                 }
             }
             await _logContext.SaveChangesAsync();
             await _accountContext.SaveChangesAsync();
+        }
+        private static string GetRdsConnectionString()
+        {
+            string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
+            string port = Environment.GetEnvironmentVariable("RDS_PORT");
+            string username = Environment.GetEnvironmentVariable("RDS_USERNAME");
+            string password = Environment.GetEnvironmentVariable("RDS_PASSWORD");
+
+            return $"Data Source={hostname},{port};Initial Catalog=IngestedData;User ID={username};Password={password};";
         }
     }
 }

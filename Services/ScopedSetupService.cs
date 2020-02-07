@@ -474,6 +474,25 @@ namespace OpsSecProject.Services
                     JobName = "Squid Proxy Logs"
                 });
                 await _context.SaveChangesAsync();
+                _context.AlertTriggers.Add(new Models.Trigger
+                {
+                    Name = "Test Trigger",
+                    AlertTriggerType = Models.AlertTriggerType.IPInsights,
+                    CondtionalField = "request",
+                    CondtionType = "Similar",
+                    Condtion = "/login_success",
+                    LinkedLogInputID = 1
+                });
+                _context.QuestionableEvents.Add(new Models.QuestionableEvent
+                {
+                    FullEventData = "GET /login_success HTTP/1.0",
+                    UserField = "Hansen",
+                    IPAddressField = "58.182.250.32",
+                    EventTimestamp = DateTime.Now,
+                    LinkedAlertTriggerID = 1,
+                    ReviewUserID = 1
+                });
+                await _context.SaveChangesAsync();
             }
             _context.Database.CloseConnection();
         }
