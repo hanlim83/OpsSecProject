@@ -57,31 +57,7 @@ namespace OpsSecProject.Data
                     LinkedUserID = 1,
                     LinkedUser = context.Users.Find(1),
                     CommmuicationOptions = CommmuicationOptions.SMS,
-                    AutoTrain = true
-                });
-                context.Alerts.Add(new Alert
-                {
-                    Message = "Test Message #1",
-                    AlertType = AlertType.ReportReady,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.SMS,
-                    LinkedUserID = 1
-                });
-                context.Alerts.Add(new Alert
-                {
-                    Message = "Test Message #2",
-                    AlertType = AlertType.MetricExceeded,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.SMS,
-                    LinkedUserID = 1
-                });
-                context.Alerts.Add(new Alert
-                {
-                    Message = "Test Message #3",
-                    AlertType = AlertType.InputIngestSuccess,
-                    TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.NONE,
-                    LinkedUserID = 1
+                    AutoDeploy = true
                 });
                 context.Alerts.Add(new Alert
                 {

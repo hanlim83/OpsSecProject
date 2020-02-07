@@ -83,7 +83,7 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">All of your Alerts</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Alerts that are not read yet</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -99,21 +99,19 @@
                     <tbody>
                         @foreach (var alert in Model.allAlerts)
                         {
-                            <tr>
-                                <th scope="row">@alert.TimeStamp</th>
-                                <td>@Html.ValueForModel(alert.AlertType.ToString())</td>
-                                <td>@alert.Message</td>
-                                <td>
-                                    <div class="btn-group" role="group" aria-label="Alert Actions">
-                                        <a class="btn btn-secondary" asp-action="View" asp-route-ID="@alert.ID">Details</a>
-                                        @if (alert.Read == false)
-                                        {
-                                            <a class="btn btn-secondary" asp-action="Mark" asp-route-ID="@alert.ID">Mark as Seen</a>
-                                        }
-                                        <a class="btn btn-secondary" asp-action="Delete" asp-route-ID="@alert.ID">Delete Alert</a>
-                                    </div>
-                                </td>
-                            </tr>
+                            @if (alert.Read == false)
+                            {
+                                <tr>
+                                    <th scope="row">@alert.TimeStamp</th>
+                                    <td>@Html.ValueForModel(alert.AlertType.ToString())</td>
+                                    <td>@alert.Message</td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Alert Actions">
+                                            <a class="btn btn-secondary" asp-action="Read" asp-route-ID="@alert.ID">Mark As Read</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>

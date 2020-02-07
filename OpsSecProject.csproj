@@ -18,18 +18,17 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.3.104.21" />
+    <PackageReference Include="AWSSDK.Core" Version="3.3.104.22" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.100.1" />
-    <PackageReference Include="AWSSDK.Glue" Version="3.3.112.26" />
-    <PackageReference Include="AWSSDK.KinesisAnalyticsV2" Version="3.3.103.15" />
-    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.27" />
-    <PackageReference Include="AWSSDK.S3" Version="3.3.110.19" />
-    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.110.4" />
-    <PackageReference Include="AWSSDK.SageMakerRuntime" Version="3.3.101.24" />
-    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.99" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.117" />
+    <PackageReference Include="AWSSDK.Glue" Version="3.3.112.27" />
+    <PackageReference Include="AWSSDK.KinesisFirehose" Version="3.3.103.28" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.110.20" />
+    <PackageReference Include="AWSSDK.SageMaker" Version="3.3.110.5" />
+    <PackageReference Include="AWSSDK.SageMakerRuntime" Version="3.3.101.25" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.3.101.100" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.118" />
     <PackageReference Include="BCrypt.Net-Next" Version="3.2.1" />
-    <PackageReference Include="CsvHelper" Version="14.0.0" />
+    <PackageReference Include="CsvHelper" Version="15.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />

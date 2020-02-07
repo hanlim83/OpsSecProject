@@ -22,6 +22,7 @@
         "FIREHOSE_EXECUTION_ROLE": "arn:aws:iam::188363912800:role/firehose_delivery_role",
         "FIREHOSE_SECRET_ACCESS_KEY": "XW2HNGQnW9ygpvPDzQQemY0AhsFlUGwiKnVpZGbO",
         "LAMBDA_EXECUTION_ROLE": "arn:aws:iam::188363912800:role/lambda_glue_automator",
+        "LAMBDA_FUNCTION_ARN": "arn:aws:lambda:ap-southeast-1:188363912800:function:SmartInsights-Glue-Automator-S3Events",
         "RDS_HOSTNAME": "ospj-dev.cveglglrcyfg.ap-southeast-1.rds.amazonaws.com",
         "RDS_PASSWORD": "53lMOOm5RMfvwC3j1nDL",
         "RDS_PORT": "1433",
