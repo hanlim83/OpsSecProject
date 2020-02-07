@@ -16,6 +16,7 @@ namespace OpsSecProject.Models
         public int ID { get; set; }
         [Required]
         public string Message { get; set; }
+        public int LinkedObjectID { get; set; }
         [Required]
         public AlertType AlertType { get; set; }
         [Required]

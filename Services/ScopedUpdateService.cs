@@ -41,7 +41,7 @@ namespace OpsSecProject.Services
             {
                 if (input.InitialIngest == true)
                 {
-                    foreach (SagemakerConsolidatedEntity sagemaker in input.LinkedSagemakerEntities)
+                    foreach (Models.Trigger sagemaker in input.LinkedSagemakerEntities)
                     {
                         if (sagemaker.SagemakerStatus.Equals(SagemakerStatus.Training))
                         {
@@ -72,13 +72,13 @@ namespace OpsSecProject.Services
                                             }
                                         }
                                     };
-                                    if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.IP_Insights))
+                                    if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
                                         createModelRequest.PrimaryContainer = new ContainerDefinition
                                         {
                                             Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/ipinsights:1",
                                             ModelDataUrl = describeTrainingJobResponse.OutputDataConfig.S3OutputPath + "/" + describeTrainingJobResponse.TrainingJobName + "/output/model.tar.gz"
                                         };
-                                    else if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.Random_Cut_Forest))
+                                    else if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.RCF))
                                         createModelRequest.PrimaryContainer = new ContainerDefinition
                                         {
                                             Image = "475088953585.dkr.ecr.ap-southeast-1.amazonaws.com/randomcutforest:1",
@@ -144,7 +144,7 @@ namespace OpsSecProject.Services
                                         ExternalNotificationType = ExternalNotificationType.NONE,
                                         LinkedUserID = sagemaker.LinkedLogInput.LinkedUserID,
                                         TimeStamp = DateTime.Now,
-                                        Message = "A Machine Learning Model for "+sagemaker.LinkedLogInput.Name+" has been trained sucessfully!"
+                                        Message = "A Machine Learning Model for "+ sagemaker.LinkedLogInput.Name+" has been trained sucessfully!"
                                     });
                                 }
                             }
@@ -155,7 +155,7 @@ namespace OpsSecProject.Services
                                 sagemaker.SagemakerStatus = SagemakerStatus.Error;
                                 sagemaker.SagemakerErrorStage = SagemakerErrorStage.Training;
                             }
-                            _logContext.SagemakerConsolidatedEntities.Update(sagemaker);
+                            _logContext.AlertTriggers.Update(sagemaker);
                         }
                         else if (sagemaker.SagemakerStatus.Equals(SagemakerStatus.Deploying))
                         {
@@ -191,7 +191,7 @@ namespace OpsSecProject.Services
                                 sagemaker.SagemakerStatus = SagemakerStatus.Deploying;
                                 sagemaker.SagemakerErrorStage = SagemakerErrorStage.None;
                             }
-                            _logContext.SagemakerConsolidatedEntities.Update(sagemaker);
+                            _logContext.AlertTriggers.Update(sagemaker);
                         }
                         else if (sagemaker.SagemakerStatus.Equals(SagemakerStatus.Tuning))
                         {
@@ -214,7 +214,7 @@ namespace OpsSecProject.Services
                                 sagemaker.SagemakerStatus = SagemakerStatus.Error;
                                 sagemaker.SagemakerErrorStage = SagemakerErrorStage.Tuning;
                             }
-                            _logContext.SagemakerConsolidatedEntities.Update(sagemaker);
+                            _logContext.AlertTriggers.Update(sagemaker);
                         }
                         else if (sagemaker.SagemakerStatus.Equals(SagemakerStatus.Transforming))
                         {
@@ -237,7 +237,7 @@ namespace OpsSecProject.Services
                                 sagemaker.SagemakerStatus = SagemakerStatus.Error;
                                 sagemaker.SagemakerErrorStage = SagemakerErrorStage.Transforming;
                             }
-                            _logContext.SagemakerConsolidatedEntities.Update(sagemaker);
+                            _logContext.AlertTriggers.Update(sagemaker);
                         }
                     }
                 }

@@ -111,10 +111,10 @@ namespace OpsSecProject.Controllers
                     }
                 }
             }
-            SagemakerConsolidatedEntity ipinsights = null;
+            Trigger ipinsights = null;
             foreach (var sagemaker in retrieved.LinkedSagemakerEntities)
             {
-                if (sagemaker.SagemakerAlgorithm.Equals(SagemakerAlgorithm.IP_Insights) && sagemaker.SagemakerStatus.Equals(SagemakerStatus.Ready))
+                if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && sagemaker.SagemakerStatus.Equals(SagemakerStatus.Ready))
                 {
                     ipinsights = sagemaker;
                     break;
@@ -131,7 +131,7 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Predict(string eventData, int SageMakerID)
         {
-            SagemakerConsolidatedEntity entity = await _context.SagemakerConsolidatedEntities.FindAsync(SageMakerID);
+            Trigger entity = await _context.AlertTriggers.FindAsync(SageMakerID);
             if (entity == null || eventData == null)
                 return StatusCode(404);
             if (eventData.Contains(entity.Condtion) && eventData.Contains("R:200"))

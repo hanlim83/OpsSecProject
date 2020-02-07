@@ -31,6 +31,6 @@ namespace OpsSecProject.Models
         [Required]
         public virtual S3Bucket LinkedS3Bucket { get; set; }
         public virtual GlueConsolidatedEntity LinkedGlueEntity { get; set; }
-        public virtual ICollection<SagemakerConsolidatedEntity> LinkedSagemakerEntities { get; set; }
+        public virtual ICollection<Trigger> LinkedSagemakerEntities { get; set; }
     }
 }

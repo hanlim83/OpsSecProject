@@ -171,6 +171,7 @@ function reCaptchaCallback(token) {
                 grecaptcha.render('formBtnSubmit');
         });
     }
+    /*
     window.addEventListener("focus", windowHasFocus, false);
     window.addEventListener("blur", windowLostFocus, false);
     window.addEventListener("click", reset, false);
@@ -179,6 +180,7 @@ function reCaptchaCallback(token) {
     window.addEventListener("scroll", reset, false);
     document.addEventListener("touchMove", reset, false);
     document.addEventListener("touchEnd", reset, false);
+    */
 })();
 /*
 var refresh_rate = 60 * 5
