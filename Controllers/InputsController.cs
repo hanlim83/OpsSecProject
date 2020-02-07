@@ -29,7 +29,6 @@ using OpsSecProject.Services;
 using OpsSecProject.ViewModels;
 using Tag = Amazon.SageMaker.Model.Tag;
 
-
 namespace OpsSecProject.Controllers
 {
     [Authorize(Roles = "Administrator, Power User")]
