@@ -189,11 +189,6 @@ namespace OpsSecProject.Services
                                 alertTrigger.SagemakerStatus = SagemakerStatus.Error;
                                 alertTrigger.SagemakerErrorStage = SagemakerErrorStage.Deployment;
                             }
-                            else if (response.EndpointArn.Equals(alertTrigger.EndpointJobARN) && (response.EndpointStatus.Equals(EndpointStatus.RollingBack) || response.EndpointStatus.Equals(EndpointStatus.Deleting)))
-                            {
-                                alertTrigger.SagemakerStatus = SagemakerStatus.Reversing;
-                                alertTrigger.SagemakerErrorStage = SagemakerErrorStage.None;
-                            }
                             else if (response.EndpointArn.Equals(alertTrigger.EndpointJobARN))
                             {
                                 alertTrigger.SagemakerStatus = SagemakerStatus.Deploying;
@@ -220,28 +215,6 @@ namespace OpsSecProject.Services
                             {
                                 alertTrigger.SagemakerStatus = SagemakerStatus.Error;
                                 alertTrigger.SagemakerErrorStage = SagemakerErrorStage.Tuning;
-                            }
-                        }
-                        else if (alertTrigger.SagemakerStatus.Equals(SagemakerStatus.Transforming))
-                        {
-                            DescribeTransformJobResponse response = await _SagemakerClient.DescribeTransformJobAsync(new DescribeTransformJobRequest
-                            {
-                                TransformJobName = alertTrigger.BatchTransformJobName
-                            });
-                            if (response.TransformJobArn.Equals(alertTrigger.BatchTransformJobARN) && response.TransformJobStatus.Equals(TransformJobStatus.Completed))
-                            {
-                                alertTrigger.SagemakerStatus = SagemakerStatus.Ready;
-                                alertTrigger.SagemakerErrorStage = SagemakerErrorStage.None;
-                            }
-                            else if (response.TransformJobArn.Equals(alertTrigger.BatchTransformJobARN) && response.TransformJobStatus.Equals(TransformJobStatus.InProgress))
-                            {
-                                alertTrigger.SagemakerStatus = SagemakerStatus.Transforming;
-                                alertTrigger.SagemakerErrorStage = SagemakerErrorStage.None;
-                            }
-                            else if (response.TransformJobArn.Equals(alertTrigger.BatchTransformJobARN) && response.TransformJobStatus.Equals(TransformJobStatus.Failed))
-                            {
-                                alertTrigger.SagemakerStatus = SagemakerStatus.Error;
-                                alertTrigger.SagemakerErrorStage = SagemakerErrorStage.Transforming;
                             }
                         }
                         else if (alertTrigger.SagemakerStatus.Equals(SagemakerStatus.Ready) || alertTrigger.SagemakerStatus.Equals(SagemakerStatus.None))
@@ -355,10 +328,11 @@ namespace OpsSecProject.Services
                                             {
 
                                             }
-                                        } else if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                                        }
+                                        else if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.RCF))
                                         {
                                             RandomCutForestPredictions predictions = JsonConvert.DeserializeObject<RandomCutForestPredictions>(json);
-                                            foreach(RandomCutForestPrediction prediction in predictions.predictions)
+                                            foreach (RandomCutForestPrediction prediction in predictions.predictions)
                                             {
 
                                             }
@@ -369,7 +343,7 @@ namespace OpsSecProject.Services
                             }
                             else
                             {
-                                
+
                             }
 
                         }

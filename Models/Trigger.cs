@@ -5,7 +5,7 @@ namespace OpsSecProject.Models
 {
     public enum SagemakerStatus
     {
-        Untrained, Training, Trained, Tuning, Deploying, Reversing, Transforming, Ready, Error, None
+        Untrained, Training, Trained, Tuning, Deploying, Ready, Error, None
     }
     public enum SagemakerErrorStage
     {
@@ -46,8 +46,6 @@ namespace OpsSecProject.Models
         public string EndpointJobARN { get; set; }
         public string HyperParameterTurningJobName { get; set; }
         public string HyperParameterTurningJobARN { get; set; }
-        public string BatchTransformJobName { get; set; }
-        public string BatchTransformJobARN { get; set; }
         public int InferenceBookmark { get; set; }
         public int TrainingBookmark { get; set; }
         public string[] IgnoredEvents { get; set; }
