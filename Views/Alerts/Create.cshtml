@@ -71,7 +71,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label asp-for="CondtionalField">Select field that used to determine what events should be used for the mertic alert</label>
+                <label asp-for="CondtionalField">Select field that used to determine what events should be used</label>
                 <select asp-for="CondtionalField" class="custom-select" required>
                     @foreach (var field in ViewBag.fields)
                     {
@@ -93,7 +93,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label asp-for="Condtion">Specify the condtion used to determine what events should be used for the mertic alert</label>
+                <label asp-for="Condtion">Specify the condtion used to determine what events should be used</label>
                 <input class="form-control" asp-for="Condtion" required />
             </div>
             <div class="form-group">

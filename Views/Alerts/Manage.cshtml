@@ -62,9 +62,13 @@
                         {
                             <td>Mertic-Based</td>
                         }
-                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.IPInsights) || alert.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
                         {
-                            <td>Machine-Learning (ML)</td>
+                            <td>Machine-Learning (IP Insights)</td>
+                        }
+                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                        {
+                            <td>Machine-Learning (Random Cut Forest)</td>
                         }
                         <td>@Html.ValueForModel(alert.CondtionalField)</td>
                         <td>@Html.ValueForModel(alert.CondtionType)</td>
@@ -83,11 +87,11 @@
                                 {
                                     <a class="btn btn-secondary" asp-action="Edit" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Edit</a>
                                 }
-                                @if (!alert.SagemakerStatus.Equals(SagemakerStatus.Trained))
+                                @if (alert.SagemakerStatus.Equals(SagemakerStatus.Trained))
                                 {
                                     <a class="btn btn-secondary" asp-action="Deploy" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Deploy ML Model</a>
                                 }
-                                @if (!alert.SagemakerStatus.Equals(SagemakerStatus.Ready))
+                                @if (alert.SagemakerStatus.Equals(SagemakerStatus.Ready))
                                 {
                                     <a class="btn btn-secondary" asp-action="Tune" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Tune ML Model</a>
                                 }

@@ -49,6 +49,7 @@ namespace OpsSecProject.Models
         public string BatchTransformJobName { get; set; }
         public string BatchTransformJobARN { get; set; }
         public int InferenceBookmark { get; set; }
+        public int TrainingBookmark { get; set; }
         public string[] IgnoredEvents { get; set; }
         [Required]
         public int LinkedLogInputID { get; set; }
