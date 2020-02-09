@@ -5,7 +5,7 @@ namespace OpsSecProject.Models
 {
     public enum AlertType
     {
-        InputIngestSuccess, MetricExceeded, InputIngestPending, SageMakerTrained, SageMakerDeployed,SageMakerPredictionTriggered, SageMakerBatchTransformCompleted, MajorInformationChange
+        InputIngestSuccess, MetricExceeded, InputIngestPending, SageMakerTrained, SageMakerDeployed,SageMakerPredictionTriggered, SageMakerBatchTransformCompleted, MajorInformationChange, ReviewQuestionableEvent
     }
     public enum ExternalNotificationType
     {

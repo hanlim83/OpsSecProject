@@ -6,6 +6,10 @@ using Amazon.SageMaker;
 using Amazon.SageMaker.Model;
 using Amazon.SageMakerRuntime;
 using Amazon.SageMakerRuntime.Model;
+using Amazon.SimpleEmail;
+using Amazon.SimpleEmail.Model;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -33,14 +37,18 @@ namespace OpsSecProject.Services
         private IAmazonSageMaker _SagemakerClient;
         private IAmazonSageMakerRuntime _SageMakerRuntimeClient;
         private AccountContext _accountContext;
+        private IAmazonSimpleNotificationService _SNSClient;
+        private IAmazonSimpleEmailService _SESClient;
 
-        public ScopedUpdateService(ILogger<ScopedSetupService> logger, LogContext logContext, IAmazonSageMaker SagemakerClient, IAmazonSageMakerRuntime SageMakerRuntimeClient, AccountContext accountContext)
+        public ScopedUpdateService(ILogger<ScopedSetupService> logger, LogContext logContext, IAmazonSageMaker SagemakerClient, IAmazonSageMakerRuntime SageMakerRuntimeClient, AccountContext accountContext, IAmazonSimpleEmailService SESClient, IAmazonSimpleNotificationService SNSClient)
         {
             _logger = logger;
             _logContext = logContext;
             _SagemakerClient = SagemakerClient;
             _SageMakerRuntimeClient = SageMakerRuntimeClient;
             _accountContext = accountContext;
+            _SESClient = SESClient;
+            _SNSClient = SNSClient;
         }
 
         public async Task DoWorkAsync()
@@ -369,7 +377,7 @@ namespace OpsSecProject.Services
                                                         {
                                                             recordsWithTimestamp.Add(new WithTimestampRecordHolder
                                                             {
-                                                                Timesetamp = Convert.ToDateTime(dr.GetValue(1).ToString()),
+                                                                Timesetamp = Convert.ToDateTime(dr.GetValue(1).ToString() + "/" + month + dr.GetValue(2).ToString() + "/" + dr.GetValue(3).ToString() + " " + dr.GetValue(4).ToString()),
                                                                 field = dr.GetValue(2).ToString(),
                                                             });
                                                         }
@@ -433,11 +441,180 @@ namespace OpsSecProject.Services
                                         if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
                                         {
                                             IPInsightsPredictions predictions = JsonConvert.DeserializeObject<IPInsightsPredictions>(json);
-                                            foreach (IPInsightsPrediction prediction in predictions.Predictions)
+                                            for (int i = 0; i < predictions.Predictions.Count; i++)
                                             {
+                                                IPInsightsPrediction prediction = predictions.Predictions[i];
                                                 if (prediction.Dot_product < -1 || prediction.Dot_product >= 0)
                                                 {
                                                     alert = true;
+                                                    int fieldsCount = 0, counter = 0;
+                                                    QuestionableEvent qe = new QuestionableEvent
+                                                    {
+                                                        IPAddressField = recordsWithoutTimestamp[i].field2,
+                                                        UserField = recordsWithoutTimestamp[i].field1,
+                                                        FullEventData = ""
+                                                    };
+                                                    using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+                                                    {
+                                                        connection.Open();
+                                                        using (SqlCommand cmd = new SqlCommand(@"SELECT count(*) FROM sys.columns WHERE object_id = OBJECT_ID(@TableName);", connection))
+                                                        {
+                                                            cmd.CommandTimeout = 0;
+                                                            cmd.Parameters.AddWithValue("@TableName", dbTableName);
+                                                            using (SqlDataReader dr = cmd.ExecuteReader())
+                                                            {
+                                                                while (dr.Read())
+                                                                {
+                                                                    fieldsCount = Convert.ToInt32(dr.GetValue(0));
+                                                                }
+                                                            }
+                                                        }
+                                                        using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = " + qe.UserField + " AND " + alertTrigger.IPAddressField + " = " + qe.IPAddressField + " AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                        {
+                                                            cmd.CommandTimeout = 0;
+                                                            using (SqlDataReader dr = cmd.ExecuteReader())
+                                                            {
+                                                                while (dr.Read())
+                                                                {
+                                                                    if (fieldsCount < counter)
+                                                                        qe.FullEventData = qe.FullEventData + dr.GetValue(counter).ToString() + " ";
+                                                                }
+                                                            }
+                                                        }
+                                                        if (string.IsNullOrEmpty(dateTimeField))
+                                                        {
+                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT day,month,year,time FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = " + qe.UserField + " AND " + alertTrigger.IPAddressField + " = " + qe.IPAddressField + " AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                            {
+                                                                cmd.CommandTimeout = 0;
+                                                                using (SqlDataReader dr = cmd.ExecuteReader())
+                                                                {
+                                                                    while (dr.Read())
+                                                                    {
+                                                                        int month = 0;
+                                                                        switch (dr.GetValue(1).ToString())
+                                                                        {
+                                                                            case "Jan":
+                                                                                month = 1;
+                                                                                break;
+                                                                            case "Feb":
+                                                                                month = 2;
+                                                                                break;
+                                                                            case "Mar":
+                                                                                month = 3;
+                                                                                break;
+                                                                            case "Apr":
+                                                                                month = 4;
+                                                                                break;
+                                                                            case "May":
+                                                                                month = 5;
+                                                                                break;
+                                                                            case "Jun":
+                                                                                month = 6;
+                                                                                break;
+                                                                            case "July":
+                                                                                month = 7;
+                                                                                break;
+                                                                            case "Aug":
+                                                                                month = 8;
+                                                                                break;
+                                                                            case "Sep":
+                                                                                month = 9;
+                                                                                break;
+                                                                            case "Oct":
+                                                                                month = 10;
+                                                                                break;
+                                                                            case "Nov":
+                                                                                month = 11;
+                                                                                break;
+                                                                            case "Dec":
+                                                                                month = 12;
+                                                                                break;
+                                                                        }
+                                                                        if (month < 10)
+                                                                            qe.EventTimestamp = Convert.ToDateTime(dr.GetValue(0).ToString() + "/0" + month + dr.GetValue(1).ToString() + "/" + dr.GetValue(2).ToString() + " " + dr.GetValue(3).ToString());
+                                                                        else
+                                                                            qe.EventTimestamp = Convert.ToDateTime(dr.GetValue(0).ToString() + "/" + month + dr.GetValue(1).ToString() + "/" + dr.GetValue(2).ToString() + " " + dr.GetValue(3).ToString());
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT " + dateTimeField + " FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = " + qe.UserField + " AND " + alertTrigger.IPAddressField + " = " + qe.IPAddressField + " AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                            {
+                                                                cmd.CommandTimeout = 0;
+                                                                using (SqlDataReader dr = cmd.ExecuteReader())
+                                                                {
+                                                                    while (dr.Read())
+                                                                    {
+                                                                        if (alertTrigger.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                                                                            qe.EventTimestamp = Convert.ToDateTime(dr.GetValue(0).ToString());
+                                                                        else if (alertTrigger.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                                                                            qe.EventTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToInt64(dr.GetValue(0)));
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    foreach (User u in _accountContext.Users.ToList())
+                                                    {
+                                                        if (qe.UserField.Equals(u.Username))
+                                                        {
+                                                            qe.ReviewUserID = u.ID;
+                                                            Alert a = new Alert
+                                                            {
+                                                                TimeStamp = DateTime.Now,
+                                                                LinkedUserID = alertTrigger.LinkedLogInput.LinkedUserID,
+                                                                LinkedObjectID = alertTrigger.LinkedLogInput.ID,
+                                                                AlertType = AlertType.ReviewQuestionableEvent,
+                                                                Message = "There is a event that needs your review"
+                                                            };
+                                                            if (u.LinkedSettings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && u.VerifiedEmailAddress)
+                                                            {
+                                                                SendEmailRequest SESrequest = new SendEmailRequest
+                                                                {
+                                                                    Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                                                                    Destination = new Destination
+                                                                    {
+                                                                        ToAddresses = new List<string>
+                        {
+                            u.EmailAddress
+                        }
+                                                                    },
+                                                                    Message = new Message
+                                                                    {
+                                                                        Subject = new Content("Review of Event needed"),
+                                                                        Body = new Body
+                                                                        {
+                                                                            Text = new Content
+                                                                            {
+                                                                                Charset = "UTF-8",
+                                                                                Data = "Hi " + u.Name + ",\r\n\nAn event needs your review.\r\nPlease login to SmartInsights to view more details.\r\n\n\nThis is a computer-generated email, please do not reply"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                };
+                                                                SendEmailResponse response = await _SESClient.SendEmailAsync(SESrequest);
+                                                                if (response.HttpStatusCode != HttpStatusCode.OK)
+                                                                    a.ExternalNotificationType = ExternalNotificationType.EMAIL;
+                                                            }
+                                                            else if (u.LinkedSettings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && u.VerifiedPhoneNumber)
+                                                            {
+                                                                PublishRequest SNSrequest = new PublishRequest
+                                                                {
+                                                                    Message = "An event needs your review. Login to view more details.",
+                                                                    PhoneNumber = "+65" + u.PhoneNumber
+                                                                };
+                                                                SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                                                                SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                                                                PublishResponse response = await _SNSClient.PublishAsync(SNSrequest);
+                                                                if (response.HttpStatusCode != HttpStatusCode.OK)
+                                                                    a.ExternalNotificationType = ExternalNotificationType.SMS;
+                                                            }
+                                                            _accountContext.Alerts.Add(a);
+                                                        }
+                                                    }
+                                                    _logContext.QuestionableEvents.Add(qe);
                                                     break;
                                                 }
                                             }
@@ -540,7 +717,69 @@ namespace OpsSecProject.Services
                                     }
                                 }
                             }
-
+                            if (alert == true)
+                            {
+                                Alert a = new Alert
+                                {
+                                    TimeStamp = DateTime.Now,
+                                    LinkedUserID = alertTrigger.LinkedLogInput.LinkedUserID,
+                                    LinkedObjectID = alertTrigger.LinkedLogInput.ID
+                                };
+                                if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp) || alertTrigger.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
+                                {
+                                    a.Message = "The Metric Alert " + alertTrigger.Name + " has been triggered for " + alertTrigger.LinkedLogInput.Name + "!";
+                                    a.AlertType = AlertType.MetricExceeded;
+                                }
+                                else
+                                {
+                                    a.Message = "The Machine Learning Model " + alertTrigger.Name + " has predicted suspicous actvitiy for " + alertTrigger.LinkedLogInput.Name + "!";
+                                    a.AlertType = AlertType.SageMakerPredictionTriggered;
+                                }
+                                User u = _accountContext.Users.Find(alertTrigger.LinkedLogInput.LinkedUserID);
+                                if (u.LinkedSettings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && u.VerifiedEmailAddress)
+                                {
+                                    SendEmailRequest SESrequest = new SendEmailRequest
+                                    {
+                                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                                        Destination = new Destination
+                                        {
+                                            ToAddresses = new List<string>
+                        {
+                            u.EmailAddress
+                        }
+                                        },
+                                        Message = new Message
+                                        {
+                                            Subject = new Content("Alert Trigger Activated"),
+                                            Body = new Body
+                                            {
+                                                Text = new Content
+                                                {
+                                                    Charset = "UTF-8",
+                                                    Data = "Hi " + u.Name + ",\r\n\nAn alert trigger has been activated for one of your log inputs.\r\nPlease login to SmartInsights to view more details.\r\n\n\nThis is a computer-generated email, please do not reply"
+                                                }
+                                            }
+                                        }
+                                    };
+                                    SendEmailResponse response = await _SESClient.SendEmailAsync(SESrequest);
+                                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                                        a.ExternalNotificationType = ExternalNotificationType.EMAIL;
+                                }
+                                else if (u.LinkedSettings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && u.VerifiedPhoneNumber)
+                                {
+                                    PublishRequest SNSrequest = new PublishRequest
+                                    {
+                                        Message = "An alert trigger has been activated for one of your log inputs. Login to view more details.",
+                                        PhoneNumber = "+65" + u.PhoneNumber
+                                    };
+                                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                                    PublishResponse response = await _SNSClient.PublishAsync(SNSrequest);
+                                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                                        a.ExternalNotificationType = ExternalNotificationType.SMS;
+                                }
+                                _accountContext.Alerts.Add(a);
+                            }
                         }
                         _logContext.AlertTriggers.Update(alertTrigger);
                     }
