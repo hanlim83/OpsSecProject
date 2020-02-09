@@ -64,13 +64,14 @@ namespace OpsSecProject.Controllers
             return View(currentUser.LinkedSettings);
         }
         [HttpPost]
-        public async Task<IActionResult> Settings([Bind("Always2FA", "CommmuicationOptions")]Settings newSettings)
+        public async Task<IActionResult> Settings([Bind("Always2FA", "CommmuicationOptions","AutoDeploy")]Settings newSettings)
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
             User currentUser = await _context.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             Settings currentSettings = currentUser.LinkedSettings;
             currentSettings.Always2FA = newSettings.Always2FA;
+            currentSettings.AutoDeploy = newSettings.AutoDeploy;
             if (newSettings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && currentUser.VerifiedEmailAddress == false)
             {
                 ViewData["Alert"] = "Danger";

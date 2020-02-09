@@ -52,6 +52,7 @@ namespace OpsSecProject.Models
         public string HyperParameterTurningJobARN { get; set; }
         public string BatchTransformJobName { get; set; }
         public string BatchTransformJobARN { get; set; }
+        public int InferenceBookmark { get; set; }
         [Required]
         public int LinkedLogInputID { get; set; }
         [Required]
