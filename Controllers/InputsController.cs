@@ -88,23 +88,23 @@ namespace OpsSecProject.Controllers
             var lowcap = input.Name.ToLower();
             var nospace = lowcap.Replace(" ", "-");
             var BucketName2 = "smart-insight-" + nospace;
-            var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + "WinSecurityLog" + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n         \"Directory\":\"" + input.FilePath + "\",\r\n         \"FileNameFilter\":\" " + input.Filter + "\",\r\n         \"LogName\":\" " + input.Name + " \"\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"WinSecurityKinesisFirehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID")+"\",\r\n         \"SecretKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") +"\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"WinSecurityLog\",\r\n         \"SinkRef\":\"WinSecurityKinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}"
+            var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + "WinSecurityLog" + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n         \"Directory\":\"" + input.FilePath + "\",\r\n         \"FileNameFilter\":\" " + input.Filter + "\",\r\n         \"LogName\":\" " + input.Name + " \"\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"WinSecurityKinesisFirehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\"" + Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID") + "\",\r\n         \"SecretKey\":\"" + Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") + "\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"WinSecurityLog\",\r\n         \"SinkRef\":\"WinSecurityKinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}"
 ;
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
             var output = new FileContentResult(bytes, "application/octet-stream");
             output.FileDownloadName = "download.json";
             TempData["qwerty"] = data;
             PutBucketResponse putBucketResponse1 = await _S3Client.PutBucketAsync(new PutBucketRequest
-             {
+            {
 
-                 BucketName = "smart-insight-" + nospace,
-                 UseClientRegion = true,
-                 CannedACL = S3CannedACL.Private
-             });
-             PutBucketTaggingResponse putBucketTaggingResponse1 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
-             {
-                 BucketName = "smart-insight-" + nospace,
-                 TagSet = new List<Amazon.S3.Model.Tag>
+                BucketName = "smart-insight-" + nospace,
+                UseClientRegion = true,
+                CannedACL = S3CannedACL.Private
+            });
+            PutBucketTaggingResponse putBucketTaggingResponse1 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
+            {
+                BucketName = "smart-insight-" + nospace,
+                TagSet = new List<Amazon.S3.Model.Tag>
                  {
                      new Amazon.S3.Model.Tag
                      {
@@ -112,18 +112,18 @@ namespace OpsSecProject.Controllers
                          Value = "OSPJ"
                      }
                  }
-             });
-             PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
-             {
-                 BucketName = "smart-insight-" + nospace,
-                 PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
-                 {
-                     BlockPublicAcls = true,
-                     BlockPublicPolicy = true,
-                     IgnorePublicAcls = true,
-                     RestrictPublicBuckets = true
-                 }
-             });
+            });
+            PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+            {
+                BucketName = "smart-insight-" + nospace,
+                PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+                {
+                    BlockPublicAcls = true,
+                    BlockPublicPolicy = true,
+                    IgnorePublicAcls = true,
+                    RestrictPublicBuckets = true
+                }
+            });
 
             CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
             {
@@ -160,30 +160,45 @@ namespace OpsSecProject.Controllers
             }
             return RedirectToAction("Json");
         }
-
-        /*
         public async Task<IActionResult> Manage(int InputID)
         {
-            ViewBag.LogPath = FilePath;
-            ViewBag.LogName = InputName;
-            ViewBag.Filter = Filter;
-            ViewBag.LogType = LogType;
-
-            using (StreamWriter writer = new StreamWriter("wwwroot\\FilePath.txt"))
+            LogInput retrieved = await _logContext.LogInputs.FindAsync(InputID);
+            if (retrieved == null)
+                return StatusCode(404);
+            if (retrieved.InitialIngest == true)
             {
-                writer.WriteLine(
-                    "{ \n" +
-                    "\"Sources\" : [ \n " +
-                    "{ \n" +
-                    "\"Id\" : \"WindowsEventLog\","
-
-
-
-                    );
+                string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
+                ViewBag.fields = new List<string>();
+                using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+                {
+                    connection.Open();
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(@TableName);", connection))
+                    {
+                        cmd.CommandTimeout = 0;
+                        cmd.Parameters.AddWithValue("@TableName", dbTableName);
+                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                ViewBag.fields.Add(dr.GetString(0));
+                            }
+                        }
+                    }
+                    using (SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM " + dbTableName + ";", connection))
+                    {
+                        cmd.CommandTimeout = 0;
+                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                ViewData["LogInputEventCount"] = dr.GetValue(0);
+                            }
+                        }
+                    }
+                }
             }
-            return RedirectToAction("Json");
+            return View(retrieved);
         }
-        */
 
         private static string GetRdsConnectionString()
         {

@@ -159,7 +159,7 @@ namespace OpsSecProject.Controllers
                             {
                                 AlertTrigger.InferenceBookmark = Convert.ToInt32(dr.GetValue(0));
                                 AlertTrigger.TrainingBookmark = Convert.ToInt32(dr.GetValue(0));
-                                if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
+                                if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")))
                                 {
                                     records.Add(new GenericRecordHolder
                                     {
@@ -167,7 +167,7 @@ namespace OpsSecProject.Controllers
                                         field2 = dr.GetValue(1).ToString().Substring(dr.GetValue(1).ToString().IndexOf("from") + 5, dr.GetValue(1).ToString().IndexOf("port") - 1),
                                     });
                                 }
-                                else
+                                else if (!(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")) && !(dr.GetValue(2) == null || dr.GetValue(2).ToString().Equals("-")))
                                 {
                                     records.Add(new GenericRecordHolder
                                     {
@@ -755,7 +755,7 @@ namespace OpsSecProject.Controllers
                             {
                                 if (Convert.ToInt32(dr.GetValue(0)) < AlertTrigger.InferenceBookmark)
                                 {
-                                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
+                                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")))
                                     {
                                         records.Add(new GenericRecordHolder
                                         {
@@ -763,7 +763,7 @@ namespace OpsSecProject.Controllers
                                             field2 = dr.GetValue(1).ToString().Substring(dr.GetValue(1).ToString().IndexOf("from") + 5, dr.GetValue(1).ToString().IndexOf("port") - 1),
                                         });
                                     }
-                                    else
+                                    else if (!(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")) && !(dr.GetValue(2) == null || dr.GetValue(2).ToString().Equals("-")))
                                     {
                                         records.Add(new GenericRecordHolder
                                         {

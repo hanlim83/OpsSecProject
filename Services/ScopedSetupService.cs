@@ -45,14 +45,14 @@ namespace OpsSecProject.Services
                             Name = "master-sagemaker-data"
                         });
                 }
-                else if (bucket.BucketName.Equals("smartinsights-apache-web-logs"))
+                else if (bucket.BucketName.Equals("smartinsights-test-website"))
                 {
                     apacheWebLogBucketFound = true;
                     if (_context.S3Buckets.Find(2) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
                             ID = 2,
-                            Name = "smartinsights-apache-web-logs"
+                            Name = "smartinsights-test-website"
                         });
                 }
                 else if (bucket.BucketName.Equals("smartinsights-ssh-logs"))
@@ -130,13 +130,13 @@ namespace OpsSecProject.Services
             {
                 PutBucketResponse putBucketResponse3 = await _S3Client.PutBucketAsync(new PutBucketRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     UseClientRegion = true,
                     CannedACL = S3CannedACL.Private
                 });
                 PutBucketTaggingResponse putBucketTaggingResponse3 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     TagSet = new List<Tag>
                     {
                         new Tag
@@ -148,7 +148,7 @@ namespace OpsSecProject.Services
                 });
                 PutPublicAccessBlockResponse putPublicAccessBlockResponse3 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
                     {
                         BlockPublicAcls = true,
@@ -402,8 +402,8 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 1,
-                    Name = "Apache Web Logs",
-                    FirehoseStreamName = "SmartInsights-Apache-Web-Logs",
+                    Name = "Test Staging Website",
+                    FirehoseStreamName = "SmartInsights-Test-Website",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.ApacheWebServer,
                     LinkedUserID = 1,
@@ -414,7 +414,7 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 2,
-                    Name = "SSH Session Logs",
+                    Name = "Linux SSH Server Logs",
                     FirehoseStreamName = "SmartInsights-SSH-Login-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.SSH,
@@ -426,7 +426,7 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 3,
-                    Name = "Windows Security Logs",
+                    Name = "Windows Security Events",
                     FirehoseStreamName = "SmartInsights-Windows-Security-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.WindowsEventLogs,
@@ -438,7 +438,7 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 4,
-                    Name = "Squid Proxy Server Logs",
+                    Name = "Squid Proxy Server",
                     FirehoseStreamName = "SmartInsights-Cisco-Squid-Proxy-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.SquidProxy,

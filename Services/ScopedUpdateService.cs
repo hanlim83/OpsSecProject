@@ -299,7 +299,7 @@ namespace OpsSecProject.Services
                                                 if (Convert.ToInt32(dr.GetValue(0)) > alertTrigger.InferenceBookmark)
                                                 {
                                                     alertTrigger.InferenceBookmark = Convert.ToInt32(dr.GetValue(0));
-                                                    if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
+                                                    if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")))
                                                     {
                                                         recordsWithoutTimestamp.Add(new GenericRecordHolder
                                                         {
@@ -307,7 +307,7 @@ namespace OpsSecProject.Services
                                                             field2 = dr.GetValue(1).ToString().Substring(dr.GetValue(1).ToString().IndexOf("from") + 5, dr.GetValue(1).ToString().IndexOf("port") - 1),
                                                         });
                                                     }
-                                                    else if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
+                                                    else if (alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")) && !(dr.GetValue(2) == null || dr.GetValue(2).ToString().Equals("-")))
                                                     {
                                                         recordsWithoutTimestamp.Add(new GenericRecordHolder
                                                         {
