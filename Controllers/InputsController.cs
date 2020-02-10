@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.KinesisFirehose;
@@ -47,7 +48,6 @@ namespace OpsSecProject.Controllers
         }
 
         public async Task<IActionResult> Index()
-
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
@@ -79,7 +79,6 @@ namespace OpsSecProject.Controllers
             ViewBag.Filter = input.Filter;
             ViewBag.LogType = input.LogType; 
             ViewBag.LogInput = input.LogInputCategory;
-
             string lowcap = input.Name.ToLower();
             string pattern = @"[^A-Za-z0-9]+";
             string replacement = "-";
