@@ -1,26 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.KinesisFirehose;
 using Amazon.KinesisFirehose.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Transfer;
 using Amazon.SageMaker;
-using Amazon.SageMaker.Model;
 using Amazon.SageMakerRuntime;
-using Amazon.SageMakerRuntime.Model;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +19,6 @@ using OpsSecProject.Data;
 using OpsSecProject.Models;
 using OpsSecProject.Services;
 using OpsSecProject.ViewModels;
-using S3Bucket = OpsSecProject.Models.S3Bucket;
-using Tag = Amazon.SageMaker.Model.Tag;
 
 namespace OpsSecProject.Controllers
 {
@@ -58,7 +46,8 @@ namespace OpsSecProject.Controllers
             _FirehoseClient = FirehoseClient;
         }
 
-        public async Task<IActionResult> IndexAsync()
+        public async Task<IActionResult> Index()
+
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
@@ -85,11 +74,12 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([Bind("FilePath", "Name", "Filter", "LogType", "LogInputCategory")]LogInput input)
         {
-            ViewBag.LogPath = input.FilePath; //test asd
-            ViewBag.LogName = input.Name; //  will this work
-            ViewBag.Filter = input.Filter; //*.log asd
-            ViewBag.LogType = input.LogType; //security
-            ViewBag.LogInput = input.LogInputCategory; //squidproxy asd
+            ViewBag.LogPath = input.FilePath;
+            ViewBag.LogName = input.Name;
+            ViewBag.Filter = input.Filter;
+            ViewBag.LogType = input.LogType; 
+            ViewBag.LogInput = input.LogInputCategory;
+
             string lowcap = input.Name.ToLower();
             string pattern = @"[^A-Za-z0-9]+";
             string replacement = "-";
@@ -98,78 +88,59 @@ namespace OpsSecProject.Controllers
             var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + "WinSecurityLog" + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n         \"Directory\":\"" + input.FilePath + "\",\r\n         \"FileNameFilter\":\" " + input.Filter + "\",\r\n         \"LogName\":\" " + input.Name + " \"\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"WinSecurityKinesisFirehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID")+"\",\r\n         \"SecretKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") +"\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"WinSecurityLog\",\r\n         \"SinkRef\":\"WinSecurityKinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}";
             var data2 = "{\r\n  \"cloudwatch.emitMetrics\": false,\r\n  \"awsSecretAccessKey\": \"XW2HNGQnW9ygpvPDzQQemY0AhsFlUGwiKnVpZGbO\",\r\n  \"firehose.endpoint\": \"firehose.ap-southeast-1.amazonaws.com\",\r\n  \"awsAccessKeyId\": \"AKIASXW25GZQH5IABE4P\",\r\n  \"flows\": [\r\n    {\r\n      \"filePattern\": \"/opt/generators/CLF/*.log\",\r\n      \"deliveryStream\": \"SmartInsights-Apache-Web-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMMONAPACHELOG\"\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/generators/ELF/*.log\",\r\n      \"deliveryStream\": \"\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMBINEDAPACHELOG\"\r\n                }\r\n            ]      \r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/www1/secure.log\",\r\n      \"deliveryStream\": \"SmartInsights-SSH-Login-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w]+) ([\\\\w]+) ([\\\\d]+) ([\\\\d]+) ([\\\\w:]+) ([\\\\w]+) ([\\\\w]+)\\\\[([\\\\d]+)\\\\]\\\\: ([\\\\w\\\\s.\\\\:=]+)$\",\r\n                    \"customFieldNames\": [\"weekday\", \"month\", \"day\", \"year\", \"time\", \"host\", \"process\", \"identifer\",\"message\"]\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/cisco_router1/cisco_ironport_web.log\",\r\n      \"deliveryStream\": \"SmartInsights-Cisco-Squid-Proxy-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w.]+) (?:[\\\\d]+) ([\\\\d.]+) ([\\\\w]+)\\\\/([\\\\d]+) ([\\\\d]+) ([\\\\w.]+) ([\\\\S]+) ([\\\\S]+) (?:[\\\\w]+)\\\\/([\\\\S]+) ([\\\\S]+) (?:[\\\\S\\\\s]+)$\",\r\n                    \"customFieldNames\": [\"timestamp\",\"destination_ip_address\",\"action\",\"http_status_code\",\"bytes_in\",\"http_method\",\"requested_url\",\"user\",\"requested_url_domain\",\"content_type\"]\r\n                }\r\n            ]\r\n    }\r\n  ]\r\n}";
             string data3 = "";
+            //PutBucketResponse putBucketResponse = await _S3Client.PutBucketAsync(new PutBucketRequest
+            //{
 
-            if (input.LogInputCategory.ToString() != "WindowsEventLogs") {
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data2);
-                var output = new FileContentResult(bytes, "application/octet-stream")
-                {
-                    FileDownloadName = "download.json"
-                };
-                TempData["qwerty"] = data2;
-            }
-            else {
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
-                var output = new FileContentResult(bytes, "application/octet-stream")
-                {
-                    FileDownloadName = "download.json"
-                };
-                TempData["qwerty"] = data;
-            }
-
-            /*PutBucketResponse putBucketResponse1 = await _S3Client.PutBucketAsync(new PutBucketRequest
-             {
-
-                 BucketName = "smart-insight-" + replace,
-                 UseClientRegion = true,
-                 CannedACL = S3CannedACL.Private
-             });
-             PutBucketTaggingResponse putBucketTaggingResponse1 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
-             {
-                 BucketName = "smart-insight-" + replace,
-                 TagSet = new List<Amazon.S3.Model.Tag>
-                 {
-                     new Amazon.S3.Model.Tag
-                     {
-                         Key="Project",
-                         Value = "OSPJ"
-                     }
-                 }
-             });
-             PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
-             {
-                 BucketName = "smart-insight-" + replace,
-                 PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
-                 {
-                     BlockPublicAcls = true,
-                     BlockPublicPolicy = true,
-                     IgnorePublicAcls = true,
-                     RestrictPublicBuckets = true
-                 }
-             });
-
-            CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
-            {
-                DeliveryStreamName = "smart-insight-" + replace,
-                DeliveryStreamType = DeliveryStreamType.DirectPut,
-                ExtendedS3DestinationConfiguration = new ExtendedS3DestinationConfiguration
-                {
-                    BucketARN = "arn:aws:s3:::" + BucketName2,
-                    BufferingHints = new BufferingHints
-                    {
-                        IntervalInSeconds = 60,
-                        SizeInMBs = 5
-                    },
-                    RoleARN = Environment.GetEnvironmentVariable("FIREHOSE_EXECUTION_ROLE")
-                },
-                Tags = new List<Amazon.KinesisFirehose.Model.Tag>
-                {
-                    new Amazon.KinesisFirehose.Model.Tag
-                    {
-                        Key = "Project",
-                        Value = "OSPJ"
-                    }
-                }
-            });*/
+            //    BucketName = "smart-insight-" + replace,
+            //    UseClientRegion = true,
+            //    CannedACL = S3CannedACL.Private
+            //});
+            //PutBucketTaggingResponse putBucketTaggingResponse = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
+            //{
+            //    BucketName = "smart-insight-" + replace,
+            //    TagSet = new List<Amazon.S3.Model.Tag>
+            //     {
+            //         new Amazon.S3.Model.Tag
+            //         {
+            //             Key="Project",
+            //             Value = "OSPJ"
+            //         }
+            //     }
+            //});
+            //PutPublicAccessBlockResponse putPublicAccessBlockResponse = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
+            //{
+            //    BucketName = "smart-insight-" + replace,
+            //    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
+            //    {
+            //        BlockPublicAcls = true,
+            //        BlockPublicPolicy = true,
+            //        IgnorePublicAcls = true,
+            //        RestrictPublicBuckets = true
+            //    }
+            //});
+            //CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
+            //{
+            //    DeliveryStreamName = "smart-insight-" + replace,
+            //    DeliveryStreamType = DeliveryStreamType.DirectPut,
+            //    ExtendedS3DestinationConfiguration = new ExtendedS3DestinationConfiguration
+            //    {
+            //        BucketARN = "arn:aws:s3:::" + BucketName2,
+            //        BufferingHints = new BufferingHints
+            //        {
+            //            IntervalInSeconds = 60,
+            //            SizeInMBs = 5
+            //        },
+            //        RoleARN = Environment.GetEnvironmentVariable("FIREHOSE_EXECUTION_ROLE")
+            //    },
+            //    Tags = new List<Amazon.KinesisFirehose.Model.Tag>
+            //    {
+            //        new Amazon.KinesisFirehose.Model.Tag
+            //        {
+            //            Key = "Project",
+            //            Value = "OSPJ"
+            //        }
+            //    }
+            //});
             _logContext.S3Buckets.Add(new Models.S3Bucket
             {
                 Name = BucketName2
@@ -197,8 +168,18 @@ namespace OpsSecProject.Controllers
                 Filter = input.Filter,
                 LogType = input.LogType,
             });
-            await _logContext.SaveChangesAsync();
-            return RedirectToAction("Json");
+            try
+            {
+                await _logContext.SaveChangesAsync();
+                TempData["Alert"] = "Success";
+                TempData["Message"] = "Log Input " + input.Name + " created successfully!";
+                return RedirectToAction("Manage", new { InputID = _logContext.LogInputs.Where(LI => LI.Name.Equals(input.Name)).FirstOrDefault().ID });
+            } catch (DbUpdateException)
+            {
+                TempData["Alert"] = "Danger";
+                TempData["Message"] = "Error Creating log input " + input.Name + "!";
+                return View(input);
+            }
         }
         
         public async Task<IActionResult> Manage(int InputID)

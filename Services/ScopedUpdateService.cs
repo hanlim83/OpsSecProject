@@ -1,8 +1,4 @@
-﻿using Amazon.Glue;
-using Amazon.Glue.Model;
-using Amazon.S3;
-using Amazon.S3.Model;
-using Amazon.SageMaker;
+﻿using Amazon.SageMaker;
 using Amazon.SageMaker.Model;
 using Amazon.SageMakerRuntime;
 using Amazon.SageMakerRuntime.Model;
