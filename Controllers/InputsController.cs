@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.KinesisFirehose;
