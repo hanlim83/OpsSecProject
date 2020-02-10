@@ -13,7 +13,7 @@
         </h6>
         @foreach (var Alert in Model)
         {
-            <a class="dropdown-item d-flex align-items-center" asp-area="" asp-controller="Alerts" asp-action="View" asp-route-ID="@Alert.ID">
+            <a class="dropdown-item d-flex align-items-center" href="#">
                 <div class="mr-3">
                     @if (Alert.AlertType.Equals(AlertType.SageMakerBatchTransformCompleted))
                     {

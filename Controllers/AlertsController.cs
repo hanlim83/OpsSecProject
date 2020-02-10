@@ -85,7 +85,7 @@ namespace OpsSecProject.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType", "LinkedLogInputID", "IPAddressField", "UserField")]Trigger AlertTrigger)
+        public async Task<IActionResult> Create([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType", "LinkedLogInputID", "IPAddressField", "UserField", "CountType", "Count")]Trigger AlertTrigger)
         {
             LogInput retrieved = _logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID);
             string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
@@ -101,11 +101,11 @@ namespace OpsSecProject.Controllers
                     condtionalOperator = "!=";
                     Condtion = "'" + AlertTrigger.Condtion + "'";
                     break;
-                case "Similar":
+                case "Like":
                     condtionalOperator = "LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
-                case "NotSimilar":
+                case "NotLike":
                     condtionalOperator = "NOT LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
@@ -426,12 +426,12 @@ namespace OpsSecProject.Controllers
                 string inputDataKey = retrieved.Name.Replace(" ", "-") + "/Input/randomcutforest/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
                 string modelFileKey = retrieved.Name.Replace(" ", "-") + "/Model";
                 string checkpointKey = retrieved.Name.Replace(" ", "-") + "/Checkpoint";
-                string jobName = retrieved.Name.Replace(" ", "-") + "-RandomCutForest-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+                string jobName = retrieved.Name.Replace(" ", "-") + "-RCF-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 await tu.UploadAsync(new TransferUtilityUploadRequest
                 {
                     InputStream = new MemoryStream(memoryStream.ToArray()),
                     Key = inputDataKey,
-                    BucketName = _logContext.S3Buckets.Find(2).Name
+                    BucketName = _logContext.S3Buckets.Find(1).Name
                 });
                 CreateTrainingJobRequest createTrainingJobRequest = new CreateTrainingJobRequest
                 {
@@ -512,6 +512,8 @@ namespace OpsSecProject.Controllers
             }
             _logContext.AlertTriggers.Add(AlertTrigger);
             await _logContext.SaveChangesAsync();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Alert Trigger Created!";
             return RedirectToAction("Manage", new { LogInputID = AlertTrigger.LinkedLogInputID });
         }
         public async Task<IActionResult> Edit(int TriggerID)
@@ -700,11 +702,11 @@ namespace OpsSecProject.Controllers
                     condtionalOperator = "!=";
                     Condtion = "'" + AlertTrigger.Condtion + "'";
                     break;
-                case "Similar":
+                case "Like":
                     condtionalOperator = "LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
-                case "NotSimilar":
+                case "NotLike":
                     condtionalOperator = "NOT LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;

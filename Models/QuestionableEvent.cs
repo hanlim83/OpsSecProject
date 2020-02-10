@@ -10,7 +10,6 @@ namespace OpsSecProject.Models
     public class QuestionableEvent
     {
         public int ID { get; set; }
-        [Required]
         public string FullEventData { get; set; }
         [Required]
         public string UserField { get; set; }

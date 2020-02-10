@@ -36,21 +36,25 @@
             <div class="form-group text-center">
                 <h6 class="mb-3">Trigger Type:</h6>
                 <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+                    <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required onclick="$('.ips-field-selection').hide();$('.count-field-selection').show();">
                     <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
                 </div>
+                <!--
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+            <label class="custom-control-label" for="TCA">Event Count Only</label>
+        </div>
+            -->
                 <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
-                    <label class="custom-control-label" for="TCA">Event Count Only</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="MLIPInsights" value="@AlertTriggerType.IPInsights" class="custom-control-input" required onclick="$('.ips-field-selection').show();">
+                    <input type="radio" asp-for="AlertTriggerType" id="MLIPInsights" value="@AlertTriggerType.IPInsights" class="custom-control-input" required onclick="$('.ips-field-selection').show();$('.count-field-selection').hide();">
                     <label class="custom-control-label" for="MLIPInsights">Anomaly detection based on IP Addresses and User Names</label>
                 </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="MLRCF" value="@AlertTriggerType.RCF" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
-                    <label class="custom-control-label" for="MLRCF">Anomaly detection based on Event Count</label>
-                </div>
+                <!--
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" asp-for="AlertTriggerType" id="MLRCF" value="@AlertTriggerType.RCF" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+            <label class="custom-control-label" for="MLRCF">Anomaly detection based on Event Count</label>
+        </div>
+            -->
             </div>
             <div class="form-group ips-field-selection" style="display:none;">
                 <label asp-for="UserField">Select field that contains the Identity</label>
@@ -95,6 +99,21 @@
             <div class="form-group">
                 <label asp-for="Condtion">Specify the condtion used to determine what events should be used</label>
                 <input class="form-control" asp-for="Condtion" required />
+            </div>
+            <div class="form-group count-field-selection">
+                <label asp-for="CountType">Select the count condition type</label>
+                <select asp-for="CountType" class="custom-select" required>
+                    <option value="LessThan">Less Than</option>
+                    <option value="LessOrEqualThan">Less Than</option>
+                    <option value="Equal">Equal</option>
+                    <option value="NotEqual">Not Equal</option>
+                    <option value="MoreThan">More Than</option>
+                    <option value="MoreOrEqualThan">More Or Equal Than</option>
+                </select>
+            </div>
+            <div class="form-group count-field-selection">
+                <label asp-for="Count">Specify the number of events before this alert is triggered</label>
+                <input class="form-control" asp-for="Count" value="0" required type="number"/>
             </div>
             <div class="form-group">
                 <input class="form-control" asp-for="LinkedLogInputID" value="@ViewData["LogInputID"]" type="hidden" />
