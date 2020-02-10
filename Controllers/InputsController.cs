@@ -192,6 +192,9 @@ namespace OpsSecProject.Controllers
                 LogInputCategory = input.LogInputCategory,
                 LinkedUserID = user.ID,
                 LinkedS3BucketID = bucket.ID,
+                FilePath = input.FilePath,
+                Filter = input.Filter,
+                LogType = input.LogType,
             });
             await _logContext.SaveChangesAsync();
             return RedirectToAction("Json");
