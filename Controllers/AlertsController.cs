@@ -136,7 +136,7 @@ namespace OpsSecProject.Controllers
                     if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
                     {
                         dateTimeField = "datetime";
-                        sqlQuery1 = @"SELECT ROW_NUMBER() OVER(ORDER BY " + dateTimeField + " ASC), " + AlertTrigger.UserField + ", " + AlertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 200;";
+                        sqlQuery1 = @"SELECT ROW_NUMBER() OVER(ORDER BY " + dateTimeField + " ASC), " + AlertTrigger.UserField + ", " + AlertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 301;";
                     }
                     else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
                     {
@@ -178,8 +178,10 @@ namespace OpsSecProject.Controllers
                             }
                         }
                     }
-                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer) || _logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SquidProxy))
-                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + ";";
+                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 301;";
+                    else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";";
                     else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
                         sqlQuery2 = sqlQuery1;
                     using (SqlCommand cmd = new SqlCommand(sqlQuery2, connection))
@@ -197,7 +199,8 @@ namespace OpsSecProject.Controllers
                                     num_entities = (Convert.ToInt32(dr.GetValue(0)) * 2).ToString();
                             }
                         }
-                        num_entities = userNames.Distinct().ToList().Count().ToString();
+                        if (userNames.Count != 0)
+                            num_entities = userNames.Distinct().ToList().Count().ToString();
                     }
                 }
                 MemoryStream memoryStream = new MemoryStream();
@@ -795,7 +798,8 @@ namespace OpsSecProject.Controllers
                                     num_entities = (Convert.ToInt32(dr.GetValue(0)) * 2).ToString();
                             }
                         }
-                        num_entities = userNames.Distinct().ToList().Count().ToString();
+                        if (userNames.Count != 0)
+                            num_entities = userNames.Distinct().ToList().Count().ToString();
                     }
                 }
                 MemoryStream memoryStream = new MemoryStream();
