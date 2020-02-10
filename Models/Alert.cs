@@ -5,7 +5,7 @@ namespace OpsSecProject.Models
 {
     public enum AlertType
     {
-        InputIngestSuccess, MetricExceeded, InputIngestPending, SageMakerTrained, SageMakerDeployed,SageMakerPredictionTriggered, SageMakerBatchTransformCompleted, MajorInformationChange
+        InputIngestSuccess, MetricExceeded, InputIngestPending, SageMakerTrained, SageMakerDeployed,SageMakerPredictionTriggered, SageMakerBatchTransformCompleted, MajorInformationChange, ReviewQuestionableEvent
     }
     public enum ExternalNotificationType
     {
@@ -16,6 +16,7 @@ namespace OpsSecProject.Models
         public int ID { get; set; }
         [Required]
         public string Message { get; set; }
+        public int LinkedObjectID { get; set; }
         [Required]
         public AlertType AlertType { get; set; }
         [Required]

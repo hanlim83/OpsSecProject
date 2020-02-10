@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<OpsSecProject.Models.Trigger>
 @{
-    ViewData["Title"] = "Alerts";
+    ViewData["Title"] = "Manage Alert Triggers";
 }
 @if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
 {
@@ -29,12 +29,12 @@
 
     </div>
 }
-<h1 class="h3 mb-2 text-gray-800">Manage Metric Alerts</h1>
+<h1 class="h3 mb-2 text-gray-800">Manage Alert Triggers</h1>
 <p class="mb-4"></p>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">All Metric Alerts Set Up</h6>
+        <h6 class="m-0 font-weight-bold text-primary">All Alerts Triggers Set Up</h6>
     </div>
     <div class="card-body">
         <a class="btn btn-primary float-right" asp-action="Create" asp-route-LogInputID="@HttpUtility.HtmlEncode(ViewData["LogInputID"])">Create a new Alert Trigger</a>
@@ -49,25 +49,56 @@
                         <th scope="col">Condtion Source Field</th>
                         <th scope="col">Condtional Operator</th>
                         <th scope="col">Conditon</th>
+                        <th scope="col">Status</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var alert in Model)
                     {
-                        <tr>
-                            <th scope="row">@Html.ValueForModel(alert.Name)</th>
-                            <td>@Html.ValueForModel(alert.AlertTriggerType.ToString())</td>
-                            <td>@Html.ValueForModel(alert.CondtionalField)</td>
-                            <td>@Html.ValueForModel(alert.CondtionType)</td>
-                            <td>@Html.ValueForModel(alert.Condtion)</td>
-                            <td>
-                                <div class="btn-group" role="group" aria-label="Account Actions">
+                    <tr>
+                        <th scope="row">@Html.ValueForModel(alert.Name)</th>
+                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.CountAlone) || alert.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
+                        {
+                            <td>Mertic-Based</td>
+                        }
+                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
+                        {
+                            <td>Machine-Learning (IP Insights)</td>
+                        }
+                        @if (alert.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                        {
+                            <td>Machine-Learning (Random Cut Forest)</td>
+                        }
+                        <td>@Html.ValueForModel(alert.CondtionalField)</td>
+                        <td>@Html.ValueForModel(alert.CondtionType)</td>
+                        <td>@Html.ValueForModel(alert.Condtion)</td>
+                        @if (alert.SagemakerStatus.Equals(SagemakerStatus.None))
+                        {
+                            <td>Active</td>
+                        }
+                        @if (!alert.SagemakerStatus.Equals(SagemakerStatus.None))
+                        {
+                            <td>@Html.ValueForModel(alert.SagemakerStatus.ToString())</td>
+                        }
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Alert Trigger Actions">
+                                @if (alert.SagemakerStatus.Equals(SagemakerStatus.None))
+                                {
                                     <a class="btn btn-secondary" asp-action="Edit" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Edit</a>
-                                    <a class="btn btn-secondary" asp-action="Remove" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Delete</a>
-                                </div>
-                            </td>
-                        </tr>
+                                }
+                                @if (alert.SagemakerStatus.Equals(SagemakerStatus.Trained))
+                                {
+                                    <a class="btn btn-secondary" asp-action="Deploy" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Deploy ML Model</a>
+                                }
+                                @if (alert.SagemakerStatus.Equals(SagemakerStatus.Ready))
+                                {
+                                    <a class="btn btn-secondary" asp-action="Tune" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Tune ML Model</a>
+                                }
+                                <a class="btn btn-secondary" asp-action="Remove" asp-route-TriggerID="@HttpUtility.HtmlEncode(alert.ID)">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
                     }
                 </tbody>
             </table>

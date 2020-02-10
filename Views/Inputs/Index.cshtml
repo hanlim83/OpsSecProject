@@ -54,7 +54,7 @@
                                         <a class="btn btn-secondary" asp-action="Manage" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Manage Log Input</a>
                                         @if (input.InitialIngest == true)
                                         {
-                                            <a class="btn btn-secondary" asp-controller="Alerts" asp-action="Manage" asp-route-LogInputID="@HttpUtility.HtmlEncode(input.ID)">Manage Metric Alerts</a>
+                                            <a class="btn btn-secondary" asp-controller="Alerts" asp-action="Manage" asp-route-LogInputID="@HttpUtility.HtmlEncode(input.ID)">Manage Alerts Triggers</a>
                                         }
                                         <a class="btn btn-secondary" asp-action="Remove" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Remove</a>
                                     </div>

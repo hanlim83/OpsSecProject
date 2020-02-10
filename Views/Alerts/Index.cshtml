@@ -1,6 +1,6 @@
 ﻿@model OpsSecProject.ViewModels.AlertsViewModel
 @{
-    ViewData["Title"] = "Alerts";
+    ViewData["Title"] = "Notifications";
 }
 @if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
 {
@@ -32,7 +32,7 @@
 @if (Model.allAlerts.Count() != 0)
 {
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Alerts</h1>
+        <h1 class="h3 mb-0 text-gray-800">Notifications</h1>
     </div>
     <div class="row">
         <div class="col-4 mb-4">
@@ -40,7 +40,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Status Update Alerts</div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Status Update Notifications</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.successAlerts</div>
                         </div>
                         <div class="col-auto">
@@ -55,7 +55,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Informational Alerts</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Informational Notifications</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.informationalAlerts</div>
                         </div>
                         <div class="col-auto">
@@ -70,7 +70,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Alerts that Needs Attention</div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Notifications that Needs Attention</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.warningAlerts</div>
                         </div>
                         <div class="col-auto">
@@ -83,7 +83,7 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Alerts that are not read yet</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Notifications that are not read yet</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -116,6 +116,11 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="text-center">
+            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/alert_mc7b.svg" style="max-width: 50%; max-height: 50%;">
         </div>
     </div>
     @section scripts {

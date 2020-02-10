@@ -24,6 +24,6 @@ namespace OpsSecProject.ViewModels
         //Windows stuff
         public List<WindowsSecurityLog> windowslogs { get; set; }
 
-        public SagemakerConsolidatedEntity sagemakerConsolidatedEntity { get; set; }
+        public Trigger sagemakerConsolidatedEntity { get; set; }
     }
 }

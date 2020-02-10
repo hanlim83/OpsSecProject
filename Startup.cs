@@ -189,6 +189,11 @@ namespace OpsSecProject
                                         import.VerifiedPhoneNumber = true;
                                     }
                                 }
+                                if(string.IsNullOrWhiteSpace(import.EmailAddress) && claimsIdentity.FindFirst("preferred_username").Value.Contains('@'))
+                                {
+                                    import.EmailAddress = claimsIdentity.FindFirst("preferred_username").Value;
+                                    import.VerifiedEmailAddress = true;
+                                }
                                 if (import.VerifiedEmailAddress && import.VerifiedPhoneNumber)
                                     import.OverridableField = OverridableField.None;
                                 else if (import.VerifiedEmailAddress)
@@ -281,7 +286,7 @@ namespace OpsSecProject
             //Entity Framework Initialization
             services.AddDbContext<AccountContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Account"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("StagingAccount"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(
@@ -292,7 +297,7 @@ namespace OpsSecProject
             });
             services.AddDbContext<LogContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogInputs"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("StagingLogInputs"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(

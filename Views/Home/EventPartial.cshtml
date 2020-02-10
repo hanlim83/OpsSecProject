@@ -1,0 +1,73 @@
+﻿@model OpsSecProject.ViewModels.QuestionableEventReviewViewModel
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Event Details</h6>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group row">
+                        <label asp-for="ReviewEvent.LinkedAlertTrigger.LinkedLogInput.Name" class="col-sm-4 col-form-label">Name of Application</label>
+                        <div class="col-sm-8">
+                            <input readonly class="form-control-plaintext" asp-for="ReviewEvent.LinkedAlertTrigger.LinkedLogInput.Name" value="@Model.ReviewEvent.LinkedAlertTrigger.LinkedLogInput.Name" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label asp-for="ReviewEvent.EventTimestamp" class="col-sm-4 col-form-label">Date and Time</label>
+                        <div class="col-sm-8">
+                            <input type="text" readonly class="form-control-plaintext" asp-for="ReviewEvent.EventTimestamp" value="@Model.ReviewEvent.EventTimestamp" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label asp-for="ReviewEvent.IPAddressField" class="col-sm-4 col-form-label">IP Address</label>
+                        <div class="col-sm-8">
+                            <input readonly class="form-control-plaintext" asp-for="ReviewEvent.IPAddressField" value="@Model.ReviewEvent.IPAddressField" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label asp-for="ReviewEvent.UserField" class="col-sm-4 col-form-label">User Name</label>
+                        <div class="col-sm-8">
+                            <input readonly class="form-control-plaintext" asp-for="ReviewEvent.UserField" value="@Model.ReviewEvent.UserField" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="ipStackInfo" class="col-sm-4 col-form-label">Approximate Location</label>
+                        <div class="col-sm-8">
+                            @if (Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
+                            {
+                                <input id="ipStackInfo" readonly class="form-control-plaintext" value="@(Model.SupplmentaryInformation.CountryName+", "+Model.SupplmentaryInformation.ContinentName)" />
+                            }
+                            @if (!Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
+                            {
+                                <input id="ipStackInfo" readonly class="form-control-plaintext" value="@(Model.SupplmentaryInformation.City+", "+Model.SupplmentaryInformation.CountryName+", "+Model.SupplmentaryInformation.ContinentName)" />
+                            }
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label asp-for="ReviewEvent.status" class="col-sm-4 col-form-label">Current Response</label>
+                        <div class="col-sm-8">
+                            @if (Model.ReviewEvent.status.Equals(QuestionableEventStatus.UserAccepted) || Model.ReviewEvent.status.Equals(QuestionableEventStatus.AdminAccepted))
+                            {
+                                <input readonly class="form-control-plaintext" asp-for="ReviewEvent.status" value="Marked as Yes" />
+                            }
+                            @if (Model.ReviewEvent.status.Equals(QuestionableEventStatus.UserRejected) || Model.ReviewEvent.status.Equals(QuestionableEventStatus.AdminRejected))
+                            {
+                                <input readonly class="form-control-plaintext" asp-for="ReviewEvent.status" value="Marked as No" />
+                            }
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Google Map View</h6>
+            </div>
+            <div id="EventCardGMaps" class="card-body" style="height: 35vh;">
+            </div>
+        </div>
+    </div>
+</div>
