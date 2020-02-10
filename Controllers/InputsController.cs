@@ -47,6 +47,7 @@ namespace OpsSecProject.Controllers
         }
 
         public async Task<IActionResult> Index()
+
         {
             ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
@@ -78,6 +79,7 @@ namespace OpsSecProject.Controllers
             ViewBag.Filter = input.Filter;
             ViewBag.LogType = input.LogType; 
             ViewBag.LogInput = input.LogInputCategory;
+
             string lowcap = input.Name.ToLower();
             string pattern = @"[^A-Za-z0-9]+";
             string replacement = "-";
