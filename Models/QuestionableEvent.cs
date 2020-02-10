@@ -5,7 +5,7 @@ namespace OpsSecProject.Models
 {
     public enum QuestionableEventStatus
     {
-        PendingReview,UserAccepted,UserRejected,AdminAccepted,AdminRejected,Locked
+        PendingReview,UserAccepted,UserRejected,AdminAccepted,AdminRejected,LockedAccepted, LockedRejected
     }
     public class QuestionableEvent
     {

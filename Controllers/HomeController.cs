@@ -72,7 +72,19 @@ namespace OpsSecProject.Controllers
             QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
             chosenEvent.status = QuestionableEventStatus.UserRejected;
             chosenEvent.UpdatedTimestamp = DateTime.Now;
+            Trigger linkedTrigger = chosenEvent.LinkedAlertTrigger;
+            if (linkedTrigger.IgnoredEvents == null)
+                linkedTrigger.IgnoredEvents = new string[] {chosenEvent.UserField, chosenEvent.IPAddressField};
+            else
+            {
+                string[] newIgnoredEvents = new string[linkedTrigger.IgnoredEvents.Count() + 2];
+                Array.Copy(linkedTrigger.IgnoredEvents, 0, newIgnoredEvents, 0, linkedTrigger.IgnoredEvents.Count());
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count()] = chosenEvent.UserField;
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count() + 1] = chosenEvent.IPAddressField;
+                linkedTrigger.IgnoredEvents = newIgnoredEvents;
+            }
             _context.QuestionableEvents.Update(chosenEvent);
+            _context.AlertTriggers.Update(linkedTrigger);
             _context.SaveChanges();
             TempData["Alert"] = "Success";
             TempData["Message"] = "Your response has been recorded successfully";
