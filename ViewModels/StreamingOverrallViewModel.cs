@@ -1,8 +1,5 @@
 ﻿using OpsSecProject.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OpsSecProject.ViewModels
 {
@@ -38,5 +35,6 @@ namespace OpsSecProject.ViewModels
         public List<WindowsSecurityLog> windowslogs { get; set; }
         public List<WindowsSecurityLog> cardsFailedAccount { get; set; }
 
+        public Trigger sagemakerConsolidatedEntity { get; set; }
     }
 }

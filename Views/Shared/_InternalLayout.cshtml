@@ -57,6 +57,8 @@
             defer>
     </script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=@Environment.GetEnvironmentVariable("GOOGLE-MAPS-API-KEY")"
+            defer></script>
     <script src="~/js/sb-admin-2.js" defer></script>
     <script src="~/js/site.js" asp-append-version="true" data-turbolinks-track="reload" defer></script>
 </head>
@@ -74,6 +76,12 @@
                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-home"></i>
                     <span>Home</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Tasks">
+                    <i class="fas fa-user-check"></i>
+                    <span>Tasks</span>
                 </a>
             </li>
             @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
@@ -95,28 +103,28 @@
                     </a>
                 </li>
             }
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">
-                Data Analytics
-            </div>
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBulitDashboards" aria-expanded="false" aria-controls="collapseBulitDashboards">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Pre-Built Dashboards</span>
-                </a>
-                <div id="collapseBulitDashboards" class="collapse" aria-labelledby="collapseBulitDashboards" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Endpoint Devices:</h6>
-                        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="SSH">SSH Logins</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="AD">Active Directory</a>
-                        <h6 class="collapse-header">Network:</h6>
-                        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Web">Web Servers</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Proxy">Proxy Servers</a>
-                    </div>
-                </div>
-            </li>
             @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
             {
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">
+                    Data Analytics
+                </div>
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBulitDashboards" aria-expanded="false" aria-controls="collapseBulitDashboards">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Pre-Built Dashboards</span>
+                    </a>
+                    <div id="collapseBulitDashboards" class="collapse" aria-labelledby="collapseBulitDashboards" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Endpoint Devices:</h6>
+                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="SSH">SSH Logins</a>
+                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="AD">Active Directory</a>
+                            <h6 class="collapse-header">Network:</h6>
+                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Web">Web Servers</a>
+                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Proxy">Proxy Servers</a>
+                        </div>
+                    </div>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInputDashboards" aria-expanded="false" aria-controls="collapseInputDashboards">
                         <i class="fas fa-fw fa-folder"></i>
@@ -159,16 +167,19 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-                    <form asp-controller="Home" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" required>
-                            <div class="input-group-append">
-                                <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
+                    @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
+                    {
+                        <form asp-controller="Home" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                            <div class="input-group">
+                                <input type="text" name="query" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" required>
+                                <div class="input-group-append">
+                                    <button id="searchBtnSubmit" class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    }
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item dropdown no-arrow d-sm-none">
                             <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

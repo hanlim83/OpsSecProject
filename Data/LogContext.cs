@@ -14,8 +14,8 @@ namespace OpsSecProject.Data
         public DbSet<GlueDatabase> GlueDatabases { get; set; }
         public DbSet<GlueDatabaseTable> GlueDatabaseTables { get; set; }
         public DbSet<GlueConsolidatedEntity> GlueConsolidatedEntities { get; set; }
-        public DbSet<SagemakerConsolidatedEntity> SagemakerConsolidatedEntities { get; set; }
         public DbSet<Trigger> AlertTriggers { get; set; }
+        public DbSet<QuestionableEvent> QuestionableEvents { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LogInput>().ToTable("LogInputs");
@@ -26,13 +26,15 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<GlueDatabase>().ToTable("GlueDatabases");
             modelBuilder.Entity<GlueDatabaseTable>().ToTable("GlueDatabaseTables");
             modelBuilder.Entity<GlueConsolidatedEntity>().ToTable("GlueConsolidatedEntities");
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().ToTable("SagemakerConsolidatedEntities");
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.Untrained);
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.DeprecatedInputDataKeys).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.DeprecatedModelNames).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
-            modelBuilder.Entity<SagemakerConsolidatedEntity>().Property(s => s.InferenceBookmark).HasDefaultValue(0);
+            modelBuilder.Entity<Trigger>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.Untrained);
+            modelBuilder.Entity<Trigger>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
+            modelBuilder.Entity<Trigger>().Property(s => s.DeprecatedInputDataKeys).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            modelBuilder.Entity<Trigger>().Property(s => s.DeprecatedModelNames).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            modelBuilder.Entity<Trigger>().Property(s => s.IgnoredEvents).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            modelBuilder.Entity<Trigger>().Property(s => s.InferenceBookmark).HasDefaultValue(0);
             modelBuilder.Entity<Trigger>().ToTable("AlertTriggers");
+            modelBuilder.Entity<QuestionableEvent>().ToTable("QuestionableEvents");
+            modelBuilder.Entity<QuestionableEvent>().Property(q => q.status).HasDefaultValue(QuestionableEventStatus.PendingReview);
         }
     }
 }

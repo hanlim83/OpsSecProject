@@ -16,6 +16,7 @@ namespace OpsSecProject.Models
         public string Filter {get; set;}
         public string LogType { get; set; }
         [Required]
+
         public LogInputCategory LogInputCategory { get; set; }
         [Required]
         public string ConfigurationJSON { get; set; }
@@ -30,6 +31,6 @@ namespace OpsSecProject.Models
         [Required]
         public virtual S3Bucket LinkedS3Bucket { get; set; }
         public virtual GlueConsolidatedEntity LinkedGlueEntity { get; set; }
-        public virtual ICollection<SagemakerConsolidatedEntity> LinkedSagemakerEntities { get; set; }
+        public virtual ICollection<Trigger> LinkedSagemakerEntities { get; set; }
     }
 }

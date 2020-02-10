@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace OpsSecProject.Models
+﻿namespace OpsSecProject.Models
 {
     public class IPInsightsPrediction
     {

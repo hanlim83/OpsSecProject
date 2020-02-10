@@ -57,9 +57,11 @@ namespace OpsSecProject.Helpers
                 {
                     result = false;
                     score = "-1";
+                } else
+                {
+                    result = true;
+                    score = JSONdata.score;
                 }
-                result = true;
-                score = JSONdata.score;
             }
         }
     }

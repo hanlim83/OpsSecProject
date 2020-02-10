@@ -189,6 +189,11 @@ namespace OpsSecProject
                                         import.VerifiedPhoneNumber = true;
                                     }
                                 }
+                                if(string.IsNullOrWhiteSpace(import.EmailAddress) && claimsIdentity.FindFirst("preferred_username").Value.Contains('@'))
+                                {
+                                    import.EmailAddress = claimsIdentity.FindFirst("preferred_username").Value;
+                                    import.VerifiedEmailAddress = true;
+                                }
                                 if (import.VerifiedEmailAddress && import.VerifiedPhoneNumber)
                                     import.OverridableField = OverridableField.None;
                                 else if (import.VerifiedEmailAddress)

@@ -1,5 +1,4 @@
 ﻿using OpsSecProject.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace OpsSecProject.ViewModels
 {

@@ -32,119 +32,61 @@ namespace OpsSecProject.Services
             _context.Database.OpenConnection();
             _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.S3Buckets ON");
             ListBucketsResponse listBucketResponse = await _S3Client.ListBucketsAsync(new ListBucketsRequest());
-            bool aggergateBucketFound = false, sageMakerBucketFound = false, apacheWebLogBucketFound = false, SSHLogBucketFound = false, windowsSecurityLogBucketFound = false, squidProxyLogBucketFound = false, ipinsightsTestLogBucketFound = false;
+            bool sageMakerBucketFound = false, apacheWebLogBucketFound = false, SSHLogBucketFound = false, windowsSecurityLogBucketFound = false, squidProxyLogBucketFound = false;
             foreach (var bucket in listBucketResponse.Buckets)
             {
-                if (bucket.BucketName.Equals("master-aggergated-ingest-data"))
+                if (bucket.BucketName.Equals("master-sagemaker-data"))
                 {
-                    aggergateBucketFound = true;
+                    sageMakerBucketFound = true;
                     if (_context.S3Buckets.Find(1) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
                             ID = 1,
-                            Name = "master-aggergated-ingest-data"
+                            Name = "master-sagemaker-data"
                         });
                 }
-                else if (bucket.BucketName.Equals("master-sagemaker-data"))
+                else if (bucket.BucketName.Equals("smartinsights-test-website"))
                 {
-                    sageMakerBucketFound = true;
+                    apacheWebLogBucketFound = true;
                     if (_context.S3Buckets.Find(2) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
                             ID = 2,
-                            Name = "master-sagemaker-data"
-                        });
-                }
-                else if (bucket.BucketName.Equals("smartinsights-apache-web-logs"))
-                {
-                    apacheWebLogBucketFound = true;
-                    if (_context.S3Buckets.Find(3) == null)
-                        _context.S3Buckets.Add(new Models.S3Bucket
-                        {
-                            ID = 3,
-                            Name = "smartinsights-apache-web-logs"
+                            Name = "smartinsights-test-website"
                         });
                 }
                 else if (bucket.BucketName.Equals("smartinsights-ssh-logs"))
                 {
                     SSHLogBucketFound = true;
-                    if (_context.S3Buckets.Find(4) == null)
+                    if (_context.S3Buckets.Find(3) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
-                            ID = 4,
+                            ID = 3,
                             Name = "smartinsights-ssh-logs"
                         });
                 }
                 else if (bucket.BucketName.Equals("smartinsights-windows-security-logs"))
                 {
                     windowsSecurityLogBucketFound = true;
-                    if (_context.S3Buckets.Find(5) == null)
+                    if (_context.S3Buckets.Find(4) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
-                            ID = 5,
+                            ID = 4,
                             Name = "smartinsights-windows-security-logs"
                         });
                 }
                 else if (bucket.BucketName.Equals("smartinsights-squid-proxy-logs"))
                 {
                     squidProxyLogBucketFound = true;
-                    if (_context.S3Buckets.Find(6) == null)
+                    if (_context.S3Buckets.Find(5) == null)
                         _context.S3Buckets.Add(new Models.S3Bucket
                         {
-                            ID = 6,
+                            ID = 5,
                             Name = "smartinsights-squid-proxy-logs"
                         });
                 }
-                else if (bucket.BucketName.Equals("smartinsights-ipinsights-test-logs"))
-                {
-                    squidProxyLogBucketFound = true;
-                    if (_context.S3Buckets.Find(6) == null)
-                        _context.S3Buckets.Add(new Models.S3Bucket
-                        {
-                            ID = 7,
-                            Name = "smartinsights-ipinsights-test-logs"
-                        });
-                }
-                if (aggergateBucketFound && sageMakerBucketFound && apacheWebLogBucketFound && SSHLogBucketFound && windowsSecurityLogBucketFound && squidProxyLogBucketFound && ipinsightsTestLogBucketFound)
+                if (sageMakerBucketFound && apacheWebLogBucketFound && SSHLogBucketFound && windowsSecurityLogBucketFound && squidProxyLogBucketFound)
                     break;
-            }
-            if (!aggergateBucketFound && _context.S3Buckets.Find(1) == null)
-            {
-                PutBucketResponse putBucketResponse1 = await _S3Client.PutBucketAsync(new PutBucketRequest
-                {
-                    BucketName = "master-aggergated-ingest-data",
-                    UseClientRegion = true,
-                    CannedACL = S3CannedACL.Private
-                });
-                PutBucketTaggingResponse putBucketTaggingResponse1 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
-                {
-                    BucketName = "master-aggergated-ingest-data",
-                    TagSet = new List<Tag>
-                    {
-                        new Tag
-                        {
-                            Key = "Project",
-                            Value = "OSPJ"
-                        }
-                    }
-                });
-                PutPublicAccessBlockResponse putPublicAccessBlockResponse1 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
-                {
-                    BucketName = "master-aggergated-ingest-data",
-                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
-                    {
-                        BlockPublicAcls = true,
-                        BlockPublicPolicy = true,
-                        IgnorePublicAcls = true,
-                        RestrictPublicBuckets = true
-                    }
-                });
-                if (putBucketResponse1.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse1.HttpStatusCode.Equals(HttpStatusCode.OK))
-                    _context.S3Buckets.Add(new Models.S3Bucket
-                    {
-                        ID = 1,
-                        Name = "master-aggergated-ingest-data"
-                    });
             }
             if (!sageMakerBucketFound && _context.S3Buckets.Find(2) == null)
             {
@@ -180,7 +122,7 @@ namespace OpsSecProject.Services
                 if (putBucketResponse2.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse2.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
-                        ID = 2,
+                        ID = 1,
                         Name = "master-sagemaker-data"
                     });
             }
@@ -188,13 +130,13 @@ namespace OpsSecProject.Services
             {
                 PutBucketResponse putBucketResponse3 = await _S3Client.PutBucketAsync(new PutBucketRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     UseClientRegion = true,
                     CannedACL = S3CannedACL.Private
                 });
                 PutBucketTaggingResponse putBucketTaggingResponse3 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     TagSet = new List<Tag>
                     {
                         new Tag
@@ -206,7 +148,7 @@ namespace OpsSecProject.Services
                 });
                 PutPublicAccessBlockResponse putPublicAccessBlockResponse3 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
                 {
-                    BucketName = "smartinsights-apache-web-logs",
+                    BucketName = "smartinsights-test-website",
                     PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
                     {
                         BlockPublicAcls = true,
@@ -218,7 +160,7 @@ namespace OpsSecProject.Services
                 if (putBucketResponse3.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse3.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
-                        ID = 3,
+                        ID = 2,
                         Name = "smartinsights-apache-web-logs"
                     });
             }
@@ -256,7 +198,7 @@ namespace OpsSecProject.Services
                 if (putBucketResponse4.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse4.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
-                        ID = 4,
+                        ID = 3,
                         Name = "smartinsights-ssh-logs"
                     });
             }
@@ -294,7 +236,7 @@ namespace OpsSecProject.Services
                 if (putBucketResponse5.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse5.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
-                        ID = 5,
+                        ID = 4,
                         Name = "smartinsights-windows-security-logs"
                     });
             }
@@ -332,46 +274,8 @@ namespace OpsSecProject.Services
                 if (putBucketResponse6.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse6.HttpStatusCode.Equals(HttpStatusCode.OK))
                     _context.S3Buckets.Add(new Models.S3Bucket
                     {
-                        ID = 6,
+                        ID = 5,
                         Name = "smartinsights-squid-proxy-logs"
-                    });
-            }
-            if (!ipinsightsTestLogBucketFound && _context.S3Buckets.Find(7) == null)
-            {
-                PutBucketResponse putBucketResponse7 = await _S3Client.PutBucketAsync(new PutBucketRequest
-                {
-                    BucketName = "smartinsights-ipinsights-test-logs",
-                    UseClientRegion = true,
-                    CannedACL = S3CannedACL.Private
-                });
-                PutBucketTaggingResponse putBucketTaggingResponse7 = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
-                {
-                    BucketName = "smartinsights-ipinsights-test-logs",
-                    TagSet = new List<Tag>
-                    {
-                        new Tag
-                        {
-                            Key = "Project",
-                            Value = "OSPJ"
-                        }
-                    }
-                });
-                PutPublicAccessBlockResponse putPublicAccessBlockResponse7 = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
-                {
-                    BucketName = "smartinsights-ipinsights-test-logs",
-                    PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
-                    {
-                        BlockPublicAcls = true,
-                        BlockPublicPolicy = true,
-                        IgnorePublicAcls = true,
-                        RestrictPublicBuckets = true
-                    }
-                });
-                if (putBucketResponse7.HttpStatusCode.Equals(HttpStatusCode.OK) && putPublicAccessBlockResponse7.HttpStatusCode.Equals(HttpStatusCode.OK))
-                    _context.S3Buckets.Add(new Models.S3Bucket
-                    {
-                        ID = 7,
-                        Name = "smartinsights-ipinsights-test-logs"
                     });
             }
             await _context.SaveChangesAsync();
@@ -498,10 +402,22 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 1,
-                    Name = "Apache Web Logs",
-                    FirehoseStreamName = "SmartInsights-Apache-Web-Logs",
+                    Name = "Test Staging Website",
+                    FirehoseStreamName = "SmartInsights-Test-Website",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.ApacheWebServer,
+                    LinkedUserID = 1,
+                    LinkedS3BucketID = _context.S3Buckets.Find(2).ID,
+                    LinkedS3Bucket = _context.S3Buckets.Find(2),
+                    InitialIngest = true
+                });
+                _context.LogInputs.Add(new Models.LogInput
+                {
+                    ID = 2,
+                    Name = "Linux SSH Server Logs",
+                    FirehoseStreamName = "SmartInsights-SSH-Login-Logs",
+                    ConfigurationJSON = "",
+                    LogInputCategory = Models.LogInputCategory.SSH,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(3).ID,
                     LinkedS3Bucket = _context.S3Buckets.Find(3),
@@ -509,11 +425,11 @@ namespace OpsSecProject.Services
                 });
                 _context.LogInputs.Add(new Models.LogInput
                 {
-                    ID = 2,
-                    Name = "SSH Session Logs",
-                    FirehoseStreamName = "SmartInsights-SSH-Login-Logs",
+                    ID = 3,
+                    Name = "Windows Security Events",
+                    FirehoseStreamName = "SmartInsights-Windows-Security-Logs",
                     ConfigurationJSON = "",
-                    LogInputCategory = Models.LogInputCategory.SSH,
+                    LogInputCategory = Models.LogInputCategory.WindowsEventLogs,
                     LinkedUserID = 1,
                     LinkedS3BucketID = _context.S3Buckets.Find(4).ID,
                     LinkedS3Bucket = _context.S3Buckets.Find(4),
@@ -521,39 +437,15 @@ namespace OpsSecProject.Services
                 });
                 _context.LogInputs.Add(new Models.LogInput
                 {
-                    ID = 3,
-                    Name = "Windows Security Logs",
-                    FirehoseStreamName = "SmartInsights-Windows-Security-Logs",
-                    ConfigurationJSON = "",
-                    LogInputCategory = Models.LogInputCategory.WindowsEventLogs,
-                    LinkedUserID = 1,
-                    LinkedS3BucketID = _context.S3Buckets.Find(5).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(5),
-                    InitialIngest = true
-                });
-                _context.LogInputs.Add(new Models.LogInput
-                {
                     ID = 4,
-                    Name = "Squid Proxy Server Logs",
+                    Name = "Squid Proxy Server",
                     FirehoseStreamName = "SmartInsights-Cisco-Squid-Proxy-Logs",
                     ConfigurationJSON = "",
                     LogInputCategory = Models.LogInputCategory.SquidProxy,
                     LinkedUserID = 1,
-                    LinkedS3BucketID = _context.S3Buckets.Find(6).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(6),
+                    LinkedS3BucketID = _context.S3Buckets.Find(5).ID,
+                    LinkedS3Bucket = _context.S3Buckets.Find(5),
                     InitialIngest = true
-                });
-                _context.LogInputs.Add(new Models.LogInput
-                {
-                    ID = 5,
-                    Name = "IPInsights Test Logs",
-                    FirehoseStreamName = "",
-                    ConfigurationJSON = "",
-                    LogInputCategory = Models.LogInputCategory.ApacheWebServer,
-                    LinkedUserID = 1,
-                    LinkedS3BucketID = _context.S3Buckets.Find(7).ID,
-                    LinkedS3Bucket = _context.S3Buckets.Find(7),
-                    InitialIngest = false
                 });
                 await _context.SaveChangesAsync();
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
@@ -580,6 +472,25 @@ namespace OpsSecProject.Services
                     CrawlerName = "Squid Proxy Logs",
                     LinkedLogInputID = _context.LogInputs.Find(4).ID,
                     JobName = "Squid Proxy Logs"
+                });
+                await _context.SaveChangesAsync();
+                _context.AlertTriggers.Add(new Models.Trigger
+                {
+                    Name = "Test Trigger",
+                    AlertTriggerType = Models.AlertTriggerType.IPInsights,
+                    CondtionalField = "request",
+                    CondtionType = "Similar",
+                    Condtion = "/login_success",
+                    LinkedLogInputID = 1
+                });
+                _context.QuestionableEvents.Add(new Models.QuestionableEvent
+                {
+                    FullEventData = "GET /login_success HTTP/1.0",
+                    UserField = "Hansen",
+                    IPAddressField = "58.182.250.32",
+                    EventTimestamp = DateTime.Now,
+                    LinkedAlertTriggerID = 1,
+                    ReviewUserID = 1
                 });
                 await _context.SaveChangesAsync();
             }
