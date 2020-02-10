@@ -23,7 +23,7 @@ namespace OpsSecProject.ViewModels
         public List<SquidProxyLog> squidlogs { get; set; }
         //Windows stuff
         public List<WindowsSecurityLog> windowslogs { get; set; }
-      
+
         public SagemakerConsolidatedEntity sagemakerConsolidatedEntity { get; set; }
     }
 }
