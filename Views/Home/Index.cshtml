@@ -1,9 +1,31 @@
-﻿@{
+﻿@model IEnumerable<OpsSecProject.Models.QuestionableEvent>
+@{
     ViewData["Title"] = "Home Page";
 }
-<div class="container">
-    <div class="text-center">
-        <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/programmer_imem.svg" style="max-width: 50%; max-height: 50%;">
-        <h3>Start searching or explore around!</h3>
+@if (Model.Count() != 0)
+{
+    <div class="container">
+        <div class="text-center">
+            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/review_fkgn.svg" style="max-width: 50%; max-height: 50%;">
+            <h3>You have events that need your review! Click on tasks on the sidebar to review them!</h3>
+        </div>
     </div>
-</div>
+}
+@if ((User.IsInRole("Power User") || User.IsInRole("Administrator")) && Model.Count() == 0)
+{
+    <div class="container">
+        <div class="text-center">
+            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/programmer_imem.svg" style="max-width: 50%; max-height: 50%;">
+            <h3>Start searching or explore around!</h3>
+        </div>
+    </div>
+}
+@if ((!User.IsInRole("Power User") && !User.IsInRole("Administrator")) && Model.Count() == 0)
+{
+    <div class="container">
+        <div class="text-center">
+            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/programmer_imem.svg" style="max-width: 50%; max-height: 50%;">
+            <h3>You don't have anything that needs your attention at the moment...</h3>
+        </div>
+    </div>
+}

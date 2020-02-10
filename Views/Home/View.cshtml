@@ -1,0 +1,59 @@
+﻿@model OpsSecProject.ViewModels.QuestionableEventReviewViewModel
+@{
+    ViewData["Title"] = "View Event";
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-success" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+<h1 class="h3 mb-2 text-gray-800">View Event</h1>
+@await Html.PartialAsync("EventPartial")
+<div class="container">
+    <div class="text-center">
+        <a class="btn btn-info" asp-action="Review" asp-route-EventID="@Model.ReviewEvent.ID">Change Response</a>
+    </div>
+</div>
+@section scripts {
+    <script>
+        function Handler(event) {
+            var pointer = {lat: -@(Model.SupplmentaryInformation.Latitude), lng: @(Model.SupplmentaryInformation.Longitude)};
+            var map = new google.maps.Map(document.getElementById('EventCardGMaps'), {
+                center: pointer,
+                zoom: 10,
+                disableDefaultUI: true
+            });
+            var marker = new google.maps.Marker({position: pointer, map: map});
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}

@@ -6,17 +6,107 @@
 <h1 class="h3 mb-2 text-gray-800">SSH Logs Overview</h1>
 <p class="mb-4"></p>
 
-
-
+<!-- Content Cards -->
 <div class="row">
 
+    <!--Cards-->
+    <!-- Total Failed Logins -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Failed Logins</div>
+
+                        @foreach (var log in Model.cardsFailedLogin)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.failedLogin</div>
+                        }
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--User With Most Failed Logins-->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">User With Most Failed Logins</div>
+
+                        @foreach (var log in Model.cardsTopUserFailedLogin)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
+                        }
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Port with most failed login -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Port With Most Failed Logins</div>
+
+                        @foreach (var log in Model.cardsTopPort)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
+                        }
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sample2</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+</div>
+
+
+
+<!-- Content Charts -->
+<div class="row">
 
     <!-- Donut/Pie Chart -->
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
             <!-- Card Header - Dropdown -->
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Sample Pie Chart 1</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Overall Login Attempts</h6>
             </div>
             <!-- Card Body -->
             <div class="card-body">
@@ -24,7 +114,7 @@
                     <canvas id="LoginAttempts"></canvas>
                 </div>
                 <hr>
-                Details of the various sample.
+                Details of Total Number of Accepted/Failed Logins.
             </div>
         </div>
     </div>
@@ -32,25 +122,25 @@
     <!-- Bar Chart -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Login Attempts</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Login Attempts Over Month</h6>
         </div>
         <div class="card-body">
             <div class="chart-bar">
-                <canvas id="httpBarChart"></canvas>
+                <canvas id="LoginOverTimeBarChart"></canvas>
             </div>
             <hr>
-            Details of Login Attempts.
+            Details of Login Attempts over the Various Months.
         </div>
     </div>
 
 
 </div>
 
-
+<!-- Content Table -->
 <div class="
      shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">SSH Logs Details</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Overall Details</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -102,20 +192,25 @@
             var xa = @Html.Raw(ViewBag.xAxisJ);
             var ya = @Html.Raw(ViewBag.yAxisJ);
 
+            var xam = @Html.Raw(ViewBag.xAxisM);
+            var yam = @Html.Raw(ViewBag.yAxisM);
+            var yam2 = @Html.Raw(ViewBag.yAxisM2);
+
             // Set new default font family and font color to mimic Bootstrap's default styling
             Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
             Chart.defaults.global.defaultFontColor = '#858796';
 
-            // Pie Chart Example
+
+            // Pie Chart for login attempts
             var ctx = document.getElementById("LoginAttempts");
             var LoginAttempts = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Server', '#Accepted', '#Failed'],
+                    labels: xa,
                     datasets: [{
-                        data: ['20', '30', '50'],
-                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-                        hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                        data: ya,
+                        backgroundColor: ['#4e73df', '#36b9cc'],
+                        hoverBackgroundColor: ['#2e59d9', '#2c9faf'],
                         hoverBorderColor: "rgba(234, 236, 244, 1)",
                     }],
                 },
@@ -132,31 +227,45 @@
                         caretPadding: 10,
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     },
                     cutoutPercentage: 80,
                 },
             });
 
 
-            // Bar Chart Example
-            var ctx = document.getElementById("httpBarChart");
-            var httpBarChart = new Chart(ctx, {
+            // var data from db for chart
+
+
+            // Bar Chart login attempts over month
+            var ctx = document.getElementById("LoginOverTimeBarChart");
+            var LoginOverTimeBarChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    
-                    labels: ["January", "December"],
-                    //labels: responseCode,
+                    labels: xam,                 
                     datasets: [{
-                        label: "Attempts",
+                        label: "Failed",
+                        backgroundColor: "#ffd480",
+                        hoverBackgroundColor: "#ffcc66",
+                        borderColor: "#4e73df",
+                        data: yam,
+
+                    },
+                    {
+                        label: "Accepted",
                         backgroundColor: "#4e73df",
                         hoverBackgroundColor: "#2e59d9",
                         borderColor: "#4e73df",
-                        data: [30, 40]
-                        //data: count,
-                   
-                    }],
+                        data: yam2,
+                    }
+
+
+
+                    ],
+
                 },
+
                 options: {
                     maintainAspectRatio: false,
                     layout: {
@@ -170,7 +279,7 @@
                     scales: {
                         xAxes: [{
                             time: {
-                                unit: 'Status Code'
+                                unit: 'logins'
                             },
                             gridLines: {
                                 display: false,
@@ -184,7 +293,7 @@
                         yAxes: [{
                             ticks: {
                                 min: 0,
-                                max: 10000,
+                                max: 5000,
                                 maxTicksLimit: 5,
                                 padding: 100,
 
@@ -202,7 +311,8 @@
                         }],
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     },
                     tooltips: {
                         titleMarginBottom: 10,

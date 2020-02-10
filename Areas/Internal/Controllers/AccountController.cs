@@ -439,14 +439,57 @@ namespace OpsSecProject.Areas.Internal.Controllers
                     currentUser.Existence = Existence.Hybrid;
                 currentUser.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(currentUser);
-                _context.Alerts.Add(new Alert
+                Settings settings = currentUser.LinkedSettings;
+                Alert alert = new Alert
                 {
-                    Message = "You have set a password for your account recently",
+                    Message = "You have changed the password for your account recently",
                     AlertType = AlertType.MajorInformationChange,
                     TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.NONE,
                     LinkedUserID = currentUser.ID
-                });
+                };
+                if (settings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && currentUser.VerifiedEmailAddress == true)
+                {
+                    SendEmailRequest SESrequest = new SendEmailRequest
+                    {
+                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                        Destination = new Destination
+                        {
+                            ToAddresses = new List<string>
+                        {
+                            currentUser.EmailAddress
+                        }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content("Password Changed Notification for SmartInsights"),
+                            Body = new Body
+                            {
+                                Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = "Hi " + currentUser.Name + ",\r\n\n" + "Your password has been changed recently.\r\nIf this was not you, please contact your administrator or if your account has Single-Sign-On (SSO) enabled, login via SSO to set a new password immediately." + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                }
+                            }
+                        }
+                    };
+                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                    if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                        alert.ExternalNotificationType = ExternalNotificationType.EMAIL;
+                }
+                else if (settings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && currentUser.VerifiedPhoneNumber == true)
+                {
+                    PublishRequest SNSrequest = new PublishRequest
+                    {
+                        Message = "Your have just changed the password for your account. Not you? Please contact your administrator or sign in via SSO immediately.",
+                        PhoneNumber = "+65" + currentUser.PhoneNumber
+                    };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                        alert.ExternalNotificationType = ExternalNotificationType.SMS;
+                }
+                _context.Alerts.Add(alert);
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -514,14 +557,57 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         }
                         else if (Rtoken.Type == OpsSecProject.Models.Type.Reset)
                         {
-                            _context.Alerts.Add(new Alert
+                            Settings settings = identity.LinkedSettings;
+                            Alert alert = new Alert
                             {
-                                Message = "Your password has been changed recently",
+                                Message = "You have changed the password for your account recently",
                                 AlertType = AlertType.MajorInformationChange,
                                 TimeStamp = DateTime.Now,
-                                ExternalNotificationType = ExternalNotificationType.NONE,
                                 LinkedUserID = identity.ID
-                            });
+                            };
+                            if (settings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && identity.VerifiedEmailAddress == true)
+                            {
+                                SendEmailRequest SESrequest = new SendEmailRequest
+                                {
+                                    Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                                    Destination = new Destination
+                                    {
+                                        ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                                    },
+                                    Message = new Message
+                                    {
+                                        Subject = new Content("Password Changed Notification for SmartInsights"),
+                                        Body = new Body
+                                        {
+                                            Text = new Content
+                                            {
+                                                Charset = "UTF-8",
+                                                Data = "Hi " + identity.Name + ",\r\n\n" + "Your password has been changed recently.\r\nIf this was not you, please contact your administrator or if your account has Single-Sign-On (SSO) enabled, login via SSO to set a new password immediately." + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                            }
+                                        }
+                                    }
+                                };
+                                SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                                if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                                    alert.ExternalNotificationType = ExternalNotificationType.EMAIL;
+                            }
+                            else if (settings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && identity.VerifiedPhoneNumber == true)
+                            {
+                                PublishRequest SNSrequest = new PublishRequest
+                                {
+                                    Message = "Your have just changed the password for your account. Not you? Please contact your administrator or sign in via SSO immediately.",
+                                    PhoneNumber = "+65" + identity.PhoneNumber
+                                };
+                                SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                                SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                                PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                                if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                                    alert.ExternalNotificationType = ExternalNotificationType.SMS;
+                            }
+                            _context.Alerts.Add(alert);
                         }
                         _context.Users.Update(identity);
                         Rtoken.Vaild = false;
@@ -592,14 +678,57 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 identity.Password = Password.HashPassword(NewCredentials.ConfirmPassword, Password.GetRandomSalt());
                 identity.LastPasswordChange = DateTime.Now;
                 _context.Users.Update(identity);
-                _context.Alerts.Add(new Alert
+                Settings settings = identity.LinkedSettings;
+                Alert alert = new Alert
                 {
-                    Message = "Your password has been changed recently",
+                    Message = "You have changed the password for your account recently",
                     AlertType = AlertType.MajorInformationChange,
                     TimeStamp = DateTime.Now,
-                    ExternalNotificationType = ExternalNotificationType.NONE,
                     LinkedUserID = identity.ID
-                });
+                };
+                if (settings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && identity.VerifiedEmailAddress == true)
+                {
+                    SendEmailRequest SESrequest = new SendEmailRequest
+                    {
+                        Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                        Destination = new Destination
+                        {
+                            ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content("Password Changed Notification for SmartInsights"),
+                            Body = new Body
+                            {
+                                Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = "Hi " + identity.Name + ",\r\n\n" + "Your password has been changed recently.\r\nIf this was not you, please contact your administrator or if your account has Single-Sign-On (SSO) enabled, login via SSO to set a new password immediately." + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                }
+                            }
+                        }
+                    };
+                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
+                    if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                        alert.ExternalNotificationType = ExternalNotificationType.EMAIL;
+                }
+                else if (settings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && identity.VerifiedPhoneNumber == true)
+                {
+                    PublishRequest SNSrequest = new PublishRequest
+                    {
+                        Message = "Your have just changed the password for your account. Not you? Please contact your administrator or sign in via SSO immediately.",
+                        PhoneNumber = "+65" + identity.PhoneNumber
+                    };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
+                        alert.ExternalNotificationType = ExternalNotificationType.SMS;
+                }
+                _context.Alerts.Add(alert);
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -654,6 +783,46 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 }
                 else
                 {
+                    Settings settings = identity.LinkedSettings;
+                    if (settings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && identity.VerifiedEmailAddress == true)
+                    {
+                        SendEmailRequest SESrequest = new SendEmailRequest
+                        {
+                            Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                            Destination = new Destination
+                            {
+                                ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                            },
+                            Message = new Message
+                            {
+                                Subject = new Content("Email Address Change Notification for SmartInsights"),
+                                Body = new Body
+                                {
+                                    Text = new Content
+                                    {
+                                        Charset = "UTF-8",
+                                        Data = "Hi " + identity.Name + ",\r\n\n" + "Your email address will be changed to: " + newEmailAddress.EmailAddress + " soon.\r\nIf this was not you, please contact your administrator or if your account has Single-Sign-On (SSO) enabled, login via SSO to set a new password immediately." + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                    }
+                                }
+                            }
+                        };
+                        await _sesClient.SendEmailAsync(SESrequest);
+                    }
+                    else if (settings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && identity.VerifiedPhoneNumber == true)
+                    {
+                        PublishRequest SNSrequest = new PublishRequest
+                        {
+                            Message = "A request to change the email address on your account has been initiated. Not you? Please contact your administrator or sign in via SSO immediately.",
+                            PhoneNumber = "+65" + identity.PhoneNumber
+                        };
+                        SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                        SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                        await _snsClient.PublishAsync(SNSrequest);
+
+                    }
                     identity.EmailAddress = newEmailAddress.EmailAddress;
                     identity.VerifiedEmailAddress = false;
                     NotificationToken token = new NotificationToken
@@ -663,7 +832,7 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         LinkedUser = identity,
                         Token = TokenGenerator()
                     };
-                    SendEmailRequest SESrequest = new SendEmailRequest
+                    SendEmailRequest SESrequest1 = new SendEmailRequest
                     {
                         Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
                         Destination = new Destination
@@ -686,8 +855,8 @@ namespace OpsSecProject.Areas.Internal.Controllers
                             }
                         }
                     };
-                    SendEmailResponse response = await _sesClient.SendEmailAsync(SESrequest);
-                    if (response.HttpStatusCode != HttpStatusCode.OK)
+                    SendEmailResponse response1 = await _sesClient.SendEmailAsync(SESrequest1);
+                    if (response1.HttpStatusCode != HttpStatusCode.OK)
                         return StatusCode(500);
                     token.Mode = Mode.EMAIL;
                     _context.Users.Update(identity);
@@ -777,6 +946,46 @@ namespace OpsSecProject.Areas.Internal.Controllers
                 }
                 else
                 {
+                    Settings settings = identity.LinkedSettings;
+                    if (settings.CommmuicationOptions.Equals(CommmuicationOptions.EMAIL) && identity.VerifiedEmailAddress == true)
+                    {
+                        SendEmailRequest SESrequest = new SendEmailRequest
+                        {
+                            Source = Environment.GetEnvironmentVariable("SES_EMAIL_FROM-ADDRESS"),
+                            Destination = new Destination
+                            {
+                                ToAddresses = new List<string>
+                        {
+                            identity.EmailAddress
+                        }
+                            },
+                            Message = new Message
+                            {
+                                Subject = new Content("Phone Number Change Notification for SmartInsights"),
+                                Body = new Body
+                                {
+                                    Text = new Content
+                                    {
+                                        Charset = "UTF-8",
+                                        Data = "Hi " + identity.Name + ",\r\n\n" + "Your phone number will be changed to: " + newPhoneNumber.PhoneNumber + " soon.\r\nIf this was not you, please contact your administrator or if your account has Single-Sign-On (SSO) enabled, login via SSO to set a new password immediately." + "\r\n\n\nThis is a computer-generated email, please do not reply"
+                                    }
+                                }
+                            }
+                        };
+                        await _sesClient.SendEmailAsync(SESrequest);
+                    }
+                    else if (settings.CommmuicationOptions.Equals(CommmuicationOptions.SMS) && identity.VerifiedPhoneNumber == true)
+                    {
+                        PublishRequest SNSrequest = new PublishRequest
+                        {
+                            Message = "A request to change the phone number on your account has been initiated. Not you? Please contact your administrator or sign in via SSO immediately.",
+                            PhoneNumber = "+65" + identity.PhoneNumber
+                        };
+                        SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                        SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                        await _snsClient.PublishAsync(SNSrequest);
+
+                    }
                     identity.PhoneNumber = newPhoneNumber.PhoneNumber;
                     identity.VerifiedPhoneNumber = false;
                     NotificationToken token = new NotificationToken
@@ -786,14 +995,14 @@ namespace OpsSecProject.Areas.Internal.Controllers
                         LinkedUser = identity,
                         Token = TokenGenerator()
                     };
-                    PublishRequest SNSrequest = new PublishRequest
+                    PublishRequest SNSrequest1 = new PublishRequest
                     {
                         Message = "Please click on this link to complete your change of phone number request: " + "https://" + HttpContext.Request.Host + "/Internal/Account/VerifyPhoneNumber?token=" + token.Token,
                         PhoneNumber = "+65" + identity.PhoneNumber
                     };
-                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
-                    SNSrequest.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
-                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest);
+                    SNSrequest1.MessageAttributes["AWS.SNS.SMS.SenderID"] = new MessageAttributeValue { StringValue = "SmartIS", DataType = "String" };
+                    SNSrequest1.MessageAttributes["AWS.SNS.SMS.SMSType"] = new MessageAttributeValue { StringValue = "Transactional", DataType = "String" };
+                    PublishResponse response = await _snsClient.PublishAsync(SNSrequest1);
                     if (response.HttpStatusCode != HttpStatusCode.OK)
                         return StatusCode(500);
                     token.Mode = Mode.SMS;

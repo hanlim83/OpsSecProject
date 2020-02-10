@@ -29,6 +29,8 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<Settings>().Property(s => s.AutoDeploy).HasDefaultValue(true);
             modelBuilder.Entity<Alert>().ToTable("Alerts");
             modelBuilder.Entity<Alert>().Property(a => a.Read).HasDefaultValue(false);
+            modelBuilder.Entity<Alert>().Property(a => a.LinkedObjectID).HasDefaultValue(0);
+            modelBuilder.Entity<Alert>().Property(a => a.ExternalNotificationType).HasDefaultValue(ExternalNotificationType.NONE);
         }
     }
 }

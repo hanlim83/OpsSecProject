@@ -1,15 +1,108 @@
-﻿@model IEnumerable<OpsSecProject.Models.WindowsSecurityLog>
+﻿@model OpsSecProject.ViewModels.StreamingOverrallViewModel
 @{
     ViewData["Title"] = "Windows Security Logs";
 }
 
-<h1 class="h3 mb-2 text-gray-800">Windows Security Logs</h1>
+<h1 class="h3 mb-2 text-gray-800">Windows Security Logs Overview</h1>
 <p class="mb-4"></p>
 
+<!-- Content Cards -->
+<div class="row">
+
+    <!--Cards-->
+    <!-- Total Failed Account Logins -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Failed Account Logins</div>
+
+                        @foreach (var log in Model.cardsFailedAccount)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumFailedAccount</div>
+                        }
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--User With Most Failed Logins-->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Account With Most Failed Logins</div>
+
+                        @*@foreach (var log in Model.cardsTopUserFailedLogin)
+                            {
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
+                            }*@
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Port with most failed login -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Sample</div>
+
+                        @*@foreach (var log in Model.cardsTopPort)
+                            {
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
+                            }*@
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sample2</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+</div>
+
+
+
+<!-- Content Table -->
 <div class="
      shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Windows Security Logs Details</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Overall Details</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -17,7 +110,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Event ID</th>
-                        <th scope="col">Description</th>
+                        @*<th scope="col">Description</th>*@
                         <th scope="col">Level Display Name</th>
                         <th scope="col">Logname</th>
                         <th scope="col">Machine Name</th>
@@ -26,15 +119,15 @@
                         <th scope="col">Index</th>
                         <th scope="col">Username</th>
                         <th scope="col">Keywords</th>
-                        <th scope="col">Event Data</th>
+                        @*<th scope="col">Event Data</th>*@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var log in Model)
+                    @foreach (var log in Model.windowslogs)
                     {
                         <tr>
                             <th scope="row">@log.eventid</th>
-                            <td>@log.description</td>
+                            @*<td>@log.description</td>*@
                             <td>@log.leveldisplayname</td>
                             <td>@log.logname</td>
                             <td>@log.machinename</td>
@@ -43,7 +136,7 @@
                             <td>@log.index</td>
                             <td>@log.username</td>
                             <td>@log.keywords</td>
-                            <td>@log.eventdata</td>
+                            @*<td>@log.eventdata</td>*@
                         </tr>
                     }
                 </tbody>
@@ -53,43 +146,41 @@
 </div>
 
 
-<div class="row">
 
 
-    <!-- Donut/Pie Chart -->
-    <div class="col-xl-4 col-lg-5">
-        <div class="card shadow mb-4">
-            <!-- Card Header - Dropdown -->
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Sample Pie Chart 1</h6>
-            </div>
-            <!-- Card Body -->
-            <div class="card-body">
-                <div class="chart-pie pt-4">
-                    <canvas id="httpPieChart"></canvas>
-                </div>
-                <hr>
-                Details of the various sample.
-            </div>
+<div class="
+     shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="windowsChartTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Account for which Log on Failed</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>Admin</td>
+                    </tr>
+                    @*@foreach (var log in Model.charts)
+                    {
+                        <tr>
+                            <td>@log.response</td>
+
+                        </tr>
+                    }*@
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <!-- Bar Chart -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Sample Bar Chart 1</h6>
-        </div>
-        <div class="card-body">
-            <div class="chart-bar">
-                <canvas id="httpBarChart"></canvas>
-            </div>
-            <hr>
-            Details of sample.
-        </div>
-    </div>
-
-
 </div>
+
+
+
+
+
 
 
 @section scripts {

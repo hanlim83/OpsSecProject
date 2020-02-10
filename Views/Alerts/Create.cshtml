@@ -1,6 +1,6 @@
 ﻿@model OpsSecProject.Models.Trigger
 @{
-    ViewData["Title"] = "Create a metric alert";
+    ViewData["Title"] = "Create a alert trigger";
 }
 @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
 {
@@ -20,21 +20,58 @@
 
     </div>
 }
-<h1 class="h3 mb-2 text-gray-800">Create Metric Alert</h1>
+<h1 class="h3 mb-2 text-gray-800">Create Alert Trigger</h1>
 <p class="mb-4"></p>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Settings</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Alert Trigger Details</h6>
     </div>
     <div class="card-body">
         <form asp-action="Create" class="needs-validation" novalidate>
             <div class="form-group">
                 <label asp-for="Name">Name of Alert</label>
-                <input asp-for="Name" class="form-control" required/>
+                <input asp-for="Name" class="form-control" required />
+            </div>
+            <div class="form-group text-center">
+                <h6 class="mb-3">Trigger Type:</h6>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+                    <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+                    <label class="custom-control-label" for="TCA">Event Count Only</label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="AlertTriggerType" id="MLIPInsights" value="@AlertTriggerType.IPInsights" class="custom-control-input" required onclick="$('.ips-field-selection').show();">
+                    <label class="custom-control-label" for="MLIPInsights">Anomaly detection based on IP Addresses and User Names</label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" asp-for="AlertTriggerType" id="MLRCF" value="@AlertTriggerType.RCF" class="custom-control-input" required onclick="$('.ips-field-selection').hide();">
+                    <label class="custom-control-label" for="MLRCF">Anomaly detection based on Event Count</label>
+                </div>
+            </div>
+            <div class="form-group ips-field-selection" style="display:none;">
+                <label asp-for="UserField">Select field that contains the Identity</label>
+                <select asp-for="UserField" class="custom-select" required>
+                    @foreach (var field in ViewBag.fields)
+                    {
+                        <option value="@field">@field</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group ips-field-selection" style="display:none;">
+                <label asp-for="IPAddressField">Select field that contains the IP address</label>
+                <select asp-for="IPAddressField" class="custom-select" required>
+                    @foreach (var field in ViewBag.fields)
+                    {
+                        <option value="@field">@field</option>
+                    }
+                </select>
             </div>
             <div class="form-group">
-                <label asp-for="CondtionalField">Select field that used to determine what events should be used for the mertic alert</label>
+                <label asp-for="CondtionalField">Select field that used to determine what events should be used</label>
                 <select asp-for="CondtionalField" class="custom-select" required>
                     @foreach (var field in ViewBag.fields)
                     {
@@ -42,48 +79,27 @@
                     }
                 </select>
             </div>
-            <div class="form-group text-center">
-                <h6 class="mb-3">Condition Type:</h6>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="CondtionType" id="CLT" value="LessThan" class="custom-control-input" required>
-                    <label class="custom-control-label" for="CLT">Less Than</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="CondtionType" id="CLET" value="LessOrEqualThan" class="custom-control-input" required>
-                    <label class="custom-control-label" for="CLET">Less Or Equal Than</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="CondtionType" id="CEqual" value="Equal" class="custom-control-input" required>
-                    <label class="custom-control-label" for="CEqual">Equal</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="CondtionType" id="CMT" value="MoreThan" class="custom-control-input" required>
-                    <label class="custom-control-label" for="CMT">More Than</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="CondtionType" id="CMET" value="MoreOrEqualThan" class="custom-control-input" required>
-                    <label class="custom-control-label" for="CMET">More Or Equal Than</label>
-                </div>
+            <div class="form-group">
+                <label asp-for="CondtionType">Select the condition type</label>
+                <select asp-for="CondtionType" class="custom-select" required>
+                    <option value="LessThan">Less Than</option>
+                    <option value="LessOrEqualThan">Less Than</option>
+                    <option value="Equal">Equal</option>
+                    <option value="NotEqual">Not Equal</option>
+                    <option value="Like">Similar</option>
+                    <option value="NotLike">Not Similar</option>
+                    <option value="MoreThan">More Than</option>
+                    <option value="MoreOrEqualThan">More Or Equal Than</option>
+                </select>
             </div>
             <div class="form-group">
-                <label asp-for="Condtion">Specify the condtion used to determine what events should be used for the mertic alert</label>
-                <input class="form-control" asp-for="Condtion" required/>
-            </div>
-            <div class="form-group text-center">
-                <h6 class="mb-3">Trigger Type:</h6>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required>
-                    <label class="custom-control-label" for="TCT">Count Events by Time and Date (Per Minute)</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required>
-                    <label class="custom-control-label" for="TCA">Count Events Alone</label>
-                </div>
+                <label asp-for="Condtion">Specify the condtion used to determine what events should be used</label>
+                <input class="form-control" asp-for="Condtion" required />
             </div>
             <div class="form-group">
                 <input class="form-control" asp-for="LinkedLogInputID" value="@ViewData["LogInputID"]" type="hidden" />
             </div>
-            <button type="submit" class="btn btn-primary formBtnSubmit">Create Alert</button>
+            <button type="submit" class="btn btn-primary formBtnSubmit">Create Alert Trigger</button>
         </form>
     </div>
 </div>

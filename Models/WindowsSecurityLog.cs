@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace OpsSecProject.Models
+﻿namespace OpsSecProject.Models
 {
     public class WindowsSecurityLog
     {
@@ -18,6 +13,10 @@ namespace OpsSecProject.Models
         public string username { get; set; }
         public string keywords { get; set; }
         public string eventdata { get; set; }
+
+        // Cards
+        public string failedAccount { get; set; }
+        public string totalNumFailedAccount { get; set; }
 
     }
 

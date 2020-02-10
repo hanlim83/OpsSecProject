@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace OpsSecProject.Models
+﻿namespace OpsSecProject.Models
 {
     public class ApacheWebLog
     {
@@ -17,6 +12,8 @@ namespace OpsSecProject.Models
         public string referer { get; set; }
         public string agent { get; set; }
         public string COUNT { get; set; }
+        public string totalIp { get; set; }       
+        public string totalBytes { get; set; }
 
     }
 
