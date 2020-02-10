@@ -36,7 +36,6 @@ namespace OpsSecProject.ViewModels
 
         //Windows stuff
         public List<WindowsSecurityLog> windowslogs { get; set; }
-
         public List<WindowsSecurityLog> cardsFailedAccount { get; set; }
 
     }

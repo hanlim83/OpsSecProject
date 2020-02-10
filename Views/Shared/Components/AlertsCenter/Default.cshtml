@@ -15,7 +15,7 @@
         {
             <a class="dropdown-item d-flex align-items-center" asp-area="" asp-controller="Alerts" asp-action="View" asp-route-ID="@Alert.ID">
                 <div class="mr-3">
-                    @if (Alert.AlertType.Equals(AlertType.ReportReady))
+                    @if (Alert.AlertType.Equals(AlertType.SageMakerBatchTransformCompleted))
                     {
                         <div class="icon-circle bg-info">
                             <i class="fas fa-file-alt text-white fa-lg"></i>
@@ -39,7 +39,7 @@
                             <i class="fas fa-clock text-white fa-lg"></i>
                         </div>
                     }
-                    @if (Alert.AlertType.Equals(AlertType.InputError))
+                    @if (Alert.AlertType.Equals(AlertType.SageMakerPredictionTriggered))
                     {
                         <div class="icon-circle bg-warning">
                             <i class="fas fa-exclamation-triangle text-white fa-lg"></i>
@@ -49,6 +49,12 @@
                     {
                         <div class="icon-circle bg-info">
                             <i class="fas fa-user-shield text-white fa-lg"></i>
+                        </div>
+                    }
+                    @if (Alert.AlertType.Equals(AlertType.SageMakerTrained) || Alert.AlertType.Equals(AlertType.SageMakerDeployed))
+                    {
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-brain text-white fa-lg"></i>
                         </div>
                     }
                 </div>

@@ -1,0 +1,160 @@
+﻿@model OpsSecProject.Models.Trigger
+@{
+    ViewData["Title"] = "Edit metric alert";
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @ViewData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(ViewData["Alert"])) && ViewData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(ViewData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @ViewData["Message"]
+        </div>
+
+    </div>
+}
+<h1 class="h3 mb-2 text-gray-800">Edit Metric Alert</h1>
+<p class="mb-4"></p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Settings</h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" class="needs-validation" novalidate>
+            <div class="form-group">
+                <label asp-for="Name">Name of Alert</label>
+                <input asp-for="Name" class="form-control" value="@Model.Name" required/>
+            </div>
+            <div class="form-group">
+                <label asp-for="CondtionalField">Select field that used to determine what events should be used for the mertic alert</label>
+                <select asp-for="CondtionalField" class="custom-select" required>
+                    @foreach (var field in ViewBag.fields)
+                    {
+                        @if (Model.CondtionalField.Equals(field))
+                        {
+                            <option value="@field" selected>@field</option>
+                        }
+                        <option value="@field">@field</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group text-center">
+                <h6 class="mb-3">Condition Type:</h6>
+                @if (Model.CondtionType.Equals("LessThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CLT" value="LessThan" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="CLT">Less Than</label>
+                    </div>
+                }
+                @if (!Model.CondtionType.Equals("LessThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CLT" value="LessThan" class="custom-control-input" required>
+                        <label class="custom-control-label" for="CLT">Less Than</label>
+                    </div>
+                }
+                @if (Model.CondtionType.Equals("LessOrEqualThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CLET" value="LessOrEqualThan" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="CLET">Less Or Equal Than</label>
+                    </div>
+                }
+                @if (!Model.CondtionType.Equals("LessOrEqualThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CLET" value="LessOrEqualThan" class="custom-control-input" required>
+                        <label class="custom-control-label" for="CLET">Less Or Equal Than</label>
+                    </div>
+                }
+                @if (Model.CondtionType.Equals("Equal"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CEqual" value="Equal" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="CEqual">Equal</label>
+                    </div>
+                }
+                @if (!Model.CondtionType.Equals("Equal"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CEqual" value="Equal" class="custom-control-input" required>
+                        <label class="custom-control-label" for="CEqual">Equal</label>
+                    </div>
+                }
+                @if (Model.CondtionType.Equals("MoreThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType"  id="CMT" value="MoreThan" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="CMT">More Than</label>
+                    </div>
+                }
+                @if (!Model.CondtionType.Equals("MoreThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType"  id="CMT" value="MoreThan" class="custom-control-input" required>
+                        <label class="custom-control-label" for="CMT">More Than</label>
+                    </div>
+                }
+                @if (Model.CondtionType.Equals("MoreOrEqualThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CMET" value="MoreOrEqualThan" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="CMET">More Or Equal Than</label>
+                    </div>
+                }
+                @if (!Model.CondtionType.Equals("MoreOrEqualThan"))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="CondtionType" id="CMET" value="MoreOrEqualThan" class="custom-control-input" required>
+                        <label class="custom-control-label" for="CMET">More Or Equal Than</label>
+                    </div>
+                }
+            </div>
+            <div class="form-group">
+                <label asp-for="Condtion">Specify the condtion used to determine what events should be used for the mertic alert</label>
+                <input class="form-control" asp-for="Condtion" value="@Model.Condtion" required/>
+            </div>
+            <div class="form-group text-center">
+                <h6 class="mb-3">Trigger Type:</h6>
+                @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="TCT">Count Events by Time and Date (Per Minute)</label>
+                    </div>
+                }
+                @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required>
+                        <label class="custom-control-label" for="TCT">Count Events by Time and Date (Per Minute)</label>
+                    </div>
+                }
+                @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" checked required>
+                        <label class="custom-control-label" for="TCA">Count Events Alone</label>
+                    </div>
+                }
+                @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required>
+                        <label class="custom-control-label" for="TCA">Count Events Alone</label>
+                    </div>
+                }
+            </div>
+            <button type="submit" class="btn btn-primary formBtnSubmit">Edit Alert</button>
+        </form>
+    </div>
+</div>

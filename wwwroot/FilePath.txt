@@ -1,4 +1,31 @@
 { 
-"Sources" : [ 
- { 
-"Id" : "WindowsEventLog",
+   "Sources":[ 
+      { 
+         "Id":"ApacheWebServer",
+         "SourceType":"WindowsEventLogSource",
+         "Directory":"Test",
+         "FileNameFilter":" *.log",
+         "LogName":" This should work "
+         "IncludeEventData" : true
+            }
+   ],
+   "Sinks":[ 
+      { 
+         "Id":"WinSecurityKinesisFirehose",
+         "SinkType":"KinesisFirehose",
+         "AccessKey":"",
+         "SecretKey":"",
+         "Region":"ap-southeast-1",
+         "StreamName":"smart-insight-this-should-work"
+         "Format": "json"
+      }
+   ],
+   "Pipes":[ 
+      { 
+         "Id":"WinSecurityPipe",
+         "SourceRef":"WinSecurityLog",
+         "SinkRef":"WinSecurityKinesisFirehose"
+      }
+   ],
+   "SelfUpdate":0
+}

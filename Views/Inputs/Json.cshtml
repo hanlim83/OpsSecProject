@@ -6,37 +6,8 @@
     <table align="center" style="margin-top:75px">
         <tr>
             <td>
-                <textarea id="TextArea1" rows="10" cols="20">
-                    {
-  "Sources": [  
-    {
-      "Id": "WindowsEventLog",
-      "SourceType": "DirectorySource",
-      "Directory": "FilePath" that was sent by the user,
-      "FileNameFilter": "*.log",
-      "LogName": Application,
-
-    },
-  ],
-  "Sinks": [
-    {
-      "Id": "KinesisFirehoseSink",
-      "SinkType": "KinesisFirehose",
-      "AccessKey": "",
-      "SecretKey": "",
-      "Region": "us-west-2",
-      "StreamName": "LogAgentTestStream"
-    },
-  ],
-  "Pipes": [
-    {
-      "Id": "KinesisPipe",
-      "SourceRef": "WindowsEventLog",
-      "SinkRef": "KinesisFirehoseSink"
-    }
-  ],
-  "SelfUpdate": 0
-}
+                <textarea id="TextArea1" rows="10" cols="200">
+                    @TempData["qwerty"]
                 </textarea>      
             </td>
         </tr>
