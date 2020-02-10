@@ -286,7 +286,7 @@ namespace OpsSecProject
             //Entity Framework Initialization
             services.AddDbContext<AccountContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("StagingAccount"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("Account"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(
@@ -297,7 +297,7 @@ namespace OpsSecProject
             });
             services.AddDbContext<LogContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("StagingLogInputs"),
+                options.UseLazyLoadingProxies().UseSqlServer(GetRdsConnectionString("LogInputs"),
                     sqlServerOptionsAction: sqlOptions =>
                     {
                         sqlOptions.EnableRetryOnFailure(

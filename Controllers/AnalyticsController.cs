@@ -4,14 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OpsSecProject.ViewModels;
 using System.Data.SqlClient;
-using System.Data;
-using OpsSecProject.Data;
-using Microsoft.EntityFrameworkCore;
 using OpsSecProject.Models;
-using System.Configuration;
-using System.Net.Sockets;
-using System.IO;
-using System.Text;
 
 
 

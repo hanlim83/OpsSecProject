@@ -4,7 +4,6 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using IpStack;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OpsSecProject.Data;
 using OpsSecProject.Models;
