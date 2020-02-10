@@ -19,6 +19,10 @@ namespace OpsSecProject.Models
         public string keywords { get; set; }
         public string eventdata { get; set; }
 
+        // Cards
+        public string failedAccount { get; set; }
+        public string totalNumFailedAccount { get; set; }
+
     }
 
 

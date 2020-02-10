@@ -16,7 +16,19 @@ namespace OpsSecProject.Models
         public string process { get; set; }
         public string identifier { get; set; }
         public string message { get; set; }
+
+        // Cards
         public string COUNT { get; set; }
+        public string failedLogin { get; set; }
+        public string u { get; set; }
+        public string totalNum { get; set; }
+        public string topPort { get; set; }
+        public string totalNumPort { get; set; }
+
+
+        // Pie Chart Login Attempt
+        public string loginAttempt { get; set; }
+        public string totalNumLoginAttempt { get; set; }
 
     }
 }
