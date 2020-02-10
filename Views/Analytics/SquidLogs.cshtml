@@ -6,9 +6,98 @@
 <h1 class="h3 mb-2 text-gray-800">Squid Proxy Logs Overview</h1>
 <p class="mb-4"></p>
 
-
+<!-- Content Cards -->
 <div class="row">
 
+    <!--Cards-->
+    <!-- Total Failed Logins -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Failed Logins</div>
+
+                        @*@foreach (var log in Model.cardsFailedLogin)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.failedLogin</div>
+                        }*@
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--User With Most Failed Logins-->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">User With Most Failed Logins</div>
+
+                        @*@foreach (var log in Model.cardsTopUserFailedLogin)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
+                        }*@
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Port with most failed login -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Port With Most Failed Logins</div>
+
+                        @*@foreach (var log in Model.cardsTopPort)
+                        {
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
+                        }*@
+
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sample2</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+</div>
+
+<!-- Content Charts -->
+<div class="row">
 
     <!-- Donut/Pie Chart -->
     <div class="col-xl-4 col-lg-5">
@@ -45,59 +134,60 @@
 
 
     </div>
+</div>
 
 
-
-    <div class="
+<!-- Content Table -->
+<div class="
      shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Squid Proxy logs</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="squidtable" class="table">
-                    <thead>
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Overall Details</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="squidtable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col">Destination IP</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Http Status Code</th>
+                        <th scope="col">Bytes In</th>
+                        <th scope="col">Http Method</th>
+                        <th scope="col">Requested URL</th>
+                        <th scope="col">User</th>
+                        <th scope="col">Requested URL Domain</th>
+                        <th scope="col">Content Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
                         <tr>
-                            <th scope="col">Timestamp</th>
-                            <th scope="col">Destination IP</th>
-                            <th scope="col">Action</th>
-                            <th scope="col">Http Status Code</th>
-                            <th scope="col">Bytes In</th>
-                            <th scope="col">Http Method</th>
-                            <th scope="col">Requested URL</th>
-                            <th scope="col">User</th>
-                            <th scope="col">Requested URL Domain</th>
-                            <th scope="col">Content Type</th>
+                            <th scope="row">@log.timestamp</th>
+                            <td>@log.destination_ip_address</td>
+                            <td>@log.action</td>
+                            <td>@log.http_status_Code</td>
+                            <td>@log.bytes_in</td>
+                            <td>@log.http_method</td>
+                            <td>@log.requested_url</td>
+                            <td>@log.user</td>
+                            <td>@log.requested_url_domain</td>
+                            <td>@log.content_type</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var log in Model)
-                        {
-                            <tr>
-                                <th scope="row">@log.timestamp</th>
-                                <td>@log.destination_ip_address</td>
-                                <td>@log.action</td>
-                                <td>@log.http_status_Code</td>
-                                <td>@log.bytes_in</td>
-                                <td>@log.http_method</td>
-                                <td>@log.requested_url</td>
-                                <td>@log.user</td>
-                                <td>@log.requested_url_domain</td>
-                                <td>@log.content_type</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
 
 
 
 
-    @section scripts {
-        <script>
+@section scripts {
+    <script>
 
         //function getRandomColor() {
 
@@ -150,7 +240,8 @@
                         caretPadding: 10,
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     },
                     cutoutPercentage: 80,
                 },
@@ -228,7 +319,8 @@
                         }],
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     },
                     tooltips: {
                         backgroundColor: "rgb(255,255,255)",
@@ -266,6 +358,6 @@
                 $(document).ready(Handler);
             }
         })();
-        </script>
-    }
+    </script>
+}
 

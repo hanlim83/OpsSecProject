@@ -12,6 +12,8 @@
         public string referer { get; set; }
         public string agent { get; set; }
         public string COUNT { get; set; }
+        public string totalIp { get; set; }       
+        public string totalBytes { get; set; }
 
     }
 
