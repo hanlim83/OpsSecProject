@@ -89,4 +89,31 @@
             </form>
         </div>
     </div>
+</div><div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+        </div>
+        <div class="card-body">
+            <ol><b><u>To install the Kinesis Agent (Windows):</u></b> 
+            <li> Press (Windows + X) and select Windows PowerShell(Admin).</li>
+            <li> Execute the following command:</li>
+            iex ((New-Object System.Net.WebClient).DownloadString('https://s3-us-west-2.amazonaws.com/kinesis-agent-windows/downloads/InstallKinesisAgent.ps1'))
+            <li> Replace the contents of the Configuration File with the new Configuration created</li>
+            (The Configuration File is located at <u><b>%PROGRAMFILES%\Amazon\AWSKinesisTap\appsettings.json</b></u>)
+            <li> 4) Execute the following command:</li>
+            Restart-Service -Name AWSKinesisTap</ol>
+            <u><b></b></u>
+            <ol>
+                <b><u>To install the Kinesis Agent (Linux):</u></b>
+                <li> Run this command within the Shell</li>
+                sudo yum install –y https://s3.amazonaws.com/streaming-data-agent/aws-kinesis-agent-latest.amzn1.noarch.rpm
+                <li> FilePath to (<u><b>/etc/aws-kinesis/agent.json</b></u>) and replace the content of the Configuration File with the new Configuration created.</li>
+                <li> Run this command within the Shell</li>
+                <i>sudo service aws-kinesis-agent restart</i>
+                <li> Run this command within the Shell</li>
+                <i>sudo chkconfig aws-kinesis-agent on</i>
+            </ol>        
+        </div>
+    </div>
 </div>
