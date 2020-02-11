@@ -1,0 +1,212 @@
+﻿@model OpsSecProject.ViewModels.StreamingOverrallViewModel
+@{
+    ViewData["Title"] = "View Logs";
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Warning") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-warning" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Danger") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-danger" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+@if (!String.IsNullOrEmpty(Convert.ToString(TempData["Alert"])) && TempData["Alert"].Equals("Success") && !String.IsNullOrEmpty(Convert.ToString(TempData["Message"])))
+{
+    <div class="form-label-group">
+        <div class="alert alert-success" role="alert">
+            @TempData["Message"]
+        </div>
+
+    </div>
+}
+<h1 class="h3 mb-2 text-gray-800">View Log Data</h1>
+<p class="mb-4"></p>
+<div class="shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">@Model.input.Name</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="logsTable" class="table">
+                @if (Model.input.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                {
+                    <thead>
+                        <tr>
+                            <th scope="col">DateTime</th>
+                            <th scope="col">Host</th>
+                            <th scope="col">Ident</th>
+                            <th scope="col">AuthUser</th>
+                            <th scope="col">Request</th>
+                            <th scope="col">Response</th>
+                            <th scope="col">Bytes</th>
+                            <th scope="col">Referer</th>
+                            <th scope="col">Agent</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.webLogs)
+                        {
+                            <tr>
+                                <th scope="row">@log.datetime</th>
+                                <td>@log.host</td>
+                                <td>@log.ident</td>
+                                <td>@log.authuser</td>
+                                <td>@log.request</td>
+                                <td>@log.response</td>
+                                <td>@log.bytes</td>
+                                <td>@log.referer</td>
+                                <td>@log.agent</td>
+                                @if (Model.sagemakerConsolidatedEntity == null)
+                                {
+                                    <td></td>
+                                }
+                                @if (Model.sagemakerConsolidatedEntity != null)
+                                {
+                                    <td>
+                                        <form asp-action="Predict">
+                                            <input type="hidden" id="eventData" name="eventData" value="@log.host|@log.ident|@log.authuser|@log.request|R:@log.response|@log.bytes|@log.referer|@log.agent" required />
+                                            <input type="hidden" id="SageMakerID" name="SageMakerID" value="@Model.sagemakerConsolidatedEntity.ID" required />
+                                            <button type="submit" class="btn btn-primary formBtnSubmit">Get Inference from ML</button>
+                                        </form>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                }
+                @if (Model.input.LogInputCategory.Equals(LogInputCategory.SSH))
+                {
+                    <thead>
+                        <tr>
+                            <th scope="col">Weekday</th>
+                            <th scope="col">Month</th>
+                            <th scope="col">Day</th>
+                            <th scope="col">Year</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Host</th>
+                            <th scope="col">Process</th>
+                            <th scope="col">Identifier</th>
+                            <th scope="col">Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.SSHresults)
+                        {
+                            <tr>
+                                <th scope="row">@log.weekday</th>
+                                <td>@log.month</td>
+                                <td>@log.day</td>
+                                <td>@log.year</td>
+                                <td>@log.time</td>
+                                <td>@log.host</td>
+                                <td>@log.process</td>
+                                <td>@log.identifier</td>
+                                <td>@log.message</td>
+                            </tr>
+                        }
+                    </tbody>
+                }
+                @if (Model.input.LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                {
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Timestamp</th>
+                            <th scope="col">Destination IP</th>
+                            <th scope="col">Action</th>
+                            <th scope="col">Http Status Code</th>
+                            <th scope="col">Bytes In</th>
+                            <th scope="col">Http Method</th>
+                            <th scope="col">Requested URL</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Requested URL Domain</th>
+                            <th scope="col">Content Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.squidResults)
+                        {
+                            <tr>
+                                <th scope="row">@log.timestamp</th>
+                                <td>@log.destination_ip_address</td>
+                                <td>@log.action</td>
+                                <td>@log.http_status_Code</td>
+                                <td>@log.bytes_in</td>
+                                <td>@log.http_method</td>
+                                <td>@log.requested_url</td>
+                                <td>@log.user</td>
+                                <td>@log.requested_url_domain</td>
+                                <td>@log.content_type</td>
+                            </tr>
+                        }
+                    </tbody>
+
+                }
+                @if (Model.input.LogInputCategory.Equals(LogInputCategory.WindowsEventLogs))
+                {
+                    <thead>
+                        <tr>
+                            <th scope="col">Event ID</th>
+                            @*<th scope="col">Description</th>*@
+                            <th scope="col">Level Display Name</th>
+                            <th scope="col">Logname</th>
+                            <th scope="col">Machine Name</th>
+                            <th scope="col">Provider Name</th>
+                            <th scope="col">TIme Created</th>
+                            <th scope="col">Index</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Keywords</th>
+                            @*<th scope="col">Event Data</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.windowslogs)
+                        {
+                            <tr>
+                                <th scope="row">@log.eventid</th>
+                                @*<td>@log.description</td>*@
+                                <td>@log.leveldisplayname</td>
+                                <td>@log.logname</td>
+                                <td>@log.machinename</td>
+                                <td>@log.providername</td>
+                                <td>@log.timecreated</td>
+                                <td>@log.index</td>
+                                <td>@log.username</td>
+                                <td>@log.keywords</td>
+                                @*<td>@log.eventdata</td>*@
+                            </tr>
+                        }
+                    </tbody>
+                }
+
+
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        function Handler(event) {
+            $('#logsTable').DataTable();
+        }
+        (function () {
+            'use strict';
+            if (Turbolinks.supported) {
+                document.addEventListener('turbolinks:load', Handler, false);
+            } else {
+                $(document).ready(Handler);
+            }
+        })();
+    </script>
+}
