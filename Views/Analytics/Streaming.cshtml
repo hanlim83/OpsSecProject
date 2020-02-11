@@ -51,7 +51,7 @@
                             <th scope="col">Bytes</th>
                             <th scope="col">Referer</th>
                             <th scope="col">Agent</th>
-                            <th scope="col">Actions</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,6 +98,7 @@
                             <th scope="col">Process</th>
                             <th scope="col">Identifier</th>
                             <th scope="col">Message</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,6 +114,20 @@
                                 <td>@log.process</td>
                                 <td>@log.identifier</td>
                                 <td>@log.message</td>
+                                @if (Model.sagemakerConsolidatedEntity == null)
+                                {
+                                    <td></td>
+                                }
+                                @if (Model.sagemakerConsolidatedEntity != null)
+                                {
+                                    <td>
+                                        <form asp-action="Predict">
+                                            <input type="hidden" id="eventData" name="eventData" value="@log.month|@log.day@log.year|@log.time|@log.host|@log.process|@log.identifier|@log.message" required />
+                                            <input type="hidden" id="SageMakerID" name="SageMakerID" value="@Model.sagemakerConsolidatedEntity.ID" required />
+                                            <button type="submit" class="btn btn-primary formBtnSubmit">Get Inference from ML</button>
+                                        </form>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -132,6 +147,7 @@
                             <th scope="col">User</th>
                             <th scope="col">Requested URL Domain</th>
                             <th scope="col">Content Type</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,6 +164,20 @@
                                 <td>@log.user</td>
                                 <td>@log.requested_url_domain</td>
                                 <td>@log.content_type</td>
+                                @if (Model.sagemakerConsolidatedEntity == null)
+                                {
+                                    <td></td>
+                                }
+                                @if (Model.sagemakerConsolidatedEntity != null)
+                                {
+                                    <td>
+                                        <form asp-action="Predict">
+                                            <input type="hidden" id="eventData" name="eventData" value="@log.timestamp|@log.destination_ip_address|@log.action|@log.http_status_Code|@log.bytes_in|@log.bytes_in|@log.http_method|@log.requested_url|@log.user|@log.requested_url_domain|@log.content_type" required />
+                                            <input type="hidden" id="SageMakerID" name="SageMakerID" value="@Model.sagemakerConsolidatedEntity.ID" required />
+                                            <button type="submit" class="btn btn-primary formBtnSubmit">Get Inference from ML</button>
+                                        </form>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -168,6 +198,7 @@
                             <th scope="col">Username</th>
                             <th scope="col">Keywords</th>
                             @*<th scope="col">Event Data</th>*@
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -185,6 +216,20 @@
                                 <td>@log.username</td>
                                 <td>@log.keywords</td>
                                 @*<td>@log.eventdata</td>*@
+                                @if (Model.sagemakerConsolidatedEntity == null)
+                                {
+                                    <td></td>
+                                }
+                                @if (Model.sagemakerConsolidatedEntity != null)
+                                {
+                                    <td>
+                                        <form asp-action="Predict">
+                                            <input type="hidden" id="eventData" name="eventData" value="@log.leveldisplayname|@log.logname|@log.machinename|@log.providername|@log.timecreated|@log.index|@log.username|@log.keywords" required />
+                                            <input type="hidden" id="SageMakerID" name="SageMakerID" value="@Model.sagemakerConsolidatedEntity.ID" required />
+                                            <button type="submit" class="btn btn-primary formBtnSubmit">Get Inference from ML</button>
+                                        </form>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
