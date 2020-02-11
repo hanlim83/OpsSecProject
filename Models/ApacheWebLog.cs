@@ -15,6 +15,7 @@
         public string totalIp { get; set; }       
         public string totalBytes { get; set; }
 
+
     }
 
 

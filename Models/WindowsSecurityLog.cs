@@ -18,6 +18,12 @@
         public string failedAccount { get; set; }
         public string totalNumFailedAccount { get; set; }
 
+        // Charts
+
+        public string n { get; set; }
+        public string winAct { get; set; }
+
+
     }
 
 
