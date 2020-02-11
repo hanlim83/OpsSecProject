@@ -235,11 +235,11 @@ namespace OpsSecProject.Services
                                     condtionalOperator = "!=";
                                     Condtion = "'" + alertTrigger.Condtion + "'";
                                     break;
-                                case "Similar":
+                                case "Like":
                                     condtionalOperator = "LIKE";
                                     Condtion = "'%" + alertTrigger.Condtion + "%'";
                                     break;
-                                case "NotSimilar":
+                                case "NotLike":
                                     condtionalOperator = "NOT LIKE";
                                     Condtion = "'%" + alertTrigger.Condtion + "%'";
                                     break;
@@ -268,7 +268,10 @@ namespace OpsSecProject.Services
                                 {
                                     connection.Open();
                                     if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights))
-                                        sqlQuery = @"SELECT ROW_NUMBER() OVER(ORDER BY datetime ASC), " + alertTrigger.UserField + ", " + alertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 200;";
+                                    {
+                                        dateTimeField = "datetime";
+                                        sqlQuery = @"SELECT ROW_NUMBER() OVER(ORDER BY datetime ASC), " + alertTrigger.UserField + ", " + alertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 301;";
+                                    }
                                     else if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.RCF))
                                     {
                                         dateTimeField = "datetime";
@@ -284,7 +287,10 @@ namespace OpsSecProject.Services
                                         sqlQuery = @"SELECT ROW_NUMBER() OVER(ORDER BY " + dateTimeField + " ASC), " + alertTrigger.UserField + ", " + alertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";";
                                     }
                                     else if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SquidProxy) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.RCF))
+                                    {
+                                        dateTimeField = "timestamp";
                                         sqlQuery = @"SELECT ROW_NUMBER() OVER(ORDER BY timestamp), timestamp, count(*) FROM " + dbTableName + " WHERE " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " BY timestamp;";
+                                    }
                                     using (SqlCommand cmd = new SqlCommand(sqlQuery, connection))
                                     {
                                         cmd.CommandTimeout = 0;
@@ -292,7 +298,8 @@ namespace OpsSecProject.Services
                                         {
                                             while (dr.Read())
                                             {
-                                                if (Convert.ToInt32(dr.GetValue(0)) > alertTrigger.InferenceBookmark)
+                                                int currentRowNumber = Convert.ToInt32(dr.GetValue(0));
+                                                if (currentRowNumber > alertTrigger.InferenceBookmark)
                                                 {
                                                     alertTrigger.InferenceBookmark = Convert.ToInt32(dr.GetValue(0));
                                                     if (_logContext.LogInputs.Find(alertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && alertTrigger.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")))
@@ -440,7 +447,7 @@ namespace OpsSecProject.Services
                                             for (int i = 0; i < predictions.Predictions.Count; i++)
                                             {
                                                 IPInsightsPrediction prediction = predictions.Predictions[i];
-                                                if (prediction.Dot_product < -1 || prediction.Dot_product >= 0)
+                                                if (prediction.Dot_product < -1 || prediction.Dot_product >= 2)
                                                 {
                                                     alert = true;
                                                     int fieldsCount = 0, counter = 0;
@@ -448,11 +455,13 @@ namespace OpsSecProject.Services
                                                     {
                                                         IPAddressField = recordsWithoutTimestamp[i].field2,
                                                         UserField = recordsWithoutTimestamp[i].field1,
-                                                        FullEventData = ""
+                                                        FullEventData = "",
+                                                        LinkedAlertTriggerID = alertTrigger.ID
                                                     };
                                                     using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
                                                     {
                                                         connection.Open();
+                                                        /*
                                                         using (SqlCommand cmd = new SqlCommand(@"SELECT count(*) FROM sys.columns WHERE object_id = OBJECT_ID(@TableName);", connection))
                                                         {
                                                             cmd.CommandTimeout = 0;
@@ -474,12 +483,14 @@ namespace OpsSecProject.Services
                                                                 {
                                                                     if (fieldsCount < counter)
                                                                         qe.FullEventData = qe.FullEventData + dr.GetValue(counter).ToString() + " ";
+                                                                    ++counter;
                                                                 }
                                                             }
                                                         }
+                                                        */
                                                         if (string.IsNullOrEmpty(dateTimeField))
                                                         {
-                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT day,month,year,time FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = " + qe.UserField + " AND " + alertTrigger.IPAddressField + " = " + qe.IPAddressField + " AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT day,month,year,time FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = '" + qe.UserField + "' AND " + alertTrigger.IPAddressField + " = '" + qe.IPAddressField + "' AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
                                                             {
                                                                 cmd.CommandTimeout = 0;
                                                                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -534,9 +545,9 @@ namespace OpsSecProject.Services
                                                                 }
                                                             }
                                                         }
-                                                        else
+                                                        else if (dateTimeField.Equals("datetime"))
                                                         {
-                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT " + dateTimeField + " FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = " + qe.UserField + " AND " + alertTrigger.IPAddressField + " = " + qe.IPAddressField + " AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT TRY_CONVERT(DATETIME, STUFF(SUBSTRING(" + dateTimeField + ", 0, 18), 12, 1, ' ')) FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = '" + qe.UserField + "' AND " + alertTrigger.IPAddressField + " = '" + qe.IPAddressField + "' AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
                                                             {
                                                                 cmd.CommandTimeout = 0;
                                                                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -544,8 +555,21 @@ namespace OpsSecProject.Services
                                                                     while (dr.Read())
                                                                     {
                                                                         if (alertTrigger.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
-                                                                            qe.EventTimestamp = Convert.ToDateTime(dr.GetValue(0).ToString());
-                                                                        else if (alertTrigger.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                                                                            qe.EventTimestamp = dr.GetDateTime(0);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            using (SqlCommand cmd = new SqlCommand(@"SELECT " + dateTimeField + " FROM " + dbTableName + " WHERE " + alertTrigger.UserField + " = '" + qe.UserField + "' AND " + alertTrigger.IPAddressField + " = '" + qe.IPAddressField + "' AND " + alertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";", connection))
+                                                            {
+                                                                cmd.CommandTimeout = 0;
+                                                                using (SqlDataReader dr = cmd.ExecuteReader())
+                                                                {
+                                                                    while (dr.Read())
+                                                                    {
+                                                                        if (alertTrigger.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.SquidProxy))
                                                                             qe.EventTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToInt64(dr.GetValue(0)));
                                                                     }
                                                                 }
@@ -653,62 +677,69 @@ namespace OpsSecProject.Services
                                         {
                                             while (dr.Read())
                                             {
-                                                records.Add(new GenericCountHolder
+                                                if (Convert.ToInt32(dr.GetValue(0).ToString()) > alertTrigger.InferenceBookmark)
                                                 {
-                                                    count = Convert.ToInt32(dr.GetValue(1).ToString())
-                                                });
+                                                    alertTrigger.InferenceBookmark = Convert.ToInt32(dr.GetValue(0).ToString());
+                                                    records.Add(new GenericCountHolder
+                                                    {
+                                                        count = Convert.ToInt32(dr.GetValue(1).ToString())
+                                                    });
+                                                }
                                             }
                                         }
                                     }
                                 }
-                                foreach (GenericCountHolder r in records)
+                                if (records.Count != 0)
                                 {
-                                    if (alertTrigger.CondtionType.Equals("Equal"))
+                                    foreach (GenericCountHolder r in records)
                                     {
-                                        if (r.count == Convert.ToInt32(alertTrigger.Condtion))
+                                        if (alertTrigger.CountType.Equals("Equal"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count == Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    else if (alertTrigger.CondtionType.Equals("NotEqual"))
-                                    {
-                                        if (r.count != Convert.ToInt32(alertTrigger.Condtion))
+                                        else if (alertTrigger.CountType.Equals("NotEqual"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count != Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    else if (alertTrigger.CondtionType.Equals("LessThan"))
-                                    {
-                                        if (r.count < Convert.ToInt32(alertTrigger.Condtion))
+                                        else if (alertTrigger.CountType.Equals("LessThan"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count < Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    else if (alertTrigger.CondtionType.Equals("LessOrEqualThan"))
-                                    {
-                                        if (r.count <= Convert.ToInt32(alertTrigger.Condtion))
+                                        else if (alertTrigger.CountType.Equals("LessOrEqualThan"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count <= Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    else if (alertTrigger.CondtionType.Equals("MoreThan"))
-                                    {
-                                        if (r.count > Convert.ToInt32(alertTrigger.Condtion))
+                                        else if (alertTrigger.CountType.Equals("MoreThan"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count > Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    else if (alertTrigger.CondtionType.Equals("MoreOrEqualThan"))
-                                    {
-                                        if (r.count >= Convert.ToInt32(alertTrigger.Condtion))
+                                        else if (alertTrigger.CountType.Equals("MoreOrEqualThan"))
                                         {
-                                            alert = true;
-                                            break;
+                                            if (r.count >= Convert.ToInt32(alertTrigger.Count))
+                                            {
+                                                alert = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }

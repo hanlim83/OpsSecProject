@@ -34,11 +34,11 @@
                     <div class="form-group row">
                         <label for="ipStackInfo" class="col-sm-4 col-form-label">Approximate Location</label>
                         <div class="col-sm-8">
-                            @if (Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
+                            @if (Model.SupplmentaryInformation.City == null || Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
                             {
                                 <input id="ipStackInfo" readonly class="form-control-plaintext" value="@(Model.SupplmentaryInformation.CountryName+", "+Model.SupplmentaryInformation.ContinentName)" />
                             }
-                            @if (!Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
+                            @if (Model.SupplmentaryInformation.City != null && !Model.SupplmentaryInformation.City.Equals(Model.SupplmentaryInformation.CountryName))
                             {
                                 <input id="ipStackInfo" readonly class="form-control-plaintext" value="@(Model.SupplmentaryInformation.City+", "+Model.SupplmentaryInformation.CountryName+", "+Model.SupplmentaryInformation.ContinentName)" />
                             }

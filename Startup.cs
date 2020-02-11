@@ -1,5 +1,6 @@
 ﻿using Amazon.Glue;
 using Amazon.KinesisFirehose;
+using Amazon.Lambda;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SageMaker;
@@ -270,7 +271,7 @@ namespace OpsSecProject
             services.AddDefaultAWSOptions(defaultAWSOptions);
             //S3 Initialization
             services.AddAWSService<IAmazonS3>();
-            //glue Initialization
+            //Glue Initialization
             services.AddAWSService<IAmazonGlue>();
             //SagerMaker Initialization
             services.AddAWSService<IAmazonSageMaker>();
@@ -283,6 +284,8 @@ namespace OpsSecProject
             SESAWSOptions.Region = Amazon.RegionEndpoint.USEast1;
             SESAWSOptions.Credentials = new EnvironmentVariablesAWSCredentials();
             services.AddAWSService<IAmazonSimpleEmailService>(SESAWSOptions);
+            //Lambda Initialization
+            services.AddAWSService<IAmazonLambda>();
             //Entity Framework Initialization
             services.AddDbContext<AccountContext>(options =>
             {

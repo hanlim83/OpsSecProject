@@ -3,6 +3,7 @@ using Amazon.SageMakerRuntime.Model;
 using CsvHelper;
 using CsvHelper.Configuration;
 using IpStack;
+using IpStack.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OpsSecProject.Data;
@@ -50,10 +51,11 @@ namespace OpsSecProject.Controllers
         public IActionResult Review(int EventID)
         {
             QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            IpAddressDetails details = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField);
             return View(new QuestionableEventReviewViewModel
             {
                 ReviewEvent = chosenEvent,
-                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
+                SupplmentaryInformation = details
             });
         }
         public IActionResult Accept(int EventID)
@@ -72,7 +74,19 @@ namespace OpsSecProject.Controllers
             QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
             chosenEvent.status = QuestionableEventStatus.UserRejected;
             chosenEvent.UpdatedTimestamp = DateTime.Now;
+            Trigger linkedTrigger = chosenEvent.LinkedAlertTrigger;
+            if (linkedTrigger.IgnoredEvents == null)
+                linkedTrigger.IgnoredEvents = new string[] {chosenEvent.UserField, chosenEvent.IPAddressField};
+            else
+            {
+                string[] newIgnoredEvents = new string[linkedTrigger.IgnoredEvents.Count() + 2];
+                Array.Copy(linkedTrigger.IgnoredEvents, 0, newIgnoredEvents, 0, linkedTrigger.IgnoredEvents.Count());
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count()] = chosenEvent.UserField;
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count() + 1] = chosenEvent.IPAddressField;
+                linkedTrigger.IgnoredEvents = newIgnoredEvents;
+            }
             _context.QuestionableEvents.Update(chosenEvent);
+            _context.AlertTriggers.Update(linkedTrigger);
             _context.SaveChanges();
             TempData["Alert"] = "Success";
             TempData["Message"] = "Your response has been recorded successfully";
@@ -190,7 +204,7 @@ namespace OpsSecProject.Controllers
             Trigger entity = await _context.AlertTriggers.FindAsync(SageMakerID);
             if (entity == null || eventData == null)
                 return StatusCode(404);
-            if (eventData.Contains(entity.Condtion) && eventData.Contains("R:200"))
+            if (eventData.Contains(entity.Condtion) && eventData.Contains("R:301"))
             {
                 string[] eventDataSplit = eventData.Split('|');
                 List<GenericRecordHolder> genericRecordHolder = new List<GenericRecordHolder>

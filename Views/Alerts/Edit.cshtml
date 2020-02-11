@@ -33,37 +33,39 @@
                 <label asp-for="Name">Name of Alert</label>
                 <input asp-for="Name" class="form-control" value="@Model.Name" required />
             </div>
-            <div class="form-group text-center">
-                <h6 class="mb-3">Trigger Type:</h6>
-                @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
-                {
-                    <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" checked required>
-                        <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
-                    </div>
-                }
-                @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
-                {
-                    <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required>
-                        <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
-                    </div>
-                }
-                @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
-                {
-                    <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" checked required>
-                        <label class="custom-control-label" for="TCA">Event Count Only</label>
-                    </div>
-                }
-                @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
-                {
-                    <div class="custom-control custom-radio custom-control-inline">
-                        <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required>
-                        <label class="custom-control-label" for="TCA">Event Count Only</label>
-                    </div>
-                }
+            <!--
+    <div class="form-group text-center">
+        <h6 class="mb-3">Trigger Type:</h6>
+        @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
+        {
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" checked required>
+                <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
             </div>
+        }
+        @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountByTimeStamp))
+        {
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="AlertTriggerType" id="TCT" value="@AlertTriggerType.CountByTimeStamp" class="custom-control-input" required>
+                <label class="custom-control-label" for="TCT">Event Count by Time and Date (Per Minute)</label>
+            </div>
+        }
+        @if (Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
+        {
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" checked required>
+                <label class="custom-control-label" for="TCA">Event Count Only</label>
+            </div>
+        }
+        @if (!Model.AlertTriggerType.Equals(AlertTriggerType.CountAlone))
+        {
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" asp-for="AlertTriggerType" id="TCA" value="@AlertTriggerType.CountAlone" class="custom-control-input" required>
+                <label class="custom-control-label" for="TCA">Event Count Only</label>
+            </div>
+        }
+    </div>
+        -->
             <div class="form-group">
                 <label asp-for="CondtionalField">Select field that used to determine what events should be used</label>
                 <select asp-for="CondtionalField" class="custom-select" required>
@@ -91,7 +93,7 @@
                     @if (Model.CondtionType.Equals("LessOrEqualThan"))
                     {
                         <option value="LessOrEqualThan">Less Than</option>
-}
+                    }
                     @if (!Model.CondtionType.Equals("LessOrEqualThan"))
                     {
                         <option value="LessOrEqualThan">Less Than</option>
@@ -150,7 +152,63 @@
                 <label asp-for="Condtion">Specify the condtion used to determine what events should be used</label>
                 <input class="form-control" asp-for="Condtion" value="@Model.Condtion" required />
             </div>
-
+            <div class="form-group">
+                <label asp-for="CountType">Select the count condition type</label>
+                <select asp-for="CountType" class="custom-select" required>
+                    @if (Model.CountType.Equals("LessThan"))
+                    {
+                        <option value="LessThan">Less Than</option>
+                    }
+                    @if (!Model.CountType.Equals("LessThan"))
+                    {
+                        <option value="LessThan">Less Than</option>
+                    }
+                    @if (Model.CountType.Equals("LessOrEqualThan"))
+                    {
+                        <option value="LessOrEqualThan">Less Than</option>
+                    }
+                    @if (!Model.CountType.Equals("LessOrEqualThan"))
+                    {
+                        <option value="LessOrEqualThan">Less Than</option>
+                    }
+                    @if (Model.CountType.Equals("Equal"))
+                    {
+                        <option value="Equal">Equal</option>
+                    }
+                    @if (!Model.CountType.Equals("Equal"))
+                    {
+                        <option value="Equal">Equal</option>
+                    }
+                    @if (Model.CountType.Equals("NotEqual"))
+                    {
+                        <option value="NotEqual">Not Equal</option>
+                    }
+                    @if (!Model.CountType.Equals("NotEqual"))
+                    {
+                        <option value="NotEqual">Not Equal</option>
+                    }
+                    @if (Model.CountType.Equals("MoreThan"))
+                    {
+                        <option value="MoreThan">More Than</option>
+                    }
+                    @if (!Model.CountType.Equals("MoreThan"))
+                    {
+                        <option value="MoreThan">More Than</option>
+                    }
+                    @if (Model.CountType.Equals("MoreOrEqualThan"))
+                    {
+                        <option value="MoreOrEqualThan">More Or Equal Than</option>
+                    }
+                    @if (!Model.CountType.Equals("MoreOrEqualThan"))
+                    {
+                        <option value="MoreOrEqualThan">More Or Equal Than</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Count">Specify the number of events before this alert is triggered</label>
+                <input class="form-control" asp-for="Count" value="@Model.Count" required type="number"/>
+            </div>
             <button type="submit" class="btn btn-primary formBtnSubmit">Edit Alert Trigger</button>
         </form>
     </div>

@@ -1,0 +1,132 @@
+﻿@model IEnumerable<OpsSecProject.Models.QuestionableEvent>
+@{
+    ViewData["Title"] = "All Tasks";
+}
+@if (Model.Count() != 0)
+{
+    <h1 class="h3 mb-2 text-gray-800">View All Tasks</h1>
+    <p class="mb-4"></p>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Tasks</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="eventsTable" class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Timestamp of Event</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Last Updated On</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var qEvent in Model)
+                        {
+                            <tr>
+                                <th scope="row">@qEvent.EventTimestamp</th>
+                                <td>@qEvent.LinkedAlertTrigger.LinkedLogInput.Name</td>
+                                @if (qEvent.status.Equals(QuestionableEventStatus.PendingReview))
+                                {
+                                    <td>Pending Review</td>
+                                }
+                                @if (!qEvent.status.Equals(QuestionableEventStatus.PendingReview) && !qEvent.status.Equals(QuestionableEventStatus.LockedAccepted) && !qEvent.status.Equals(QuestionableEventStatus.LockedRejected))
+                                {
+                                    <td>Reviewed</td>
+                                }
+                                @if (qEvent.status.Equals(QuestionableEventStatus.LockedAccepted) || qEvent.status.Equals(QuestionableEventStatus.LockedRejected))
+                                {
+                                    <td>Reviewed - Locked</td>
+                                }
+                                @if (qEvent.UpdatedTimestamp.ToString().Equals("1/1/0001 12:00:00 am"))
+                                {
+                                    <td>N.A.</td>
+                                }
+                                @if (!qEvent.UpdatedTimestamp.ToString().Equals("1/1/0001 12:00:00 am"))
+                                {
+                                    <td>@qEvent.UpdatedTimestamp</td>
+                                }
+                                <td>
+                                    <div class="btn-group" role="group" aria-label="Event Actions">
+                                        <a class="btn btn-primary" asp-controller="Home" asp-action="View" asp-route-EventID="@HttpUtility.HtmlEncode(qEvent.ID)">View Event</a>
+                                        @if (qEvent.status.Equals(QuestionableEventStatus.UserAccepted) || qEvent.status.Equals(QuestionableEventStatus.UserRejected) || qEvent.status.Equals(QuestionableEventStatus.AdminAccepted) || qEvent.status.Equals(QuestionableEventStatus.AdminRejected))
+                                        {
+                                            <a class="btn btn-primary" asp-action="ChangeState" asp-route-EventID="@HttpUtility.HtmlEncode(qEvent.ID)">Lock / Unlock Event</a>
+                                        }
+                                        @if (qEvent.status.Equals(QuestionableEventStatus.PendingReview))
+                                        {
+                                            <a class="btn btn-primary" asp-controller="Home" asp-action="Review" asp-route-EventID="@HttpUtility.HtmlEncode(qEvent.ID)">Review Event</a>
+                                        }
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#assignUserModal" onclick="document.getElementById('assignUserEventID').value = @qEvent.ID;">Assign User</button>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="assignUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="assignUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignUserModalLabel">Assign User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form asp-action="Index" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="hidden" name="EventID" id="assignUserEventID" class="form-control" value="" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignUserSelect">Choose User To Assign To:</label>
+                            <select id="assignUserSelect" name="UserID" class="form-control" required>
+                                @foreach (var user in ViewBag.users)
+                                {
+                                    if (!User.Claims.First(c => c.Type == "name").Value.Equals(user.Name))
+                                    {
+                                        <option value="@user.ID">@user.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary formBtnSubmit">Assign User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @section scripts {
+        <script>
+            function Handler(event) {
+                $('#eventsTable').DataTable();
+            }
+            (function () {
+                'use strict';
+                if (Turbolinks.supported) {
+                    document.addEventListener('turbolinks:load', Handler, false);
+                } else {
+                    $(document).ready(Handler);
+                }
+            })();
+
+        </script>
+    }
+}
+@if (Model.Count() == 0)
+{
+    <div class="container">
+        <div class="text-center">
+            <img class="img-fluid mt-3 mb-4" src="https://42f2671d685f51e10fc6-b9fcecea3e50b3b59bdc28dead054ebc.ssl.cf5.rackcdn.com/illustrations/code_thinking_1jeh.svg" style="max-width: 50%; max-height: 50%;">
+            <h3>You got nothing at the moment...</h3>
+        </div>
+    </div>
+}
