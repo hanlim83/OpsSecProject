@@ -15,6 +15,10 @@
         public string totalIp { get; set; }       
         public string totalBytes { get; set; }
 
+        public string req { get; set; }
+        public string totalNumReq { get; set; }
+
+        public string a { get; set; }
 
     }
 

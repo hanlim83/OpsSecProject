@@ -230,6 +230,9 @@ namespace OpsSecProject.Controllers
                 }
 
 
+
+
+
                 // Line Chart
 
                 using (SqlCommand cmd = new SqlCommand("SELECT request, COUNT(*) FROM dbo.smartinsights_apache_web_logs GROUP BY request ORDER BY request DESC", connection))
@@ -783,6 +786,7 @@ namespace OpsSecProject.Controllers
                 cardsTotalIps = new List<ApacheWebLog>(),
                 cardsTotalBytes = new List<ApacheWebLog>(),
                 cardsTopIp = new List<ApacheWebLog>(),
+                chartsBarReq = new List<ApacheWebLog>(),
 
                 SSHresults = new List<SSHServerLogs>(),
                 cardsFailedLogin = new List<SSHServerLogs>(),
@@ -967,6 +971,46 @@ namespace OpsSecProject.Controllers
                             ViewBag.xAxisJ = xAxisJ;
                             string yAxisJ = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
                             ViewBag.yAxisJ = yAxisJ;
+
+
+                        }
+
+                    }
+
+
+                    // Bar chart  for http request/authuser
+
+                    using (SqlCommand cmd = new SqlCommand("select top 5 authuser, count(*) as a from " + dbTableName + " where (authuser not like '-') group by authuser order by a desc;", connection))
+                    {
+                        cmd.CommandTimeout = 0;
+                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        {
+
+                            IList<string> xAxis = new List<string>();
+                            IList<string> yAxis = new List<string>();
+
+
+
+                            while (dr.Read())
+                            {
+                                ApacheWebLog newItem = new ApacheWebLog();
+
+                                if (!dr.IsDBNull(0))
+                                    newItem.authuser = dr.GetString(0);
+                                    xAxis.Add(newItem.authuser);
+                                    newItem.a = Convert.ToString(dr.GetInt32(1));
+                                    yAxis.Add(newItem.a);
+
+
+                                sovm.chartsBarReq.Add(newItem);
+
+                            }
+
+
+                            string xAxisBarChartUsr = Newtonsoft.Json.JsonConvert.SerializeObject(xAxis);
+                            ViewBag.xAxisBarChartUsr = xAxisBarChartUsr;
+                            string yAxisBarChartUsr = Newtonsoft.Json.JsonConvert.SerializeObject(yAxis);
+                            ViewBag.yAxisBarChartUsr = yAxisBarChartUsr;
 
 
                         }
