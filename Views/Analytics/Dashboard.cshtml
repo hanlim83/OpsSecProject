@@ -83,7 +83,7 @@
     </div>
 
 
-
+    <!-- chaart -->
     <div class="row">
         <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
@@ -119,6 +119,22 @@
                 </div>
             </div>
         </div>
+
+
+    </div>
+
+    <!--Bar Chart-->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Total No. of Request Made By User</h6>
+        </div>
+        <div class="card-body">
+            <div class="chart-bar">
+                <canvas id="barChartReq"></canvas>
+            </div>
+            <hr>
+            Total number of request made by each user based on log inputted.
+        </div>
     </div>
 
     @section scripts {
@@ -141,7 +157,7 @@
                     labels: xa,
                     datasets: [{
                         data: ya,
-                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#ffe680'],
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#ffe680','#c9f', '#900'],
                         hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#ffdb4d'],
                         hoverBorderColor: "rgba(234, 236, 244, 1)",
                     }],
@@ -254,6 +270,101 @@
                     }
                 }
             });
+
+            // var data from db for chart
+            var xAxisBarChartUsrV = @Html.Raw(ViewBag.xAxisBarChartUsr);
+            var yAxisBarChartUsrV = @Html.Raw(ViewBag.yAxisBarChartUsr);
+
+            // Bar Chart login attempts over month
+            var ctx = document.getElementById("barChartReq");
+            var barChartReq = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: xAxisBarChartUsrV,
+                    datasets: [{
+                        label: "Amount of request",
+                        backgroundColor: "#ffd480",
+                        hoverBackgroundColor: "#ffcc66",
+                        borderColor: "#4e73df",
+                        data: yAxisBarChartUsrV,
+
+                    }
+
+
+                    ],
+
+                },
+
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            time: {
+                                unit: 'requests'
+                            },
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6
+                            },
+                            maxBarThickness: 25,
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 100,
+                                maxTicksLimit: 5,
+                                padding: 100,
+
+                                callback: function (value, index, values) {
+                                    return number_format(value);
+                                }
+                            },
+                            gridLines: {
+                                color: "rgb(234, 236, 244)",
+                                zeroLineColor: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        }],
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltips: {
+                        titleMarginBottom: 10,
+                        titleFontColor: '#6e707e',
+                        titleFontSize: 14,
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyFontColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function (tooltipItem, chart) {
+                                var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                                return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
+                            }
+                        }
+                    },
+                }
+
+            });
         }
 
 
@@ -365,7 +476,7 @@
             </div>
             <div class="card-body">
                 <div class="chart-bar">
-                    <canvas id="LoginOverTimeBarChart"></canvas>
+                    <canvas id="barLogin"></canvas>
                 </div>
                 <hr>
                 Details of Login Attempts over the Various Months.
@@ -426,12 +537,11 @@
             });
 
 
-            // var data from db for chart
 
 
             // Bar Chart login attempts over month
-            var ctx = document.getElementById("LoginOverTimeBarChart");
-            var LoginOverTimeBarChart = new Chart(ctx, {
+            var ctx = document.getElementById("barLogin");
+            var barLogin = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: xam,
@@ -861,6 +971,9 @@
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
                                 }*@
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Administrator
+                            </div>
 
                         </div>
                         <div class="col-auto">
@@ -877,14 +990,16 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Sample</div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Top reason for Failed Logon</div>
 
                             @*@foreach (var log in Model.cardsTopPort)
                                 {
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
                                 }*@
-
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    Unknown user name or bad password
+                                </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar fa-2x text-gray-300"></i>
@@ -899,38 +1014,38 @@
     <!--Content Chart-->
 
     <div class="row">
-    <!-- Donut/Pie Chart -->
-    <div class="col-xl-4 col-lg-5">
-        <div class="card shadow mb-4">
-            <!-- Card Header - Dropdown -->
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Event IDs</h6>
+        <!-- Donut/Pie Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Event IDs</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4">
+                        <canvas id="chartEventId"></canvas>
+                    </div>
+                    <hr>
+                    Event ID of Windows Event based on log inputted.
+                </div>
             </div>
-            <!-- Card Body -->
+        </div>
+
+
+        <!-- Bar Chart -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Windows Event Activity</h6>
+            </div>
             <div class="card-body">
-                <div class="chart-pie pt-4">
-                    <canvas id="chartEventId"></canvas>
+                <div class="chart-bar">
+                    <canvas id="chartWinUserAct"></canvas>
                 </div>
                 <hr>
-                Event ID of Windows Event based on log inputted.
+                Details of the various Windows User Activities that has been recorded.
             </div>
         </div>
-    </div>
-
-
-    <!-- Bar Chart -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Windows Event Activity</h6>
-        </div>
-        <div class="card-body">
-            <div class="chart-bar">
-                <canvas id="chartWinUserAct"></canvas>
-            </div>
-            <hr>
-            Details of the various Windows User Activities that has been recorded.
-        </div>
-    </div>
 
 
     </div>

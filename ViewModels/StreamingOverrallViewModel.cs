@@ -16,6 +16,8 @@ namespace OpsSecProject.ViewModels
         public List<ApacheWebLog> cardsTotalIps { get; set; }
         public List<ApacheWebLog> cardsTotalBytes { get; set; }       
         public List<ApacheWebLog> cardsTopIp { get; set; }
+        
+        public List<ApacheWebLog> chartsBarReq { get; set; }
 
 
         // SSH stuff
