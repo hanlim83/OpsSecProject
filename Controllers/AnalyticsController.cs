@@ -17,8 +17,8 @@ namespace OpsSecProject.Controllers
         {
             _context = context;
         }
-        
-        
+
+
         private static string GetRdsConnectionString()
         {
             string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
@@ -34,11 +34,11 @@ namespace OpsSecProject.Controllers
         public async Task<IActionResult> ApacheLogs()
         {
 
-           
+
 
             var sovm = new StreamingOverrallViewModel
             {
-                
+
                 results = new List<ApacheWebLog>(),
                 charts = new List<ApacheWebLog>(),
                 count = new List<ApacheWebLog>(),
@@ -99,7 +99,7 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.totalIp = Convert.ToString(dr.GetInt32(0));
-                           
+
                             sovm.cardsTotalIps.Add(newItem);
 
                         }
@@ -148,7 +148,7 @@ namespace OpsSecProject.Controllers
 
                             Console.WriteLine(newItem);
                             sovm.charts.Add(newItem);
-                            
+
                         }
 
                     }
@@ -156,7 +156,7 @@ namespace OpsSecProject.Controllers
                 }
 
                 //Get count for response table
-              
+
                 using (SqlCommand cmd = new SqlCommand("SELECT COUNT(DISTINCT response) FROM dbo.smartinsights_apache_web_logs", connection))
                 {
                     cmd.CommandTimeout = 0;
@@ -168,7 +168,7 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.response = Convert.ToString(dr.GetInt32(0));
-                                
+
                             Console.WriteLine(newItem);
                             sovm.count.Add(newItem);
 
@@ -199,13 +199,13 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.response = dr.GetString(0);
-                                xAxis.Add(newItem.response);
-                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                yAxis.Add(newItem.COUNT);
+                            xAxis.Add(newItem.response);
+                            newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                            yAxis.Add(newItem.COUNT);
 
 
                             sovm.groupBy.Add(newItem);
-                            
+
                         }
 
 
@@ -239,9 +239,9 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.request = dr.GetString(0);
-                                xAxisR.Add(newItem.request);
-                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                yAxisR.Add(newItem.COUNT);
+                            xAxisR.Add(newItem.request);
+                            newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                            yAxisR.Add(newItem.COUNT);
 
                             sovm.groupBy.Add(newItem);
 
@@ -260,7 +260,7 @@ namespace OpsSecProject.Controllers
 
             }
 
-            
+
             //List to db
 
             //IList<string> xAxis = new List<string>();
@@ -371,7 +371,7 @@ namespace OpsSecProject.Controllers
                             if (!dr.IsDBNull(0))
                                 newItem.u = dr.GetString(0);
                             if (!dr.IsDBNull(1))
-                                newItem.totalNum = Convert.ToString(dr.GetInt32(1));    
+                                newItem.totalNum = Convert.ToString(dr.GetInt32(1));
 
                             sovm.cardsTopUserFailedLogin.Add(newItem);
 
@@ -427,9 +427,9 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.loginAttempt = dr.GetString(0);
-                                xAxis.Add(newItem.loginAttempt);
-                                newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
-                                yAxis.Add(newItem.totalNumLoginAttempt);
+                            xAxis.Add(newItem.loginAttempt);
+                            newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
+                            yAxis.Add(newItem.totalNumLoginAttempt);
 
                             sovm.chartsPieLogin.Add(newItem);
 
@@ -456,7 +456,7 @@ namespace OpsSecProject.Controllers
 
                         IList<string> xAxisMonth = new List<string>();
                         IList<string> yAxisNumLoginAttempts = new List<string>();
-                        
+
 
 
 
@@ -466,9 +466,9 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
-                                yAxisNumLoginAttempts.Add(newItem.totalNumLoginAttempt);
-                                newItem.month = dr.GetString(2);
-                                xAxisMonth.Add(newItem.month);
+                            yAxisNumLoginAttempts.Add(newItem.totalNumLoginAttempt);
+                            newItem.month = dr.GetString(2);
+                            xAxisMonth.Add(newItem.month);
 
 
                             sovm.chartsBarLoginAttemptsTime.Add(newItem);
@@ -495,14 +495,14 @@ namespace OpsSecProject.Controllers
 
 
                         IList<string> yAxisNumLoginAttempts2 = new List<string>();
-   
+
                         while (dr.Read())
                         {
                             SSHServerLogs newItem = new SSHServerLogs();
 
                             if (!dr.IsDBNull(0))
-                                
-                            newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
+
+                                newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
                             yAxisNumLoginAttempts2.Add(newItem.totalNumLoginAttempt);
 
 
@@ -598,9 +598,9 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.requested_url_domain = dr.GetString(0);
-                                xAxis.Add(newItem.requested_url_domain);
-                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                yAxis.Add(newItem.COUNT);
+                            xAxis.Add(newItem.requested_url_domain);
+                            newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                            yAxis.Add(newItem.COUNT);
 
                         }
 
@@ -634,9 +634,9 @@ namespace OpsSecProject.Controllers
 
                             if (!dr.IsDBNull(0))
                                 newItem.user = dr.GetString(0);
-                                xAxisUser.Add(newItem.user);
-                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                yAxisAmt.Add(newItem.COUNT);
+                            xAxisUser.Add(newItem.user);
+                            newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                            yAxisAmt.Add(newItem.COUNT);
 
                         }
 
@@ -670,7 +670,7 @@ namespace OpsSecProject.Controllers
             {
                 windowslogs = new List<WindowsSecurityLog>(),
                 cardsFailedAccount = new List<WindowsSecurityLog>()
-               
+
             };
 
             using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
@@ -686,7 +686,7 @@ namespace OpsSecProject.Controllers
                             WindowsSecurityLog newItem = new WindowsSecurityLog();
                             if (!dr.IsDBNull(0))
                                 newItem.eventid = dr.GetInt32(0);
-                                newItem.eventid.ToString();
+                            newItem.eventid.ToString();
                             //if (!dr.IsDBNull(1))
                             //    newItem.description = dr.GetString(1);
                             if (!dr.IsDBNull(2))
@@ -701,7 +701,7 @@ namespace OpsSecProject.Controllers
                                 newItem.timecreated = dr.GetString(6);
                             if (!dr.IsDBNull(7))
                                 newItem.index = dr.GetInt32(7);
-                                newItem.index.ToString();
+                            newItem.index.ToString();
                             if (!dr.IsDBNull(8))
                                 newItem.username = dr.GetString(8);
                             if (!dr.IsDBNull(9))
@@ -800,7 +800,7 @@ namespace OpsSecProject.Controllers
                 if (retrieved.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
                 {
                     // Get values to populate table
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM "+ dbTableName+";", connection))
+                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM " + dbTableName + ";", connection))
                     {
                         cmd.CommandTimeout = 0;
                         using (SqlDataReader dr = cmd.ExecuteReader())
@@ -944,9 +944,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.response = dr.GetString(0);
-                                    xAxis.Add(newItem.response);
-                                    newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                    yAxis.Add(newItem.COUNT);
+                                xAxis.Add(newItem.response);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.COUNT);
 
 
                                 sovm.groupBy.Add(newItem);
@@ -984,9 +984,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.request = dr.GetString(0);
-                                    xAxisR.Add(newItem.request);
-                                    newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                    yAxisR.Add(newItem.COUNT);
+                                xAxisR.Add(newItem.request);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxisR.Add(newItem.COUNT);
 
                                 sovm.groupBy.Add(newItem);
 
@@ -1002,7 +1002,8 @@ namespace OpsSecProject.Controllers
                         }
 
                     }
-                } else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
+                }
+                else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
                 {
                     // SSH BELOW 
 
@@ -1096,9 +1097,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.loginAttempt = dr.GetString(0);
-                                    xAxis.Add(newItem.loginAttempt);
-                                    newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
-                                    yAxis.Add(newItem.totalNumLoginAttempt);
+                                xAxis.Add(newItem.loginAttempt);
+                                newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.totalNumLoginAttempt);
 
                                 sovm.chartsPieLogin.Add(newItem);
 
@@ -1135,9 +1136,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
-                                    yAxisNumLoginAttempts.Add(newItem.totalNumLoginAttempt);
-                                    newItem.month = dr.GetString(2);
-                                    xAxisMonth.Add(newItem.month);
+                                yAxisNumLoginAttempts.Add(newItem.totalNumLoginAttempt);
+                                newItem.month = dr.GetString(2);
+                                xAxisMonth.Add(newItem.month);
 
 
                                 sovm.chartsBarLoginAttemptsTime.Add(newItem);
@@ -1172,7 +1173,7 @@ namespace OpsSecProject.Controllers
                                 if (!dr.IsDBNull(0))
 
                                     newItem.totalNumLoginAttempt = Convert.ToString(dr.GetInt32(1));
-                                    yAxisNumLoginAttempts2.Add(newItem.totalNumLoginAttempt);
+                                yAxisNumLoginAttempts2.Add(newItem.totalNumLoginAttempt);
 
 
 
@@ -1189,7 +1190,8 @@ namespace OpsSecProject.Controllers
 
                     }
 
-                } else if (retrieved.LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                }
+                else if (retrieved.LogInputCategory.Equals(LogInputCategory.SquidProxy))
                 {
 
                     //cards
@@ -1278,9 +1280,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.requested_url_domain = dr.GetString(0);
-                                    xAxis.Add(newItem.requested_url_domain);
-                                    newItem.COUNT = Convert.ToString(dr.GetInt32(1));
-                                    yAxis.Add(newItem.COUNT);
+                                xAxis.Add(newItem.requested_url_domain);
+                                newItem.COUNT = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.COUNT);
 
                             }
 
@@ -1334,7 +1336,7 @@ namespace OpsSecProject.Controllers
                 }
                 else if (retrieved.LogInputCategory.Equals(LogInputCategory.WindowsEventLogs))
                 {
-                    
+
                     // Card
                     // Failed Account Logins
                     using (SqlCommand cmd = new SqlCommand("SELECT substring(description,1,  CHARINDEX('to', description)-1) AS failedAccount, count(*) AS totalNumFailedAccount FROM dbo.smartinsights_windows_security_logs where (description like 'An account failed to log on%') GROUP BY substring(description,1, CHARINDEX('to', description)-1)", connection))
@@ -1376,10 +1378,10 @@ namespace OpsSecProject.Controllers
                                 WindowsSecurityLog newItem = new WindowsSecurityLog();
 
                                 if (!dr.IsDBNull(0))
-                                    newItem.eventid = dr.GetInt32(0);                                  
-                                    xAxis.Add("EventID: " + newItem.eventid.ToString());
-                                    newItem.n = Convert.ToString(dr.GetInt32(1));
-                                    yAxis.Add(newItem.n);
+                                    newItem.eventid = dr.GetInt32(0);
+                                xAxis.Add("EventID: " + newItem.eventid.ToString());
+                                newItem.n = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.n);
 
                             }
 
@@ -1413,9 +1415,9 @@ namespace OpsSecProject.Controllers
 
                                 if (!dr.IsDBNull(0))
                                     newItem.winAct = dr.GetString(0);
-                                    xAxis.Add(newItem.winAct);
-                                    newItem.n = Convert.ToString(dr.GetInt32(1));
-                                    yAxis.Add(newItem.n);
+                                xAxis.Add(newItem.winAct);
+                                newItem.n = Convert.ToString(dr.GetInt32(1));
+                                yAxis.Add(newItem.n);
 
                             }
 
@@ -1519,7 +1521,8 @@ namespace OpsSecProject.Controllers
                                     }
                                     webLogs.Add(newItem);
                                 }
-                            } else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
+                            }
+                            else if (retrieved.LogInputCategory.Equals(LogInputCategory.SSH))
                             {
                                 SSHServerLogs newItem = new SSHServerLogs();
                                 if (!dr.IsDBNull(0))
@@ -1632,6 +1635,6 @@ namespace OpsSecProject.Controllers
         }
 
 
-    
+
     }
 }

@@ -3,6 +3,7 @@ using Amazon.SageMakerRuntime.Model;
 using CsvHelper;
 using CsvHelper.Configuration;
 using IpStack;
+using IpStack.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OpsSecProject.Data;
@@ -50,10 +51,11 @@ namespace OpsSecProject.Controllers
         public IActionResult Review(int EventID)
         {
             QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
+            IpAddressDetails details = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField);
             return View(new QuestionableEventReviewViewModel
             {
                 ReviewEvent = chosenEvent,
-                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
+                SupplmentaryInformation = details
             });
         }
         public IActionResult Accept(int EventID)
@@ -72,7 +74,19 @@ namespace OpsSecProject.Controllers
             QuestionableEvent chosenEvent = _context.QuestionableEvents.Find(EventID);
             chosenEvent.status = QuestionableEventStatus.UserRejected;
             chosenEvent.UpdatedTimestamp = DateTime.Now;
+            Trigger linkedTrigger = chosenEvent.LinkedAlertTrigger;
+            if (linkedTrigger.IgnoredEvents == null)
+                linkedTrigger.IgnoredEvents = new string[] { chosenEvent.UserField, chosenEvent.IPAddressField };
+            else
+            {
+                string[] newIgnoredEvents = new string[linkedTrigger.IgnoredEvents.Count() + 2];
+                Array.Copy(linkedTrigger.IgnoredEvents, 0, newIgnoredEvents, 0, linkedTrigger.IgnoredEvents.Count());
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count()] = chosenEvent.UserField;
+                newIgnoredEvents[linkedTrigger.IgnoredEvents.Count() + 1] = chosenEvent.IPAddressField;
+                linkedTrigger.IgnoredEvents = newIgnoredEvents;
+            }
             _context.QuestionableEvents.Update(chosenEvent);
+            _context.AlertTriggers.Update(linkedTrigger);
             _context.SaveChanges();
             TempData["Alert"] = "Success";
             TempData["Message"] = "Your response has been recorded successfully";
@@ -87,108 +101,6 @@ namespace OpsSecProject.Controllers
                 SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
             });
         }
-        [HttpPost]
-        public async Task<IActionResult> Search(string query)
-        {
-            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
-            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
-            User user = _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefault();
-            return View(_context.QuestionableEvents.Where(q => q.ReviewUserID == user.ID).ToList());
-        }
-        public IActionResult Review(int EventID)
-        {
-            if (InputID <= 0)
-                return StatusCode(404);
-            LogInput retrieved = await _context.LogInputs.FindAsync(InputID);
-            if (retrieved == null)
-                return StatusCode(404);
-            string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
-            List<ApacheWebLog> webLogs = new List<ApacheWebLog>();
-            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
-            {
-                connection.Open();
-                using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM " + dbTableName + ";", connection))
-                {
-                    cmd.CommandTimeout = 0;
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            if (retrieved.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
-                            {
-                                ApacheWebLog newItem = new ApacheWebLog();
-                                if (retrieved.Name.Contains("IPInsights"))
-                                {
-                                    if (!dr.IsDBNull(0))
-                                        newItem.host = dr.GetString(0);
-                                    if (!dr.IsDBNull(1))
-                                        newItem.ident = dr.GetString(1);
-                                    if (!dr.IsDBNull(2))
-                                        newItem.authuser = dr.GetString(2);
-                                    if (!dr.IsDBNull(3))
-                                        newItem.datetime = dr.GetString(3);
-                                    if (!dr.IsDBNull(4) && !dr.IsDBNull(5) && !dr.IsDBNull(6))
-                                        newItem.request = dr.GetString(4)+ " " + dr.GetString(5)+ " " + dr.GetString(6);
-                                    if (!dr.IsDBNull(7))
-                                        newItem.response = dr.GetString(7);
-                                    if (!dr.IsDBNull(8))
-                                        newItem.bytes = Convert.ToInt32(dr.GetString(8));
-                                    if (!dr.IsDBNull(9))
-                                        newItem.referer = dr.GetString(9);
-                                    if (!dr.IsDBNull(10))
-                                        newItem.agent = dr.GetString(10);
-                                    webLogs.Add(newItem);
-                                } else
-                                {
-                                    if (!dr.IsDBNull(0))
-                                        newItem.host = dr.GetString(0);
-                                    if (!dr.IsDBNull(1))
-                                        newItem.ident = dr.GetString(1);
-                                    if (!dr.IsDBNull(2))
-                                        newItem.authuser = dr.GetString(2);
-                                    if (!dr.IsDBNull(3))
-                                        newItem.datetime = dr.GetString(3);
-                                    if (!dr.IsDBNull(4))
-                                        newItem.request = dr.GetString(4);
-                                    if (!dr.IsDBNull(5))
-                                        newItem.response = dr.GetString(5);
-                                    if (!dr.IsDBNull(6))
-                                        newItem.bytes = Convert.ToInt32(dr.GetString(6));
-                                    if (dr.FieldCount == 9)
-                                    {
-                                        if (!dr.IsDBNull(7))
-                                            newItem.referer = dr.GetString(7);
-                                        if (!dr.IsDBNull(8))
-                                            newItem.agent = dr.GetString(8);
-                                    }
-                                    webLogs.Add(newItem);
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-            Trigger ipinsights = null;
-            foreach (var sagemaker in retrieved.LinkedSagemakerEntities)
-            {
-                if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && sagemaker.SagemakerStatus.Equals(SagemakerStatus.Ready))
-                {
-                    ipinsights = sagemaker;
-                    break;
-                }
-            }
-            return View(new StreamingOverrallViewModel
-            {
-                ReviewEvent = chosenEvent,
-                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
-            });
-        }
-        [HttpPost]
-        public async Task<IActionResult> Search(string query)
-        {
-            return View();
-        }
 
         [HttpPost]
         public async Task<IActionResult> Predict(string eventData, int SageMakerID)
@@ -196,7 +108,7 @@ namespace OpsSecProject.Controllers
             Trigger entity = await _context.AlertTriggers.FindAsync(SageMakerID);
             if (entity == null || eventData == null)
                 return StatusCode(404);
-            if (eventData.Contains(entity.Condtion) && eventData.Contains("R:200"))
+            if (eventData.Contains(entity.Condtion) && eventData.Contains("R:301"))
             {
                 string[] eventDataSplit = eventData.Split('|');
                 List<GenericRecordHolder> genericRecordHolder = new List<GenericRecordHolder>
@@ -241,7 +153,8 @@ namespace OpsSecProject.Controllers
                     TempData["Alert"] = "Success";
                     TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product;
                     return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
-                } else
+                }
+                else
                 {
                     TempData["Alert"] = "Danger";
                     TempData["Message"] = "The Machine Learning Model is facing some issues at the moment...";
@@ -254,16 +167,6 @@ namespace OpsSecProject.Controllers
                 TempData["Message"] = "This event cannot be inferred by the Machine Learning Model!";
                 return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
             }
-        }
-
-        private static string GetRdsConnectionString()
-        {
-            string hostname = Environment.GetEnvironmentVariable("RDS_HOSTNAME");
-            string port = Environment.GetEnvironmentVariable("RDS_PORT");
-            string username = Environment.GetEnvironmentVariable("RDS_USERNAME");
-            string password = Environment.GetEnvironmentVariable("RDS_PASSWORD");
-
-            return $"Data Source={hostname},{port};Initial Catalog=IngestedData;User ID={username};Password={password};";
         }
     }
 }
