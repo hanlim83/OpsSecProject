@@ -1171,7 +1171,6 @@ namespace OpsSecProject.Controllers
                         cmd.CommandTimeout = 0;
                         using (SqlDataReader dr = cmd.ExecuteReader())
                         {
-                                sovm.cardsTotalBytes.Add(newItem);
                             IList<string> yAxisNumLoginAttempts2 = new List<string>();
 
                             while (dr.Read())
