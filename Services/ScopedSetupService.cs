@@ -402,7 +402,7 @@ namespace OpsSecProject.Services
                 _context.LogInputs.Add(new Models.LogInput
                 {
                     ID = 1,
-                    Name = "Test Staging Website",
+                    Name = "Test Website",
                     FirehoseStreamName = "SmartInsights-Test-Website",
                     ConfigurationJSON = "{\r\n  \"cloudwatch.emitMetrics\": false,\r\n  \"awsSecretAccessKey\": \"XW2HNGQnW9ygpvPDzQQemY0AhsFlUGwiKnVpZGbO\",\r\n  \"firehose.endpoint\": \"firehose.ap-southeast-1.amazonaws.com\",\r\n  \"awsAccessKeyId\": \"AKIASXW25GZQH5IABE4P\",\r\n  \"flows\": [\r\n   {\r\n      \"filePattern\": \"/var/www/example.hansen-lim.me/log/access.log\",\r\n      \"deliveryStream\": \"SmartInsights-Test-Website\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMBINEDAPACHELOG\"\r\n                }\r\n  ]\r\n}",
                     LogInputCategory = Models.LogInputCategory.ApacheWebServer,
@@ -451,9 +451,9 @@ namespace OpsSecProject.Services
                 _context.Database.ExecuteSqlCommand("SET IDENTITY_INSERT dbo.LogInputs OFF");
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
-                    CrawlerName = "Apache Web Logs",
+                    CrawlerName = "Test Website",
                     LinkedLogInputID = _context.LogInputs.Find(1).ID,
-                    JobName = "Apache Web Logs"
+                    JobName = "Test Website"
                 });
                 _context.GlueConsolidatedEntities.Add(new Models.GlueConsolidatedEntity
                 {
@@ -473,6 +473,30 @@ namespace OpsSecProject.Services
                     LinkedLogInputID = _context.LogInputs.Find(4).ID,
                     JobName = "Squid Proxy Logs"
                 });
+                _context.AlertTriggers.Add(new Models.Trigger
+                {
+                    Name = "Logins",
+                    AlertTriggerType = Models.AlertTriggerType.IPInsights,
+                    CondtionalField = "request",
+                    CondtionType = "Equal",
+                    Condtion = "GET /staging HTTP/1.1",
+                    IPAddressField = "host",
+                    UserField = "authuser",
+                    CurrentInputDataKey = "Test-Website/Input/ipinsights/data-2020-02-11-03-15-42.csv",
+                    CurrentModelFileKey = "Test-Website/Model",
+                    CheckpointKey = "Test-Website/Checkpoint",
+                    SagemakerStatus = Models.SagemakerStatus.Trained,
+                    SagemakerErrorStage = Models.SagemakerErrorStage.None,
+                    CurrentModelName = "Test-WebsiteModel-2020-02-11-03-21-38",
+                    TrainingJobName = "Test-Website-IPInsights-Training-2020-02-11-03-15-42",
+                    TrainingJobARN = "arn:aws:sagemaker:ap-southeast-1:188363912800:training-job/test-website-ipinsights-training-2020-02-11-03-15-42",
+                    EndpointConfigurationName = "Test-WebsiteEndpointConfig-2020-02-11-03-21-39",
+                    EndpointConfigurationARN = "arn:aws:sagemaker:ap-southeast-1:188363912800:endpoint-config/test-websiteendpointconfig-2020-02-11-03-21-39",
+                    InferenceBookmark = 13,
+                    TrainingBookmark = 13,
+                    LinkedLogInputID = _context.LogInputs.Find(1).ID
+                });
+                await _context.SaveChangesAsync();
             }
             _context.Database.CloseConnection();
         }

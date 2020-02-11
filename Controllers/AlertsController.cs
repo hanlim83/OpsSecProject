@@ -758,7 +758,8 @@ namespace OpsSecProject.Controllers
                         {
                             while (dr.Read())
                             {
-                                if (Convert.ToInt32(dr.GetValue(0)) < AlertTrigger.InferenceBookmark)
+                                int currentRowNumber = Convert.ToInt32(dr.GetValue(0));
+                                if (currentRowNumber > AlertTrigger.InferenceBookmark)
                                 {
                                     if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH) && !(dr.GetValue(1) == null || dr.GetValue(1).ToString().Equals("-")))
                                     {

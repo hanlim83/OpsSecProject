@@ -79,20 +79,20 @@ namespace OpsSecProject.Controllers
             string pattern = @"[^A-Za-z0-9]+";
             string replacement = "-";
             string replace = Regex.Replace(lowcap, pattern, replacement);
-            var BucketName2 = "smart-insight-" + replace;
+            var BucketName2 = "smartinsights-" + replace;
             var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + input.Name + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n  \"LogName\":\"" + input.LogType + "\",\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"" + input.Name + "Firehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\"" + Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID")+"\",\r\n         \"SecretKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") +"\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"" + input.Name + "\",\r\n         \"SinkRef\":\"" + input.Name + "KinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}";
             var data2 = "{\r\n  \"cloudwatch.emitMetrics\": false,\r\n  \"awsSecretAccessKey\": \"" + Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") + "\",\r\n  \"firehose.endpoint\": \"firehose.ap-southeast-1.amazonaws.com\",\r\n  \"awsAccessKeyId\": \"" + Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID") + "\",\r\n  \"flows\": [\r\n    {\r\n      \"filePattern\": \"/opt/generators/CLF/*.log\",\r\n      \"deliveryStream\": \"SmartInsights-Apache-Web-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMMONAPACHELOG\"\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/generators/ELF/*.log\",\r\n      \"deliveryStream\": \"\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMBINEDAPACHELOG\"\r\n                }\r\n            ]      \r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/www1/secure.log\",\r\n      \"deliveryStream\": \"SmartInsights-SSH-Login-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w]+) ([\\\\w]+) ([\\\\d]+) ([\\\\d]+) ([\\\\w:]+) ([\\\\w]+) ([\\\\w]+)\\\\[([\\\\d]+)\\\\]\\\\: ([\\\\w\\\\s.\\\\:=]+)$\",\r\n                    \"customFieldNames\": [\"weekday\", \"month\", \"day\", \"year\", \"time\", \"host\", \"process\", \"identifer\",\"message\"]\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/cisco_router1/cisco_ironport_web.log\",\r\n      \"deliveryStream\": \"SmartInsights-Cisco-Squid-Proxy-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w.]+) (?:[\\\\d]+) ([\\\\d.]+) ([\\\\w]+)\\\\/([\\\\d]+) ([\\\\d]+) ([\\\\w.]+) ([\\\\S]+) ([\\\\S]+) (?:[\\\\w]+)\\\\/([\\\\S]+) ([\\\\S]+) (?:[\\\\S\\\\s]+)$\",\r\n                    \"customFieldNames\": [\"timestamp\",\"destination_ip_address\",\"action\",\"http_status_code\",\"bytes_in\",\"http_method\",\"requested_url\",\"user\",\"requested_url_domain\",\"content_type\"]\r\n                }\r\n            ]\r\n    }\r\n  ]\r\n}";
             string data3 = "";
             PutBucketResponse putBucketResponse = await _S3Client.PutBucketAsync(new PutBucketRequest
             {
 
-                BucketName = "smart-insight-" + replace,
+                BucketName = "smartinsights-" + replace,
                 UseClientRegion = true,
                 CannedACL = S3CannedACL.Private
             });
             PutBucketTaggingResponse putBucketTaggingResponse = await _S3Client.PutBucketTaggingAsync(new PutBucketTaggingRequest
             {
-                BucketName = "smart-insight-" + replace,
+                BucketName = "smartinsights-" + replace,
                 TagSet = new List<Amazon.S3.Model.Tag>
                  {
                      new Amazon.S3.Model.Tag
@@ -104,7 +104,7 @@ namespace OpsSecProject.Controllers
             });
             PutPublicAccessBlockResponse putPublicAccessBlockResponse = await _S3Client.PutPublicAccessBlockAsync(new PutPublicAccessBlockRequest
             {
-                BucketName = "smart-insight-" + replace,
+                BucketName = "smartinsights-" + replace,
                 PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration
                 {
                     BlockPublicAcls = true,
@@ -115,7 +115,7 @@ namespace OpsSecProject.Controllers
             });
             CreateDeliveryStreamResponse createDeliveryStreamResponse = await _FirehoseClient.CreateDeliveryStreamAsync(new CreateDeliveryStreamRequest
             {
-                DeliveryStreamName = "smart-insight-" + replace,
+                DeliveryStreamName = "smartinsights-" + replace,
                 DeliveryStreamType = DeliveryStreamType.DirectPut,
                 ExtendedS3DestinationConfiguration = new ExtendedS3DestinationConfiguration
                 {
