@@ -14,7 +14,9 @@ namespace OpsSecProject.ViewModels
         public List<ApacheWebLog> count { get; set; }
         public List<ApacheWebLog> groupBy { get; set; }
         public List<ApacheWebLog> cardsTotalIps { get; set; }
-        public List<ApacheWebLog> cardsTotalBytes { get; set; }
+        public List<ApacheWebLog> cardsTotalBytes { get; set; }       
+        public List<ApacheWebLog> cardsTopIp { get; set; }
+
 
         // SSH stuff
         public List<SSHServerLogs> sshlogs { get; set; }
@@ -29,6 +31,10 @@ namespace OpsSecProject.ViewModels
 
         // Squid stuff
         public List<SquidProxyLog> squidlogs { get; set; }
+        public List<SquidProxyLog> squidResults { get; set; }
+        public List<SquidProxyLog> cardsTopContentType { get; set; }
+        public List<SquidProxyLog> cardsTopDestIp { get; set; }
+        public List<SquidProxyLog> cardsTopReqUser { get; set; }
 
 
         //Windows stuff

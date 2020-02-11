@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OpsSecProject.Models.SquidProxyLog>
+﻿@model OpsSecProject.ViewModels.StreamingOverrallViewModel
 @{
     ViewData["Title"] = "Squid Logs";
 }
@@ -19,9 +19,9 @@
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Failed Logins</div>
 
                         @*@foreach (var log in Model.cardsFailedLogin)
-                        {
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.failedLogin</div>
-                        }*@
+                            {
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.failedLogin</div>
+                            }*@
 
                     </div>
                     <div class="col-auto">
@@ -41,10 +41,10 @@
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">User With Most Failed Logins</div>
 
                         @*@foreach (var log in Model.cardsTopUserFailedLogin)
-                        {
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
-                        }*@
+                            {
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.u</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNum</div>
+                            }*@
 
                     </div>
                     <div class="col-auto">
@@ -64,10 +64,10 @@
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Port With Most Failed Logins</div>
 
                         @*@foreach (var log in Model.cardsTopPort)
-                        {
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
-                        }*@
+                            {
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.topPort</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@log.totalNumPort</div>
+                            }*@
 
                     </div>
                     <div class="col-auto">
@@ -161,7 +161,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var log in Model)
+                    @foreach (var log in Model.squidResults)
                     {
                         <tr>
                             <th scope="row">@log.timestamp</th>
