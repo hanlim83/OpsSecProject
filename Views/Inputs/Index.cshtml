@@ -50,7 +50,7 @@
                                 }
                                 <td>
                                     <div class="btn-group" role="group" aria-label="Input Actions">
-                                        <a class="btn btn-secondary" asp-controller="Home" asp-action="Streaming" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">View Events</a>
+                                        <a class="btn btn-secondary" asp-controller="Analytics" asp-action="Streaming" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">View Events</a>
                                         <a class="btn btn-secondary" asp-action="Manage" asp-route-InputID="@HttpUtility.HtmlEncode(input.ID)">Manage Log Input</a>
                                         @if (input.InitialIngest == true)
                                         {
