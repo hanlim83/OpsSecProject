@@ -6,16 +6,26 @@ using OpsSecProject.ViewModels;
 using System.Data.SqlClient;
 using OpsSecProject.Models;
 using OpsSecProject.Data;
+using System.IO;
+using CsvHelper.Configuration;
+using System.Globalization;
+using CsvHelper;
+using Amazon.SageMakerRuntime.Model;
+using Amazon.SageMakerRuntime;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace OpsSecProject.Controllers
 {
     public class AnalyticsController : Controller
     {
         private readonly LogContext _context;
+        private readonly IAmazonSageMakerRuntime _SageMakerClient;
 
-        public AnalyticsController(LogContext context)
+        public AnalyticsController(LogContext context, IAmazonSageMakerRuntime SageMakerClient)
         {
             _context = context;
+            _SageMakerClient = SageMakerClient;
         }
 
 
@@ -863,7 +873,6 @@ namespace OpsSecProject.Controllers
                             while (dr.Read())
                             {
                                 ApacheWebLog newItem = new ApacheWebLog();
-
                                 if (!dr.IsDBNull(0))
                                     newItem.totalBytes = Convert.ToString(dr.GetInt32(0));
 
@@ -1162,8 +1171,6 @@ namespace OpsSecProject.Controllers
                         cmd.CommandTimeout = 0;
                         using (SqlDataReader dr = cmd.ExecuteReader())
                         {
-
-
                             IList<string> yAxisNumLoginAttempts2 = new List<string>();
 
                             while (dr.Read())
@@ -1629,12 +1636,74 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> Web()
         {
-
             return View();
-
         }
 
-
-
+        [HttpPost]
+        public async Task<IActionResult> Predict(string eventData, int SageMakerID)
+        {
+            Trigger entity = await _context.AlertTriggers.FindAsync(SageMakerID);
+            if (entity == null || eventData == null)
+                return StatusCode(404);
+            if (eventData.Contains(entity.Condtion) || (eventData.Contains("R:301") && entity.LinkedLogInput.LogInputCategory.Equals(LogInputCategory.ApacheWebServer)))
+            {
+                string[] eventDataSplit = eventData.Split('|');
+                List<GenericRecordHolder> genericRecordHolder = new List<GenericRecordHolder>
+                {
+                    new GenericRecordHolder
+                    {
+                        field1 = eventDataSplit[2],
+                        field2 = eventDataSplit[0]
+                    }
+                };
+                MemoryStream sendingMemoryStream = new MemoryStream();
+                CsvConfiguration config = new CsvConfiguration(CultureInfo.CurrentCulture)
+                {
+                    HasHeaderRecord = false
+                };
+                using (var streamWriter = new StreamWriter(sendingMemoryStream))
+                {
+                    using (var csvWriter = new CsvWriter(streamWriter, config))
+                    {
+                        csvWriter.WriteRecords(genericRecordHolder);
+                    }
+                }
+                InvokeEndpointResponse invokeEndpointResponse = await _SageMakerClient.InvokeEndpointAsync(new InvokeEndpointRequest
+                {
+                    Accept = "application/json",
+                    ContentType = "text/csv",
+                    EndpointName = entity.EndpointName,
+                    Body = new MemoryStream(sendingMemoryStream.ToArray())
+                });
+                if (invokeEndpointResponse.HttpStatusCode.Equals(HttpStatusCode.OK))
+                {
+                    string json = string.Empty;
+                    MemoryStream receivingMemoryStream = new MemoryStream(invokeEndpointResponse.Body.ToArray())
+                    {
+                        Position = 0
+                    };
+                    using (StreamReader reader = new StreamReader(receivingMemoryStream))
+                    {
+                        json = reader.ReadToEnd();
+                    }
+                    IPInsightsPredictions predictions = JsonConvert.DeserializeObject<IPInsightsPredictions>(json);
+                    TempData["Alert"] = "Success";
+                    TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product;
+                    return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
+                }
+                else
+                {
+                    TempData["Alert"] = "Danger";
+                    TempData["Message"] = "The Machine Learning Model is facing some issues at the moment...";
+                    return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
+                }
+            }
+            else
+            {
+                TempData["Alert"] = "Warning";
+                TempData["Message"] = "This event cannot be inferred by the Machine Learning Model!";
+                return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
+            }
+        }
     }
 }
