@@ -873,7 +873,6 @@ namespace OpsSecProject.Controllers
                             while (dr.Read())
                             {
                                 ApacheWebLog newItem = new ApacheWebLog();
-
                                 if (!dr.IsDBNull(0))
                                     newItem.totalBytes = Convert.ToString(dr.GetInt32(0));
 
@@ -1172,8 +1171,7 @@ namespace OpsSecProject.Controllers
                         cmd.CommandTimeout = 0;
                         using (SqlDataReader dr = cmd.ExecuteReader())
                         {
-
-
+                                sovm.cardsTotalBytes.Add(newItem);
                             IList<string> yAxisNumLoginAttempts2 = new List<string>();
 
                             while (dr.Read())
@@ -1639,9 +1637,7 @@ namespace OpsSecProject.Controllers
 
         public async Task<IActionResult> Web()
         {
-
             return View();
-
         }
 
         [HttpPost]
@@ -1710,6 +1706,5 @@ namespace OpsSecProject.Controllers
                 return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
             }
         }
-
     }
 }
