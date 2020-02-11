@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.KinesisFirehose;
 using Amazon.KinesisFirehose.Model;
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SageMaker;
@@ -19,6 +21,7 @@ using OpsSecProject.Data;
 using OpsSecProject.Models;
 using OpsSecProject.Services;
 using OpsSecProject.ViewModels;
+using Environment = System.Environment;
 
 namespace OpsSecProject.Controllers
 {
@@ -27,23 +30,17 @@ namespace OpsSecProject.Controllers
     {
         private readonly LogContext _logContext;
         private readonly AccountContext _accountContext;
-        private readonly IAmazonSageMaker _Sclient;
-        private readonly IAmazonSageMakerRuntime _SRClient;
         private readonly IAmazonS3 _S3Client;
-        private IBackgroundTaskQueue _queue { get; }
-        private readonly ILogger _logger;
         private readonly IAmazonKinesisFirehose _FirehoseClient;
+        private readonly IAmazonLambda _LambdaClient;
 
-        public InputsController(LogContext logContext, IBackgroundTaskQueue queue, ILogger<InputsController> logger, AccountContext accountContext, IAmazonSageMaker Sclient, IAmazonSageMakerRuntime SRClient, IAmazonS3 S3Client, IAmazonKinesisFirehose FirehoseClient)
+        public InputsController(LogContext logContext, AccountContext accountContext, IAmazonS3 S3Client, IAmazonKinesisFirehose FirehoseClient, IAmazonLambda LambdaClient)
         {
             _logContext = logContext;
-            _queue = queue;
-            _logger = logger;
             _accountContext = accountContext;
-            _Sclient = Sclient;
-            _SRClient = SRClient;
             _S3Client = S3Client;
             _FirehoseClient = FirehoseClient;
+            _LambdaClient = LambdaClient;
         }
 
         public async Task<IActionResult> Index()
@@ -83,8 +80,8 @@ namespace OpsSecProject.Controllers
             string replacement = "-";
             string replace = Regex.Replace(lowcap, pattern, replacement);
             var BucketName2 = "smart-insight-" + replace;
-            var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + "WinSecurityLog" + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n         \"Directory\":\"" + input.FilePath + "\",\r\n         \"FileNameFilter\":\" " + input.Filter + "\",\r\n         \"LogName\":\" " + input.Name + " \"\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"WinSecurityKinesisFirehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID")+"\",\r\n         \"SecretKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") +"\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"WinSecurityLog\",\r\n         \"SinkRef\":\"WinSecurityKinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}";
-            var data2 = "{\r\n  \"cloudwatch.emitMetrics\": false,\r\n  \"awsSecretAccessKey\": \"XW2HNGQnW9ygpvPDzQQemY0AhsFlUGwiKnVpZGbO\",\r\n  \"firehose.endpoint\": \"firehose.ap-southeast-1.amazonaws.com\",\r\n  \"awsAccessKeyId\": \"AKIASXW25GZQH5IABE4P\",\r\n  \"flows\": [\r\n    {\r\n      \"filePattern\": \"/opt/generators/CLF/*.log\",\r\n      \"deliveryStream\": \"SmartInsights-Apache-Web-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMMONAPACHELOG\"\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/generators/ELF/*.log\",\r\n      \"deliveryStream\": \"\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMBINEDAPACHELOG\"\r\n                }\r\n            ]      \r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/www1/secure.log\",\r\n      \"deliveryStream\": \"SmartInsights-SSH-Login-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w]+) ([\\\\w]+) ([\\\\d]+) ([\\\\d]+) ([\\\\w:]+) ([\\\\w]+) ([\\\\w]+)\\\\[([\\\\d]+)\\\\]\\\\: ([\\\\w\\\\s.\\\\:=]+)$\",\r\n                    \"customFieldNames\": [\"weekday\", \"month\", \"day\", \"year\", \"time\", \"host\", \"process\", \"identifer\",\"message\"]\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/cisco_router1/cisco_ironport_web.log\",\r\n      \"deliveryStream\": \"SmartInsights-Cisco-Squid-Proxy-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w.]+) (?:[\\\\d]+) ([\\\\d.]+) ([\\\\w]+)\\\\/([\\\\d]+) ([\\\\d]+) ([\\\\w.]+) ([\\\\S]+) ([\\\\S]+) (?:[\\\\w]+)\\\\/([\\\\S]+) ([\\\\S]+) (?:[\\\\S\\\\s]+)$\",\r\n                    \"customFieldNames\": [\"timestamp\",\"destination_ip_address\",\"action\",\"http_status_code\",\"bytes_in\",\"http_method\",\"requested_url\",\"user\",\"requested_url_domain\",\"content_type\"]\r\n                }\r\n            ]\r\n    }\r\n  ]\r\n}";
+            var data = "{ \r\n   \"Sources\":[ \r\n      { \r\n         \"Id\":\"" + input.Name + "\",\r\n         \"SourceType\":\"WindowsEventLogSource\",\r\n  \"LogName\":\"" + input.LogType + "\",\r\n         \"IncludeEventData\" : true\r\n            }\r\n   ],\r\n   \"Sinks\":[ \r\n      { \r\n         \"Id\":\"" + input.Name + "Firehose\",\r\n         \"SinkType\":\"KinesisFirehose\",\r\n         \"AccessKey\":\"" + Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID")+"\",\r\n         \"SecretKey\":\""+ Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") +"\",\r\n         \"Region\":\"ap-southeast-1\",\r\n         \"StreamName\":\"" + BucketName2 + "\"\r\n         \"Format\": \"json\"\r\n      }\r\n   ],\r\n   \"Pipes\":[ \r\n      { \r\n         \"Id\":\"WinSecurityPipe\",\r\n         \"SourceRef\":\"" + input.Name + "\",\r\n         \"SinkRef\":\"" + input.Name + "KinesisFirehose\"\r\n      }\r\n   ],\r\n   \"SelfUpdate\":0\r\n}";
+            var data2 = "{\r\n  \"cloudwatch.emitMetrics\": false,\r\n  \"awsSecretAccessKey\": \"" + Environment.GetEnvironmentVariable("FIREHOSE_SECRET_ACCESS_KEY") + "\",\r\n  \"firehose.endpoint\": \"firehose.ap-southeast-1.amazonaws.com\",\r\n  \"awsAccessKeyId\": \"" + Environment.GetEnvironmentVariable("FIREHOSE_ACCESS_KEY_ID") + "\",\r\n  \"flows\": [\r\n    {\r\n      \"filePattern\": \"/opt/generators/CLF/*.log\",\r\n      \"deliveryStream\": \"SmartInsights-Apache-Web-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMMONAPACHELOG\"\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/generators/ELF/*.log\",\r\n      \"deliveryStream\": \"\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"COMBINEDAPACHELOG\"\r\n                }\r\n            ]      \r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/www1/secure.log\",\r\n      \"deliveryStream\": \"SmartInsights-SSH-Login-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w]+) ([\\\\w]+) ([\\\\d]+) ([\\\\d]+) ([\\\\w:]+) ([\\\\w]+) ([\\\\w]+)\\\\[([\\\\d]+)\\\\]\\\\: ([\\\\w\\\\s.\\\\:=]+)$\",\r\n                    \"customFieldNames\": [\"weekday\", \"month\", \"day\", \"year\", \"time\", \"host\", \"process\", \"identifer\",\"message\"]\r\n                }\r\n            ]\r\n    },\r\n    {\r\n      \"filePattern\": \"/opt/log/cisco_router1/cisco_ironport_web.log\",\r\n      \"deliveryStream\": \"SmartInsights-Cisco-Squid-Proxy-Logs\",\r\n      \"dataProcessingOptions\": [\r\n                {\r\n                    \"optionName\": \"LOGTOJSON\",\r\n                    \"logFormat\": \"SYSLOG\",\r\n                    \"matchPattern\": \"^([\\\\w.]+) (?:[\\\\d]+) ([\\\\d.]+) ([\\\\w]+)\\\\/([\\\\d]+) ([\\\\d]+) ([\\\\w.]+) ([\\\\S]+) ([\\\\S]+) (?:[\\\\w]+)\\\\/([\\\\S]+) ([\\\\S]+) (?:[\\\\S\\\\s]+)$\",\r\n                    \"customFieldNames\": [\"timestamp\",\"destination_ip_address\",\"action\",\"http_status_code\",\"bytes_in\",\"http_method\",\"requested_url\",\"user\",\"requested_url_domain\",\"content_type\"]\r\n                }\r\n            ]\r\n    }\r\n  ]\r\n}";
             string data3 = "";
             PutBucketResponse putBucketResponse = await _S3Client.PutBucketAsync(new PutBucketRequest
             {
@@ -148,7 +145,32 @@ namespace OpsSecProject.Controllers
             string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
             User user = await _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefaultAsync();
             Models.S3Bucket bucket = await _logContext.S3Buckets.Where(b => b.Name.Equals(BucketName2)).FirstOrDefaultAsync();
-            if (input.LogInputCategory.ToString() != "WindowsEventLogs") {
+            await _logContext.SaveChangesAsync();
+            await _LambdaClient.AddPermissionAsync(new AddPermissionRequest
+            {
+                Action = "lambda:InvokeFunction",
+                FunctionName = Environment.GetEnvironmentVariable("LAMBDA_FUNCTION_NAME"),
+                Principal = "s3.amazonaws.com",
+                SourceAccount = Environment.GetEnvironmentVariable("AWS_ACCOUNT_NUMBER"),
+                SourceArn = "arn:aws:s3:::" + bucket.Name,
+                StatementId = "ID-" + bucket.ID
+            });
+            await _S3Client.PutBucketNotificationAsync(new PutBucketNotificationRequest
+            {
+                BucketName = BucketName2,
+                LambdaFunctionConfigurations = new List<LambdaFunctionConfiguration>
+                {
+                    new LambdaFunctionConfiguration
+                    {
+                        FunctionArn = Environment.GetEnvironmentVariable("LAMBDA_FUNCTION_ARN"),
+                        Events = new List<EventType>
+                        {
+                            EventType.ObjectCreatedPut
+                        }
+                    }
+                }
+            });
+            if (!input.LogInputCategory.Equals(LogInputCategory.WindowsEventLogs)) {
                 data3 = data2;
             }
             else {
@@ -189,7 +211,11 @@ namespace OpsSecProject.Controllers
             {
                 DeliveryStreamName = retrieved.FirehoseStreamName
             }) ;
-
+            await _LambdaClient.RemovePermissionAsync(new RemovePermissionRequest
+            {
+                FunctionName = Environment.GetEnvironmentVariable("LAMBDA_FUNCTION_NAME"),
+                StatementId = "ID-" + retrieved.LinkedS3Bucket.ID
+            });
             DeleteBucketResponse deleteBucketResponse = await _S3Client.DeleteBucketAsync(new DeleteBucketRequest
             {
                 BucketName = retrieved.LinkedS3Bucket.Name,
@@ -198,6 +224,8 @@ namespace OpsSecProject.Controllers
 
             _logContext.LogInputs.Remove(retrieved);
             await _logContext.SaveChangesAsync();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Log Input " + retrieved.Name + " deleted successfully!";
             return RedirectToAction("Index");
 
         }

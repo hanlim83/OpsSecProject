@@ -76,7 +76,7 @@ namespace OpsSecProject.Controllers
             chosenEvent.UpdatedTimestamp = DateTime.Now;
             Trigger linkedTrigger = chosenEvent.LinkedAlertTrigger;
             if (linkedTrigger.IgnoredEvents == null)
-                linkedTrigger.IgnoredEvents = new string[] { chosenEvent.UserField, chosenEvent.IPAddressField };
+                linkedTrigger.IgnoredEvents = new string[] {chosenEvent.UserField, chosenEvent.IPAddressField};
             else
             {
                 string[] newIgnoredEvents = new string[linkedTrigger.IgnoredEvents.Count() + 2];

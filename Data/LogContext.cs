@@ -26,7 +26,7 @@ namespace OpsSecProject.Data
             modelBuilder.Entity<GlueDatabase>().ToTable("GlueDatabases");
             modelBuilder.Entity<GlueDatabaseTable>().ToTable("GlueDatabaseTables");
             modelBuilder.Entity<GlueConsolidatedEntity>().ToTable("GlueConsolidatedEntities");
-            modelBuilder.Entity<Trigger>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.Untrained);
+            modelBuilder.Entity<Trigger>().Property(s => s.SagemakerStatus).HasDefaultValue(SagemakerStatus.None);
             modelBuilder.Entity<Trigger>().Property(s => s.SagemakerErrorStage).HasDefaultValue(SagemakerErrorStage.None);
             modelBuilder.Entity<Trigger>().Property(s => s.DeprecatedInputDataKeys).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<Trigger>().Property(s => s.DeprecatedModelNames).HasConversion(v => string.Join(',', v), v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));

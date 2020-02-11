@@ -131,9 +131,7 @@
                         <span>Per-Input Dashboards</span>
                     </a>
                     <div id="collapseInputDashboards" class="collapse" aria-labelledby="collapseInputDashboards" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Show">DATA INPUT NAME</a>
-                        </div>
+                        @await Component.InvokeAsync("LogInputDashboards")
                     </div>
                 </li>
             }
@@ -155,6 +153,12 @@
                         <span>Security Logs</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Tasks" asp-action="Index">
+                        <i class="fas fa-clipboard"></i>
+                        <span>Manage Tasks</span>
+                    </a>
+                </li>
             }
             <hr class="sidebar-divider d-none d-md-block">
             <div class="text-center d-none d-md-inline">
@@ -167,6 +171,7 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
+                    <!--
                     @if (User.IsInRole("Power User") || User.IsInRole("Administrator"))
                     {
                         <form asp-controller="Home" asp-action="Search" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
@@ -180,6 +185,7 @@
                             </div>
                         </form>
                     }
+                    -->
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item dropdown no-arrow d-sm-none">
                             <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

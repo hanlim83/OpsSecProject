@@ -1,0 +1,7 @@
+﻿@model IEnumerable<OpsSecProject.Models.LogInput>
+<div class="bg-white py-2 collapse-inner rounded">
+    @foreach (var logInput in Model)
+    {
+        <a class="collapse-item" asp-area="" asp-controller="Analytics" asp-action="Dashboard" asp-route-InputID="@logInput.ID">@logInput.Name</a>
+    }
+</div>

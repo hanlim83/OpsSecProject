@@ -29,6 +29,8 @@ namespace OpsSecProject.Models
         public string Condtion { get; set; }
         public string IPAddressField { get; set; }
         public string UserField { get; set; }
+        public string CountType { get; set; }
+        public string Count { get; set; }
         public string CurrentInputDataKey { get; set; }
         public string[] DeprecatedInputDataKeys { get; set; }
         public string CurrentModelFileKey { get; set; }

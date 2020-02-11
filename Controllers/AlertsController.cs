@@ -85,7 +85,7 @@ namespace OpsSecProject.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType", "LinkedLogInputID", "IPAddressField", "UserField")]Trigger AlertTrigger)
+        public async Task<IActionResult> Create([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType", "LinkedLogInputID", "IPAddressField", "UserField", "CountType", "Count")]Trigger AlertTrigger)
         {
             LogInput retrieved = _logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID);
             string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
@@ -101,11 +101,11 @@ namespace OpsSecProject.Controllers
                     condtionalOperator = "!=";
                     Condtion = "'" + AlertTrigger.Condtion + "'";
                     break;
-                case "Similar":
+                case "Like":
                     condtionalOperator = "LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
-                case "NotSimilar":
+                case "NotLike":
                     condtionalOperator = "NOT LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
@@ -136,7 +136,7 @@ namespace OpsSecProject.Controllers
                     if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
                     {
                         dateTimeField = "datetime";
-                        sqlQuery1 = @"SELECT ROW_NUMBER() OVER(ORDER BY " + dateTimeField + " ASC), " + AlertTrigger.UserField + ", " + AlertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 200;";
+                        sqlQuery1 = @"SELECT ROW_NUMBER() OVER(ORDER BY " + dateTimeField + " ASC), " + AlertTrigger.UserField + ", " + AlertTrigger.IPAddressField + " FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 301;";
                     }
                     else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
                     {
@@ -178,8 +178,10 @@ namespace OpsSecProject.Controllers
                             }
                         }
                     }
-                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer) || _logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SquidProxy))
-                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + ";";
+                    if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + " AND response = 301;";
+                    else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SquidProxy))
+                        sqlQuery2 = @"SELECT count(DISTINCT " + AlertTrigger.UserField + ") FROM " + dbTableName + " WHERE " + AlertTrigger.CondtionalField + " " + condtionalOperator + " " + Condtion + ";";
                     else if (_logContext.LogInputs.Find(AlertTrigger.LinkedLogInputID).LogInputCategory.Equals(LogInputCategory.SSH))
                         sqlQuery2 = sqlQuery1;
                     using (SqlCommand cmd = new SqlCommand(sqlQuery2, connection))
@@ -197,7 +199,8 @@ namespace OpsSecProject.Controllers
                                     num_entities = (Convert.ToInt32(dr.GetValue(0)) * 2).ToString();
                             }
                         }
-                        num_entities = userNames.Distinct().ToList().Count().ToString();
+                        if (userNames.Count != 0)
+                            num_entities = userNames.Distinct().ToList().Count().ToString();
                     }
                 }
                 MemoryStream memoryStream = new MemoryStream();
@@ -423,12 +426,12 @@ namespace OpsSecProject.Controllers
                 string inputDataKey = retrieved.Name.Replace(" ", "-") + "/Input/randomcutforest/data-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
                 string modelFileKey = retrieved.Name.Replace(" ", "-") + "/Model";
                 string checkpointKey = retrieved.Name.Replace(" ", "-") + "/Checkpoint";
-                string jobName = retrieved.Name.Replace(" ", "-") + "-RandomCutForest-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+                string jobName = retrieved.Name.Replace(" ", "-") + "-RCF-Training-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 await tu.UploadAsync(new TransferUtilityUploadRequest
                 {
                     InputStream = new MemoryStream(memoryStream.ToArray()),
                     Key = inputDataKey,
-                    BucketName = _logContext.S3Buckets.Find(2).Name
+                    BucketName = _logContext.S3Buckets.Find(1).Name
                 });
                 CreateTrainingJobRequest createTrainingJobRequest = new CreateTrainingJobRequest
                 {
@@ -509,6 +512,8 @@ namespace OpsSecProject.Controllers
             }
             _logContext.AlertTriggers.Add(AlertTrigger);
             await _logContext.SaveChangesAsync();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Alert Trigger Created!";
             return RedirectToAction("Manage", new { LogInputID = AlertTrigger.LinkedLogInputID });
         }
         public async Task<IActionResult> Edit(int TriggerID)
@@ -697,11 +702,11 @@ namespace OpsSecProject.Controllers
                     condtionalOperator = "!=";
                     Condtion = "'" + AlertTrigger.Condtion + "'";
                     break;
-                case "Similar":
+                case "Like":
                     condtionalOperator = "LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
-                case "NotSimilar":
+                case "NotLike":
                     condtionalOperator = "NOT LIKE";
                     Condtion = "'%" + AlertTrigger.Condtion + "%'";
                     break;
@@ -795,7 +800,8 @@ namespace OpsSecProject.Controllers
                                     num_entities = (Convert.ToInt32(dr.GetValue(0)) * 2).ToString();
                             }
                         }
-                        num_entities = userNames.Distinct().ToList().Count().ToString();
+                        if (userNames.Count != 0)
+                            num_entities = userNames.Distinct().ToList().Count().ToString();
                     }
                 }
                 MemoryStream memoryStream = new MemoryStream();
