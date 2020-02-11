@@ -90,6 +90,103 @@ namespace OpsSecProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Search(string query)
         {
+            ClaimsIdentity claimsIdentity = HttpContext.User.Identity as ClaimsIdentity;
+            string currentIdentity = claimsIdentity.FindFirst("preferred_username").Value;
+            User user = _accountContext.Users.Where(u => u.Username == currentIdentity).FirstOrDefault();
+            return View(_context.QuestionableEvents.Where(q => q.ReviewUserID == user.ID).ToList());
+        }
+        public IActionResult Review(int EventID)
+        {
+            if (InputID <= 0)
+                return StatusCode(404);
+            LogInput retrieved = await _context.LogInputs.FindAsync(InputID);
+            if (retrieved == null)
+                return StatusCode(404);
+            string dbTableName = "dbo." + retrieved.LinkedS3Bucket.Name.Replace("-", "_");
+            List<ApacheWebLog> webLogs = new List<ApacheWebLog>();
+            using (SqlConnection connection = new SqlConnection(GetRdsConnectionString()))
+            {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM " + dbTableName + ";", connection))
+                {
+                    cmd.CommandTimeout = 0;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            if (retrieved.LogInputCategory.Equals(LogInputCategory.ApacheWebServer))
+                            {
+                                ApacheWebLog newItem = new ApacheWebLog();
+                                if (retrieved.Name.Contains("IPInsights"))
+                                {
+                                    if (!dr.IsDBNull(0))
+                                        newItem.host = dr.GetString(0);
+                                    if (!dr.IsDBNull(1))
+                                        newItem.ident = dr.GetString(1);
+                                    if (!dr.IsDBNull(2))
+                                        newItem.authuser = dr.GetString(2);
+                                    if (!dr.IsDBNull(3))
+                                        newItem.datetime = dr.GetString(3);
+                                    if (!dr.IsDBNull(4) && !dr.IsDBNull(5) && !dr.IsDBNull(6))
+                                        newItem.request = dr.GetString(4)+ " " + dr.GetString(5)+ " " + dr.GetString(6);
+                                    if (!dr.IsDBNull(7))
+                                        newItem.response = dr.GetString(7);
+                                    if (!dr.IsDBNull(8))
+                                        newItem.bytes = Convert.ToInt32(dr.GetString(8));
+                                    if (!dr.IsDBNull(9))
+                                        newItem.referer = dr.GetString(9);
+                                    if (!dr.IsDBNull(10))
+                                        newItem.agent = dr.GetString(10);
+                                    webLogs.Add(newItem);
+                                } else
+                                {
+                                    if (!dr.IsDBNull(0))
+                                        newItem.host = dr.GetString(0);
+                                    if (!dr.IsDBNull(1))
+                                        newItem.ident = dr.GetString(1);
+                                    if (!dr.IsDBNull(2))
+                                        newItem.authuser = dr.GetString(2);
+                                    if (!dr.IsDBNull(3))
+                                        newItem.datetime = dr.GetString(3);
+                                    if (!dr.IsDBNull(4))
+                                        newItem.request = dr.GetString(4);
+                                    if (!dr.IsDBNull(5))
+                                        newItem.response = dr.GetString(5);
+                                    if (!dr.IsDBNull(6))
+                                        newItem.bytes = Convert.ToInt32(dr.GetString(6));
+                                    if (dr.FieldCount == 9)
+                                    {
+                                        if (!dr.IsDBNull(7))
+                                            newItem.referer = dr.GetString(7);
+                                        if (!dr.IsDBNull(8))
+                                            newItem.agent = dr.GetString(8);
+                                    }
+                                    webLogs.Add(newItem);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+            Trigger ipinsights = null;
+            foreach (var sagemaker in retrieved.LinkedSagemakerEntities)
+            {
+                if (sagemaker.AlertTriggerType.Equals(AlertTriggerType.IPInsights) && sagemaker.SagemakerStatus.Equals(SagemakerStatus.Ready))
+                {
+                    ipinsights = sagemaker;
+                    break;
+                }
+            }
+            return View(new StreamingOverrallViewModel
+            {
+                ReviewEvent = chosenEvent,
+                SupplmentaryInformation = ipStackClient.GetIpAddressDetails(chosenEvent.IPAddressField)
+            });
+        }
+        [HttpPost]
+        public async Task<IActionResult> Search(string query)
+        {
             return View();
         }
 
