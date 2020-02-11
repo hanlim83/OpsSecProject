@@ -4,7 +4,7 @@
     "profile" : "default",
     "region"  : "ap-southeast-1",
     "application" : "OSPJ",
-    "environment" : "ospj-final-testing",
+    "environment" : "OSPJ-FP",
     "iis-website" : "Default Web Site",
     "app-path"    : "/",
     "enable-xray" : true

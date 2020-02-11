@@ -1732,7 +1732,10 @@ namespace OpsSecProject.Controllers
                     }
                     IPInsightsPredictions predictions = JsonConvert.DeserializeObject<IPInsightsPredictions>(json);
                     TempData["Alert"] = "Success";
-                    TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product;
+                    if (predictions.Predictions[0].Dot_product < -1 || predictions.Predictions[0].Dot_product >= 2)
+                        TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product + "(Abnormal Login)";
+                    else
+                        TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product + "(Normal Login)";
                     return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
                 }
                 else
