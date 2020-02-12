@@ -91,7 +91,7 @@
                                 {
                                     if (!User.Claims.First(c => c.Type == "name").Value.Equals(user.Name))
                                     {
-                                        <option value="@user.ID">@user.Name</option>
+                                        <option value="@user.ID">@user.Name (@user.Username)</option>
                                     }
                                 }
                             </select>
