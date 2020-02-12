@@ -3,12 +3,12 @@
     ViewData["Title"] = "Review Event";
 }
 <h1 class="h3 mb-2 text-gray-800">Review Event</h1>
-<p class="mb-4">Please determine if this event was initiated by you</p>
+<p class="mb-4">Please determine if this event was authorised by you</p>
 @await Html.PartialAsync("EventPartial")
 <div class="container">
     <div class="text-center">
-        <a class="btn btn-success" asp-action="Accept" asp-route-EventID="@Model.ReviewEvent.ID" style="float: left;">Yes, this is me</a>
-        <a class="btn btn-danger" asp-action="Reject" asp-route-EventID="@Model.ReviewEvent.ID" style="float: right;">No, this is not me</a>
+        <a class="btn btn-success" asp-action="Accept" asp-route-EventID="@Model.ReviewEvent.ID" style="float: left;">Yes</a>
+        <a class="btn btn-danger" asp-action="Reject" asp-route-EventID="@Model.ReviewEvent.ID" style="float: right;">No</a>
     </div>
 </div>
 @section scripts {
