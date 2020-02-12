@@ -1731,11 +1731,17 @@ namespace OpsSecProject.Controllers
                         json = reader.ReadToEnd();
                     }
                     IPInsightsPredictions predictions = JsonConvert.DeserializeObject<IPInsightsPredictions>(json);
-                    TempData["Alert"] = "Success";
                     if (predictions.Predictions[0].Dot_product < -1 || predictions.Predictions[0].Dot_product >= 2)
+                    {
+                        TempData["Alert"] = "Danger";
                         TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product + "(Abnormal Login)";
+                    }
                     else
+                    {
+                        TempData["Alert"] = "Success";
                         TempData["Message"] = "The Machine Learning Model returned " + predictions.Predictions[0].Dot_product + "(Normal Login)";
+                    }
+                        
                     return RedirectToAction("Streaming", new { InputID = entity.LinkedLogInputID });
                 }
                 else

@@ -541,10 +541,12 @@ namespace OpsSecProject.Controllers
             return View(alert);
         }
         [HttpPost]
-        public async Task<IActionResult> Edit([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType")]Trigger AlertTrigger)
+        public async Task<IActionResult> Edit([Bind("Name", "Condtion", "CondtionalField", "CondtionType", "AlertTriggerType", "CountType", "Count")]Trigger AlertTrigger)
         {
             _logContext.AlertTriggers.Update(AlertTrigger);
             await _logContext.SaveChangesAsync();
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Alert Trigger " + AlertTrigger.Name + " editied successfully!";
             return RedirectToAction("Manage", new { LogInputID = AlertTrigger.LinkedLogInputID });
         }
         public async Task<IActionResult> Remove(int TriggerID)
@@ -578,6 +580,8 @@ namespace OpsSecProject.Controllers
                     });
                 }
             }
+            TempData["Alert"] = "Success";
+            TempData["Message"] = "Alert Trigger " + deleted.Name + " deleted successfully!";
             return RedirectToAction("Manage", new { LogInputID = deleted.LinkedLogInputID });
         }
         public async Task<IActionResult> Deploy(int TriggerID)
